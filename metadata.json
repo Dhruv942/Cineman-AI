@@ -1,0 +1,6 @@
+{
+  "name": "What to watch",
+  "description": "Get super personalized movie recommendations based on your unique preferences, powered by Gemini AI. Discover your next favorite film by specifying genres, mood, keywords, and desired era.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

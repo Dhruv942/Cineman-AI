@@ -1,0 +1,136 @@
+
+import React, { useState, useEffect } from 'react';
+
+const loadingTexts = [
+  "Scanning the cosmos for cinematic gold...",
+  "Our AI is raiding the film archives (ethically, of course!)...",
+  "Warming up the popcorn machine... and the recommendation engine!",
+  "Decoding your unique movie DNA...",
+  "Searching for films so good, they should be illegal (they're not!)...",
+  "Hold onto your seat, your personalized movie list is incoming!",
+  "Just a moment, the AI is negotiating with movie critics for top picks...",
+  "Shuffling the deck of destiny... movie destiny, that is!",
+  "If movies were stars, we're finding your constellation...",
+  "Our hamsters are running as fast as they can (on the AI server wheel)!",
+  "Dusting off some hidden gems just for you...",
+  "Consulting the cinematic spirits...",
+  "Polishing the crystal ball for a glimpse of your next favorite film...",
+  "The algorithm is...uh...algorithming. Please stand by.",
+  "Sifting through mountains of movie data, just for your eyeballs.",
+  "Warning: May cause spontaneous movie marathons.",
+  "Our AI is currently arguing with itself about which genre is superior. It's complicated.",
+  "Is this the real life? Is this just fantasy? Finding movies caught in a landslide...",
+  "Channeling our inner movie oracle...",
+  "Don't worry, we haven't sent a T-800 back in time... yet. Just finding movies.",
+  "Crossing the streams... of data. Hope it works out!",
+  "Recalibrating the flux capacitor for optimal movie selection.",
+  "We're going to need a bigger boat...load of recommendations!",
+  "The recommendations are out there. We're finding them.",
+  "Engaging warp drive for faster film finding!",
+  "Summoning the movie gods. This might take a sec.",
+  "Pretty sure this AI runs on movie quotes and caffeine.",
+  "Compiling a list so good, you'll want to frame it.",
+  "Our AI is deep in thought (it looks a lot like a screensaver).",
+  "Fasten your seatbelts, it's going to be a bumpy night... of great movie suggestions!",
+  "One does not simply walk into Mordor... or find the perfect movie without a little help.",
+  "Checking the movie-verse for disturbances in the Force.",
+  "I'll be back... with your movies!",
+  "Why so serious? We're just finding some awesome flicks.",
+  "Frankly, my dear, I do give a damn... about your movie preferences.",
+  "Rounding up the usual suspects... for your movie night.",
+  "The AI is asking 'Are you not entertained?'... by these loading times?",
+  "Elementary, my dear Watson! Just deducing your next favorite film.",
+  "To infinity... and beyond! (Or at least to the end of this loading screen).",
+  "May the Force be with your patience.",
+  "Roads? Where we're going, we don't need roads... just this loading bar.",
+  "There's no place like home... especially when the movie recommendations load.",
+  "AI's log, stardate... still loading. But we're close!",
+  "Keep calm and wait for the movies.",
+  "This is where the fun begins... after this loading screen.",
+  "I have a good feeling about this... batch of recommendations.",
+  "The AI is trying to remember if it left the oven on... or was that the neural network?",
+  "My precious... recommendations are almost ready.",
+  "Surely you can't be serious? I am serious. And don't call me Shirley. (Loading...)",
+  "It's alive! IT'S ALIVE! Well, the recommendation engine is, almost.",
+  "Here's looking at you, kid... while these movies load.",
+  "AI is checking its sources. And then checking them again.",
+  "Just a few more parsecs...",
+  "Compiling the ultimate movie playlist for your brain.",
+  "No spoilers, but these recommendations are gonna be good.",
+  "Filtering out the movies you've already seen (we hope).",
+  "Our AI is powered by 1.21 gigawatts of pure cinematic enthusiasm!",
+  "The cinematic matrix is being reloaded.",
+  "Hold your horses, or rather, your movie tickets.",
+  "Don't blink, or you might miss the loading bar finish! (Okay, maybe blink).",
+  "Like a good neighbor, the AI is there... with movie suggestions eventually.",
+  "Patience is a virtue, especially when AI is thinking this hard.",
+  "This isn't your grandma's movie recommender (unless she's really cool).",
+  "Digging deep into the movie mines.",
+  "Our AI is learning your taste faster than a speeding bullet.",
+  "Is it a bird? Is it a plane? No, it's your movie list... almost!",
+  "The code monkeys are working overtime.",
+  "We're not just finding movies, we're curating experiences.",
+  "If you build it (your preferences), they (the movies) will come.",
+  "The AI's on a mission from Flicks.",
+  "Plotting the course to your next movie obsession.",
+  "This AI has seen more movies than you've had hot dinners. Probably.",
+  "Unearthing cinematic treasures, one algorithm at a time.",
+  "Preparing for movie liftoff in T-minus... a few seconds.",
+  "Consulting the ancient scrolls of film history.",
+  "Our digital projectionist is warming up the projector.",
+  "Please remain seated while the movie magic is being prepared.",
+  "We're searching for movies that'll make you say 'Wow!'",
+  "The AI is currently in 'Do Not Disturb - Genius at Work' mode.",
+  "Warning: High levels of awesome incoming.",
+  "Getting your movie recommendations... it's not rocket science, but it's close!",
+  "Houston, we have... almost got your recommendations.",
+  "Calculating the perfect movie-to-mood ratio.",
+  "The director is about to yell 'Action!' on your movie list.",
+  "Let's get ready to rumble... through these film options!",
+  "AI is connecting to the movie mainframe (it's just a big server).",
+  "Fine-tuning the film-o-matic 5000.",
+  "Don't worry, be happy... your movies are coming soon.",
+  "Like sands through the hourglass, so are the seconds of this loading time.",
+  "Making sure these aren't movies you'll 'boo' hiss at.",
+  "Our AI is so smart, it sometimes recommends movies before they're made. (Just kidding... mostly).",
+  "Polishing up some golden oldies and shiny new releases.",
+  "The AI is putting on its thinking cap (it's a very stylish cap).",
+  "What's up, doc? Your movie list, shortly.",
+  "Crafting recommendations with the precision of a Swiss watch... or a well-edited film.",
+  "These aren't the droids you're looking for, but these movies might be!",
+  "Feeling lucky, punk? You will be when these movies load.",
+  "The AI is checking for sequels, prequels, and spin-offs you might like.",
+  "This loading screen is brought to you by the letter 'M' for 'Movies'.",
+  "Get your snacks ready, the show's about to begin.",
+  "If this loading bar was a movie, it'd be an epic.",
+  "We're on the edge of our seats waiting for these recommendations too!",
+  "Almost there... just dotting the i's and crossing the t's on your movie list.",
+  "Our AI is like a bloodhound, sniffing out the best films for you.",
+  "These movies are so good, they have their own fan clubs.",
+  "Unlocking the vault of cinematic wonders.",
+  "The AI promises these aren't B-movies (unless you like B-movies, then maybe).",
+  "Rolling out the red carpet for your personalized film selection.",
+  "This is one loading screen you won't want to skip (but you can't anyway).",
+  "Our recommendation engine is currently at 110% effort.",
+  "And... cut! Almost time for your movie feature presentation."
+];
+
+export const LoadingSpinner: React.FC = () => {
+  const [currentText, setCurrentText] = useState(loadingTexts[Math.floor(Math.random() * loadingTexts.length)]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentText(loadingTexts[Math.floor(Math.random() * loadingTexts.length)]);
+    }, 3500); // Change text every 3.5 seconds
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center space-y-4 p-8 text-center">
+      <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-purple-500"></div>
+      <p className="text-xl text-purple-300 font-semibold">{currentText}</p>
+      <p className="text-sm text-slate-400">Patience, young padawan... good movies come to those who wait.</p>
+    </div>
+  );
+};
