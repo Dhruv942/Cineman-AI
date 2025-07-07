@@ -44,11 +44,11 @@ export const Header: React.FC<HeaderProps> = ({ onEditPreferences, onShowMyAccou
               <path d="M18 4H6c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h1.1c.42 3.38 1.42 6.55 2.9 9l2-5 2 5c1.48-2.45 2.48-5.62 2.9-9H18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7 6h10v3H7V6zm5 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
             </svg>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-              What to watch!
+             CineMate AI
             </h1>
           </div>
           <p className="text-base sm:text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-teal-300 tracking-wide">
-            Personalised movie recommender
+            Smart Movie & TV Show Recommender
           </p>
         </div>
 
