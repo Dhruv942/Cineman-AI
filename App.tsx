@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Header } from './components/Header';
 import { PreferenceForm } from './components/PreferenceForm';
 import { MovieList } from './components/MovieList';
