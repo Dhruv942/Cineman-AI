@@ -1,15 +1,17 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { POPULAR_MOVIES_FOR_SUGGESTION } from '../constants';
-import { getMovieTitleSuggestions, MovieTitleSuggestion } from '../services/geminiService'; // Import new service and type
+import { POPULAR_MOVIES_FOR_SUGGESTION, POPULAR_SERIES_FOR_SUGGESTION } from '../constants';
+import { getItemTitleSuggestions } from '../services/geminiService'; 
+import type { ItemTitleSuggestion, RecommendationType, PopularItemEntry } from '../types';
+
 
 interface SimilarMovieSearchProps {
   onSearch: (movieTitle: string) => void;
   isLoading: boolean;
   isActive: boolean;
+  recommendationType: RecommendationType;
+  searchContext?: 'similar' | 'tasteCheck'; // New prop
 }
 
-// Debounce function
 const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   return (...args: Parameters<F>): Promise<ReturnType<F>> => {
@@ -22,27 +24,54 @@ const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) =
   };
 };
 
-export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch, isLoading, isActive }) => {
+export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ 
+  onSearch, 
+  isLoading, 
+  isActive, 
+  recommendationType, 
+  searchContext = 'similar' 
+}) => {
   const [query, setQuery] = useState('');
-  const [popularPicks, setPopularPicks] = useState<MovieTitleSuggestion[]>([]); // For the static cards
-  const [autosuggestResults, setAutosuggestResults] = useState<MovieTitleSuggestion[]>([]);
+  const [popularPicks, setPopularPicks] = useState<PopularItemEntry[]>([]);
+  const [autosuggestResults, setAutosuggestResults] = useState<ItemTitleSuggestion[]>([]);
   const [showAutosuggest, setShowAutosuggest] = useState(false);
   const [isAutosuggestLoading, setIsAutosuggestLoading] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const itemTypeString = recommendationType === 'series' ? 'Series' : 'Movie';
+  const itemTypeStringLower = recommendationType === 'series' ? 'series' : 'movie';
+  const popularItemsSource = recommendationType === 'series' ? POPULAR_SERIES_FOR_SUGGESTION : POPULAR_MOVIES_FOR_SUGGESTION;
+
+  const mainTitleText = searchContext === 'tasteCheck' 
+    ? `Will I Like This ${itemTypeString}?` 
+    : `Find a ${itemTypeString} Like...`;
+  
+  const buttonText = searchContext === 'tasteCheck' 
+    ? `Check Taste Match` 
+    : `Find Similar ${itemTypeString}`;
+
+  const placeholderText = searchContext === 'tasteCheck'
+    ? `Enter a ${itemTypeStringLower} title to check your taste match`
+    : `Enter a ${itemTypeStringLower} title (e.g., ${recommendationType === 'movie' ? 'Inception' : 'Breaking Bad'})`;
+  
+  const subText = searchContext === 'tasteCheck'
+    ? `Our AI will analyze the ${itemTypeStringLower} against your preferences to see if it's a good match for you!`
+    : `Our AI will try to find the ${itemTypeStringLower} you're thinking of, or something very close to it!`;
+
+
   useEffect(() => {
     if (isActive) {
-      const shuffled = [...POPULAR_MOVIES_FOR_SUGGESTION].sort(() => 0.5 - Math.random());
-      setPopularPicks(shuffled.slice(0, 4)); // Show 4 suggestions for "popular picks"
-      inputRef.current?.focus(); // Focus input when tab becomes active
+      const shuffled = [...popularItemsSource].sort(() => 0.5 - Math.random());
+      setPopularPicks(shuffled.slice(0, 4)); 
+      inputRef.current?.focus(); 
     } else {
       setQuery(''); 
       setAutosuggestResults([]);
       setShowAutosuggest(false);
       setIsAutosuggestLoading(false);
     }
-  }, [isActive]);
+  }, [isActive, recommendationType, popularItemsSource]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -56,7 +85,6 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
     };
   }, []);
 
-  // Debounced function to fetch suggestions
   const debouncedGetSuggestions = useCallback(
     debounce(async (currentQuery: string) => {
       if (!currentQuery.trim() || !isActive) {
@@ -66,20 +94,18 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
         return;
       }
       setIsAutosuggestLoading(true);
-      // Ensure the autosuggest box is shown while loading if there's a query
       if (currentQuery.trim()) {
         setShowAutosuggest(true);
       }
       try {
-        const suggestions = await getMovieTitleSuggestions(currentQuery);
+        const suggestions = await getItemTitleSuggestions(currentQuery, recommendationType);
         
         if (inputRef.current && inputRef.current.value.trim() === currentQuery.trim() && isActive) {
           setAutosuggestResults(suggestions);
-          // Show the box if there are suggestions OR if there's a query (to show "no results" or loading state)
           if (suggestions.length > 0) {
             setShowAutosuggest(true);
           } else if (currentQuery.trim().length > 0) { 
-            setShowAutosuggest(true); // Keep open for "No suggestions found"
+            setShowAutosuggest(true); 
           } else { 
             setShowAutosuggest(false);
           }
@@ -90,7 +116,6 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
       } catch (error) {
         console.error("Failed to fetch autosuggestions:", error);
         setAutosuggestResults([]);
-        // Keep autosuggest box open to potentially show an error or "no results" if query still exists
         if (inputRef.current && inputRef.current.value.trim() === currentQuery.trim() && isActive && currentQuery.trim().length > 0) {
             setShowAutosuggest(true);
         } else {
@@ -102,7 +127,7 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
         }
       }
     }, 300), 
-  [isActive]);
+  [isActive, recommendationType]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,7 +168,7 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
   return (
     <div className="bg-slate-800 p-6 sm:p-8 rounded-xl shadow-2xl text-center">
       <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-teal-300">
-        Find a Movie Like...
+        {mainTitleText}
       </h2>
       <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
         <div className="relative" ref={searchContainerRef}>
@@ -154,9 +179,9 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
                 value={query}
                 onChange={handleInputChange}
                 onFocus={() => query.trim() && setShowAutosuggest(true)}
-                placeholder="Enter a movie title (e.g., Inception)"
+                placeholder={placeholderText}
                 className="flex-grow p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors text-slate-200 placeholder-slate-400 text-sm w-full sm:w-auto text-center sm:text-left"
-                aria-label="Search for a movie similar to"
+                aria-label={searchContext === 'tasteCheck' ? `Check taste match for ${itemTypeStringLower}` : `Search for a ${itemTypeStringLower} similar to`}
                 aria-autocomplete="list"
                 aria-expanded={showAutosuggest}
                 aria-controls="autosuggest-listbox"
@@ -178,14 +203,17 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
                 ) : (
                     <>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        {searchContext === 'tasteCheck' ? 
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /> :
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        }
                     </svg>
-                    Find Similar
+                    {buttonText}
                     </>
                 )}
                 </button>
             </div>
-            { (showAutosuggest && query.trim()) && ( // Only show dropdown if query is not empty and showAutosuggest is true
+            { (showAutosuggest && query.trim()) && (
             <div 
                 id="autosuggest-listbox"
                 role="listbox"
@@ -199,14 +227,14 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
                 )}
                 {!isAutosuggestLoading && autosuggestResults.length > 0 && (
                 <ul>
-                {autosuggestResults.map(movie => (
-                    <li key={`${movie.title}-${movie.year}`} role="option" aria-selected="false">
+                {autosuggestResults.map(item => (
+                    <li key={`${item.title}-${item.year}`} role="option" aria-selected="false">
                     <button
                         type="button"
-                        onClick={() => handleAutosuggestClick(movie.title)}
+                        onClick={() => handleAutosuggestClick(item.title)}
                         className="w-full text-left px-4 py-2.5 text-sm text-slate-200 hover:bg-sky-600 focus:bg-sky-600 focus:outline-none transition-colors duration-100"
                     >
-                        {movie.title} <span className="text-slate-400">({movie.year})</span>
+                        {item.title} <span className="text-slate-400">({item.year})</span>
                     </button>
                     </li>
                 ))}
@@ -217,21 +245,21 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({ onSearch
         </div>
       </form>
        <p className="text-xs text-slate-500 mt-3">
-        Our AI will try to find the movie you're thinking of, or something very close to it!
+        {subText}
       </p>
 
       {popularPicks.length > 0 && (
         <div className="mt-8 pt-6 border-t border-slate-700/50">
-          <h3 className="text-lg font-semibold text-sky-300 mb-4">Or get inspired by these popular picks:</h3>
+          <h3 className="text-lg font-semibold text-sky-300 mb-4">Or get inspired by these popular {recommendationType === 'series' ? 'series' : 'picks'}:</h3>
           <div className="flex flex-wrap justify-center gap-3">
-            {popularPicks.map(movie => (
+            {popularPicks.map(item => (
               <button
-                key={`${movie.title}-${movie.year}-popular`}
-                onClick={() => handlePopularPickClick(movie.title)}
+                key={`${item.title}-${item.year}-popular`}
+                onClick={() => handlePopularPickClick(item.title)}
                 className="bg-slate-700 hover:bg-sky-700 text-slate-200 hover:text-white font-medium py-2 px-4 rounded-lg shadow transition-colors duration-150 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-                title={`Search for movies similar to ${movie.title}`}
+                title={`${searchContext === 'tasteCheck' ? 'Check taste match for' : `Search for ${itemTypeStringLower}s similar to`} ${item.title}`}
               >
-                {movie.title} <span className="text-slate-400">({movie.year})</span>
+                {item.title} <span className="text-slate-400">({item.year})</span>
               </button>
             ))}
           </div>
