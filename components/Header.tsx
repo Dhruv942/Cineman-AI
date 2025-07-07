@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({ onEditPreferences, onShowMyAccou
           <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-1">
             <img
            src="./icons/icon32.png"
-           alt="CineMate AI logo"
+           //alt="CineMate AI logo"
            className="w-8 h-8 sm:w-10 sm:h-10"
              />
 
