@@ -10,7 +10,7 @@ export const WelcomeMessage: React.FC = () => {
         </svg>
       </div>
       <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-        Welcome to CineMate AI!
+        Welcome to CineMan AI!
       </h2>
       <p className="text-lg text-slate-300 mb-2">
         Ready to discover your next favorite movie?

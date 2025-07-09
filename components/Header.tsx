@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({ onEditPreferences, onShowMyAccou
              />
 
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-             CineMate AI
+             CineMan AI
             </h1>
           </div>
           <p className="text-base sm:text-lg font-medium text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-teal-300 tracking-wide">
