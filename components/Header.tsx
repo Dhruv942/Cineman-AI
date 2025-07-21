@@ -46,9 +46,11 @@ export const Header: React.FC<HeaderProps> = ({ onEditPreferences, onShowMyAccou
       <div className="container mx-auto px-4 relative flex items-center justify-between h-16">
         {/* Scrolled Header Content (left-aligned) */}
         <div className={`flex items-center space-x-2 sm:space-x-3 transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0'}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-purple-400 transition-all duration-300">
-              <path d="M18 4H6c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h1.1c.42 3.38 1.42 6.55 2.9 9l2-5 2 5c1.48-2.45 2.48-5.62 2.9-9H18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7 6h10v3H7V6zm5 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-            </svg>
+             <img
+           src="./icons/icon32.png"
+           //alt="CineMate AI logo"
+           className="w-8 h-8 sm:w-10 sm:h-10"
+             />
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
               CineMan AI
             </h1>
@@ -57,9 +59,11 @@ export const Header: React.FC<HeaderProps> = ({ onEditPreferences, onShowMyAccou
         {/* Unscrolled Header Content (centered, absolute position) */}
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition-opacity duration-300 ${isScrolled ? 'opacity-0 invisible' : 'opacity-100'}`}>
           <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-1">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 sm:w-10 sm:h-10 text-purple-400">
-              <path d="M18 4H6c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h1.1c.42 3.38 1.42 6.55 2.9 9l2-5 2 5c1.48-2.45 2.48-5.62 2.9-9H18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7 6h10v3H7V6zm5 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-            </svg>
+             <img
+           src="./icons/icon32.png"
+           //alt="CineMate AI logo"
+           className="w-8 h-8 sm:w-10 sm:h-10"
+             />
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
               CineMan AI
             </h1>
