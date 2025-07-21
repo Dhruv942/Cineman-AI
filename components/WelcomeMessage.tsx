@@ -1,7 +1,13 @@
-
 import React from 'react';
+import type { RecommendationType } from '../types';
 
-export const WelcomeMessage: React.FC = () => {
+interface WelcomeMessageProps {
+  itemType: RecommendationType;
+}
+
+export const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ itemType }) => {
+  const currentItemTypeString = itemType === 'series' ? 'series' : 'movie';
+  const otherItemTypeString = itemType === 'series' ? 'movie' : 'series';
   return (
     <div className="mt-12 text-center bg-slate-800 p-8 rounded-xl shadow-2xl">
       <div className="flex items-center justify-center mb-4">
@@ -13,13 +19,13 @@ export const WelcomeMessage: React.FC = () => {
         Welcome to CineMan AI!
       </h2>
       <p className="text-lg text-slate-300 mb-2">
-        Ready to discover your next favorite movie?
+        Ready to discover your next favorite {currentItemTypeString}?
       </p>
       <p className="text-slate-400 max-w-xl mx-auto">
-        Tell us your preferences below – select genres, describe your mood, add keywords, or pick an era – and let our AI find personalized movie recommendations just for you.
+        Tell us your preferences below – select genres, describe your mood, add keywords, or pick an era – and let our AI find personalized {currentItemTypeString} recommendations just for you.
       </p>
        <p className="text-slate-400 max-w-xl mx-auto mt-3">
-        Or, try our new <span className="font-semibold text-sky-400">Similar Movie Search</span> to find something like a movie you already love!
+        Or, try our <span className="font-semibold text-sky-400">Find Similar</span> tab to find something like a {currentItemTypeString} you already love! You can also switch to finding {otherItemTypeString}s using the selector above the tabs.
       </p>
     </div>
   );

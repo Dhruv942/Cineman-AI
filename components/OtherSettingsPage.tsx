@@ -88,7 +88,7 @@ export const OtherSettingsPage: React.FC<OtherSettingsPageProps> = ({ onBackToMa
       </div>
       <footer className="absolute bottom-6 text-center w-full">
         <p className="text-slate-400 text-sm">
-          &copy; {new Date().getFullYear()} CineMate AI!
+          &copy; {new Date().getFullYear()} What to watch!
         </p>
       </footer>
     </div>

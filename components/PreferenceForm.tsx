@@ -1,19 +1,22 @@
 
 import React, { useState } from 'react';
-import type { SessionPreferences } from '../types';
+import type { SessionPreferences, RecommendationType } from '../types';
 import { MOVIE_GENRES, ICONS } from '../constants';
 
 interface PreferenceFormProps {
   onSubmit: (preferences: SessionPreferences) => void;
   isLoading: boolean;
+  recommendationType: RecommendationType;
 }
 
-export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) => {
+export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading, recommendationType }) => {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [excludedGenres, setExcludedGenres] = useState<string[]>([]);
   const [showExcludeGenres, setShowExcludeGenres] = useState<boolean>(false);
   const [mood, setMood] = useState<string>('');
   const [keywords, setKeywords] = useState<string>('');
+
+  const itemTypeString = recommendationType === 'series' ? 'series' : 'movie';
 
   const handleGenreToggle = (genre: string) => {
     setSelectedGenres(prev => {
@@ -22,11 +25,10 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
         return prev.filter(g => g !== genre);
       } else {
         if (prev.length < 5) {
-          // If selecting for inclusion, remove from exclusion if present
           setExcludedGenres(currentExcluded => currentExcluded.filter(ex => ex !== genre));
           return [...prev, genre];
         }
-        return prev; // Max 5 reached
+        return prev; 
       }
     });
   };
@@ -37,7 +39,6 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
       if (isCurrentlyExcluded) {
         return prev.filter(g => g !== genre);
       } else {
-        // If selecting for exclusion, remove from inclusion if present
         setSelectedGenres(currentSelected => currentSelected.filter(sel => sel !== genre));
         return [...prev, genre];
       }
@@ -69,9 +70,11 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 bg-slate-800 p-6 sm:p-8 rounded-xl shadow-2xl">
-      {/* Genres to Include */}
       <div>
-        <QuestionLabel icon={ICONS.question_genre} text="What kind of movie are you in the mood for now? (select up to 5 genres)" />
+        <QuestionLabel 
+            icon={ICONS.question_genre} 
+            text={`What kind of ${itemTypeString} are you in the mood for now? (select up to 5 genres)`} 
+        />
         <div className="flex flex-wrap gap-3 justify-center">
           {MOVIE_GENRES.map(genre => (
             <button
@@ -96,8 +99,7 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
         {selectedGenres.length >= 5 && <p className="text-xs text-amber-400 mt-2 text-center">Maximum 5 genres selected for inclusion.</p>}
       </div>
 
-      {/* Toggle for Exclude Genres */}
-      <div className="text-center -mt-6"> {/* Changed from -mt-12 to -mt-6 */}
+      <div className="text-center -mt-6">
         <button
           type="button"
           onClick={() => setShowExcludeGenres(!showExcludeGenres)}
@@ -113,12 +115,11 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
         </button>
       </div>
 
-      {/* Genres to Exclude (conditionally rendered with transition) */}
       <div
         id="exclude-genres-section"
         className={`transition-all duration-300 ease-in-out overflow-hidden ${
           showExcludeGenres ? 'max-h-[500px] opacity-100 mt-2 -mb-4' : 'max-h-0 opacity-0 mt-0' 
-        }`} // -mb-4 pulls next element up if this section is visible
+        }`}
         aria-hidden={!showExcludeGenres}
       >
         {showExcludeGenres && (
@@ -148,20 +149,18 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
         )}
       </div>
 
-      {/* Mood */}
-      <div className={!showExcludeGenres ? '-mt-4' : ''}> {/* Conditional -mt-4 to reduce space if exclude section is hidden */}
+      <div className={!showExcludeGenres ? '-mt-4' : ''}> 
         <QuestionLabel icon={ICONS.question_mood} htmlFor="mood" text="Describe the mood, vibe, or plot" isOptional={true} />
         <textarea
           id="mood"
           value={mood}
           onChange={e => setMood(e.target.value)}
-          placeholder="e.g., 'A light-hearted comedy', 'A mind-bending thriller' (optional)"
+          placeholder={`e.g., 'A light-hearted comedy', 'A mind-bending thriller' (optional)`}
           className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-slate-200 placeholder-slate-400 text-sm text-center"
           rows={3}
         />
       </div>
       
-      {/* Keywords */}
       <div>
         <QuestionLabel icon={ICONS.question_keywords} htmlFor="keywords" text="Any specific keywords?" isOptional={true} />
         <input

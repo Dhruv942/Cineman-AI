@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import type { UserPreferences, Movie, GeminiMovieRecommendation, AppSettings, MovieFeedback as AppMovieFeedbackType, RecommendationType, ItemTitleSuggestion as AppItemTitleSuggestion, StableUserPreferences, TasteCheckGeminiResponse, TasteCheckGeminiResponseItem, TasteCheckServiceResponse } from '../types';
 import { MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, CINE_SUGGEST_MOVIE_FEEDBACK_KEY, CINE_SUGGEST_APP_SETTINGS_KEY, COUNTRIES } from '../constants';
@@ -50,15 +49,27 @@ function getNumberOfRecommendationsSetting(): number {
 }
 
 
-function constructPrompt(preferences: UserPreferences, recommendationType: RecommendationType): string {
-  const numberOfRecommendations = getNumberOfRecommendationsSetting();
+function constructPrompt(preferences: UserPreferences, recommendationType: RecommendationType, sessionExcludedItems: Movie[] = [], numberOfRecommendations: number): string {
   const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
   const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
+  const feedbackHistory = getStoredFeedback();
 
   let prompt = `You are a helpful and enthusiastic ${itemType} recommendation expert.
 Based on the following user preferences, suggest ${numberOfRecommendations} unique ${pluralItemType}.
 Aim to provide compelling and generally well-regarded suggestions that fit the user's criteria, using your knowledge of the ${itemType} landscape.
 
+Quality Control Guidance:
+`;
+
+  if (feedbackHistory.length < 5) {
+    prompt += `- New User Priority: This user has provided little to no feedback. It is CRITICAL that you prioritize suggesting ${pluralItemType} that are generally well-regarded, critically acclaimed, or have a strong positive popular reception (e.g., high ratings on popular review sites). AVOID suggesting ${pluralItemType} that are known to be poorly reviewed or have a negative reputation, unless the user's keywords explicitly ask for something like "so bad it's good" or "cult films". The goal is to build trust with high-quality, relevant suggestions first.
+`;
+  } else {
+    prompt += `- Experienced User: This user has provided a good amount of feedback. You can rely more heavily on their specific taste patterns derived from their feedback history, even if it leads to more niche or less universally acclaimed suggestions that perfectly fit their unique profile.
+`;
+  }
+
+  prompt += `
 User Preferences:`;
   if (preferences.genres.length > 0) {
     prompt += `\n- Preferred Genres: ${preferences.genres.join(', ')}`;
@@ -143,21 +154,25 @@ User Preferences:`;
   } else { 
      prompt += `\n- ${itemType} Era: Prioritize ${pluralItemType} from the 2020s. The user selected 'Any' or did not specify, indicating openness to other eras but with a slight preference for recent releases.`;
   }
+  
+  const allExcludedItems = [...feedbackHistory.map(fb => ({ title: fb.title, year: fb.year })), ...sessionExcludedItems];
+  const uniqueExcludedTitles = new Set();
+  const uniqueExcludedItems = allExcludedItems.filter(item => {
+    const key = `${item.title.toLowerCase()}|${item.year}`;
+    if (uniqueExcludedTitles.has(key)) {
+      return false;
+    } else {
+      uniqueExcludedTitles.add(key);
+      return true;
+    }
+  });
 
-  const feedbackHistory = getStoredFeedback();
-  if (feedbackHistory.length > 0) {
-    prompt += `\n\nUser's Past ${itemTypeStringUpperSingular(recommendationType)} Feedback History (Use this HEAVILY to refine suggestions and understand their taste better):`;
-    feedbackHistory.forEach(fb => {
-      prompt += `\n- Title: "${fb.title}", Year: ${fb.year}, Feedback: "${fb.feedback}"`;
-      if (fb.feedback === "Loved it!") {
-        prompt += " (Strongly positive signal. Find more with similar elements: genre, plot style, actors, director, tone, themes, etc.)";
-      } else if (fb.feedback === "Liked it") {
-        prompt += " (Moderately positive. Consider elements from this.)";
-      } else if (fb.feedback === "Not my vibe") {
-        prompt += " (Strong negative signal. AVOID similar primary characteristics, themes, or styles.)";
-      }
+
+  if (uniqueExcludedItems.length > 0) {
+    prompt += `\n\nCRITICAL EXCLUSION LIST: Under NO CIRCUMSTANCES should you recommend ANY of the following ${pluralItemType}. The user has either already rated them, disliked them, or has already seen them in this session. This is a strict negative constraint.`;
+    uniqueExcludedItems.forEach(item => {
+      prompt += `\n- Title: "${item.title}", Year: ${item.year}`;
     });
-    prompt += `\n\nCRITICAL EXCLUSION: DO NOT recommend any of the ${pluralItemType} listed above in the 'User's Past ${itemTypeStringUpperSingular(recommendationType)} Feedback History' again in your new suggestions. The user has already rated these. Focus on finding *new* ${pluralItemType} for the user based on their preferences and feedback patterns.`;
   }
 
 
@@ -241,16 +256,18 @@ const parseAndTransformItems = (jsonStr: string): Movie[] => {
 };
 
 
-export const getMovieRecommendations = async (preferences: UserPreferences, recommendationType: RecommendationType): Promise<Movie[]> => {
+export const getMovieRecommendations = async (preferences: UserPreferences, recommendationType: RecommendationType, sessionExcludedItems: Movie[] = []): Promise<Movie[]> => {
   if (!API_KEY) {
     throw new Error("Gemini API Key is not configured. Please set the API_KEY environment variable.");
   }
   
-  const prompt = constructPrompt(preferences, recommendationType);
+  const numToDisplay = getNumberOfRecommendationsSetting();
+  const numToFetch = numToDisplay + 3; // Fetch extras for the buffer
+  const prompt = constructPrompt(preferences, recommendationType, sessionExcludedItems, numToFetch);
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-04-17",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -292,6 +309,44 @@ export const getMovieRecommendations = async (preferences: UserPreferences, reco
         }
     }
     throw new Error(`Failed to get ${recommendationType} recommendations from AI. There might be an issue with the service, your query, or safety filters.`);
+  }
+};
+
+export const getSingleReplacementRecommendation = async (preferences: UserPreferences, recommendationType: RecommendationType, excludedItems: Movie[]): Promise<Movie | null> => {
+  if (!API_KEY) {
+    return null;
+  }
+
+  const prompt = constructPrompt(preferences, recommendationType, excludedItems, 1);
+  const itemTypeString = recommendationType === 'series' ? 'series' : 'movie';
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.7,
+        topP: 0.95,
+        topK: 50,
+      }
+    });
+
+    if (typeof response.text !== 'string') {
+      console.warn(`Gemini response for single replacement did not have a valid 'text' property.`);
+      return null;
+    }
+    
+    const items = parseAndTransformItems(response.text);
+
+    if (items.length > 0) {
+      return items[0];
+    }
+    return null;
+
+  } catch (error) {
+    console.error(`Error fetching single replacement ${itemTypeString} from Gemini:`, error);
+    return null;
   }
 };
 
@@ -378,7 +433,7 @@ export const findSimilarItemByName = async (itemTitle: string, recommendationTyp
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-04-17",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -492,7 +547,7 @@ EXTREMELY IMPORTANT INSTRUCTIONS FOR JSON OUTPUT:
 
   try {
     const genAIResponse = await ai.models.generateContent({ 
-      model: "gemini-2.5-flash-preview-04-17", 
+      model: "gemini-2.5-flash", 
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -647,7 +702,7 @@ export const getMoreSimilarItems = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-04-17",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -673,7 +728,7 @@ export const getMoreSimilarItems = async (
         !(item.title.toLowerCase() === promptQueryTitle.toLowerCase() && item.year === promptQueryYear)
     );
 
-    // Filter out any items the user has already provided feedback for
+    // Filter out any items the user has provided feedback for
     const feedbackHistory = getStoredFeedback();
     const ratedItemIds = new Set(
       feedbackHistory.map(fb => `${fb.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${fb.year}`)
@@ -811,7 +866,7 @@ export const checkTasteMatch = async (itemTitle: string, recommendationType: Rec
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-04-17",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",

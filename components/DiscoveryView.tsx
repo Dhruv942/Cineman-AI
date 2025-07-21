@@ -1,14 +1,15 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { POPULAR_MOVIES_FOR_SUGGESTION, ICONS } from '../constants';
-import type { Movie } from '../types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { POPULAR_MOVIES_FOR_SUGGESTION, POPULAR_SERIES_FOR_SUGGESTION, ICONS } from '../constants';
+import type { Movie, RecommendationType, PopularItemEntry } from '../types';
 import { saveMovieFeedback, getAllFeedback } from '../services/feedbackService';
 import { DiscoveryCard } from './DiscoveryCard';
+import { LoadingSpinner } from './LoadingSpinner';
 
-const MAX_VISIBLE_CARDS = 3; // Top card + 2 peeking
+const MAX_VISIBLE_CARDS = 3;
 
 interface DiscoveryViewProps {
   isActive: boolean;
+  recommendationType: RecommendationType;
 }
 
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -20,179 +21,171 @@ const shuffleArray = <T,>(array: T[]): T[] => {
   return newArray;
 };
 
-export const DiscoveryView: React.FC<DiscoveryViewProps> = ({ isActive }) => {
-  const [movieQueue, setMovieQueue] = useState<Movie[]>([]);
+export const DiscoveryView: React.FC<DiscoveryViewProps> = ({ isActive, recommendationType }) => {
+  const [itemQueue, setItemQueue] = useState<Movie[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animationAction, setAnimationAction] = useState<string | null>(null);
-  const [isLoadingNext, setIsLoadingNext] = useState(false);
-  const [ratedCountInSession, setRatedCountInSession] = useState(0);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [isLoadingQueue, setIsLoadingQueue] = useState(false); // Changed from isLoadingNext for clarity
+  const [sessionSkippedItems, setSessionSkippedItems] = useState<Set<string>>(new Set());
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const feedbackTimeoutRef = useRef<number | null>(null);
 
+  const itemTypeString = recommendationType === 'series' ? 'Series' : 'Movies';
+  const popularItemsSource = recommendationType === 'series' ? POPULAR_SERIES_FOR_SUGGESTION : POPULAR_MOVIES_FOR_SUGGESTION;
 
-  const loadMovies = useCallback(() => {
+  const loadAndShuffleItems = useCallback(() => {
+    setIsLoadingQueue(true);
     const allPreviouslyRated = getAllFeedback();
     const previouslyRatedIds = new Set(allPreviouslyRated.map(fb => `${fb.title}-${fb.year}`));
 
-    const availableMovies: Movie[] = POPULAR_MOVIES_FOR_SUGGESTION
-      .filter(pm => !previouslyRatedIds.has(`${pm.title}-${pm.year}`))
-      .map(pm => ({
-        id: `${pm.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${pm.year}`,
+    const availableItems: Movie[] = popularItemsSource
+      .filter(pm => {
+        const itemId = `${pm.title}-${pm.year}`; // Consistent ID for filtering
+        return !previouslyRatedIds.has(itemId) && !sessionSkippedItems.has(itemId);
+      })
+      .map((pm: PopularItemEntry) => ({
+        id: `${pm.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${pm.year}`, // Consistent ID for Movie objects
         title: pm.title,
         year: pm.year,
         posterUrl: pm.posterUrl,
-        summary: '', 
-        genres: [], 
+        summary: `Explore ${pm.title} (${pm.year}) and let us know your thoughts! Your feedback helps tailor future recommendations.`, // Generic summary
+        genres: ['Discover'], // Generic genre
       }));
 
-    setMovieQueue(shuffleArray(availableMovies));
+    setItemQueue(shuffleArray(availableItems));
     setCurrentIndex(0);
-    setRatedCountInSession(0);
     setAnimationAction(null);
-    setIsLoadingNext(false);
-    setHasLoadedOnce(true);
-  }, []);
+    setIsLoadingQueue(false);
+  }, [popularItemsSource, sessionSkippedItems]);
 
   useEffect(() => {
     if (isActive) {
-      loadMovies();
+      setSessionSkippedItems(new Set()); // Reset skipped items when tab becomes active or type changes
+      loadAndShuffleItems();
     } else {
-      // Optionally reset state when tab becomes inactive to free resources or ensure fresh start
-      setMovieQueue([]);
+      setItemQueue([]); // Clear queue when tab is not active
       setCurrentIndex(0);
-      setAnimationAction(null);
-      setRatedCountInSession(0);
-      setHasLoadedOnce(false);
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+        setFeedbackMessage(null);
+      }
     }
-  }, [isActive, loadMovies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, recommendationType]); // Rerun when recommendationType changes too
 
   const handleAction = (action: 'skip' | 'loved' | 'liked' | 'notmyvibe') => {
-    if (isLoadingNext || currentIndex >= movieQueue.length) return;
+    if (isLoadingQueue || currentIndex >= itemQueue.length) return;
 
-    const movie = movieQueue[currentIndex];
-    setIsLoadingNext(true);
+    const item = itemQueue[currentIndex];
+    setIsLoadingQueue(true); // Indicate processing
 
     let animationType = '';
-    switch (action) {
-      case 'loved':
-        saveMovieFeedback(movie.title, movie.year, 'Loved it!');
-        animationType = 'swipe-right';
-        setRatedCountInSession(prev => prev + 1);
-        break;
-      case 'liked':
-        saveMovieFeedback(movie.title, movie.year, 'Liked it');
+    let message = '';
+
+    if (action === 'skip') {
+      setSessionSkippedItems(prev => new Set(prev).add(`${item.title}-${item.year}`));
+      animationType = 'swipe-left';
+      message = `Skipped "${item.title}"`;
+    } else {
+      saveMovieFeedback(item.title, item.year, action === 'loved' ? 'Loved it!' : action === 'liked' ? 'Liked it' : 'Not my vibe');
+      if (action === 'loved') {
         animationType = 'swipe-up';
-        setRatedCountInSession(prev => prev + 1);
-        break;
-      case 'notmyvibe':
-        saveMovieFeedback(movie.title, movie.year, 'Not my vibe');
+        message = `You loved "${item.title}"! ❤️`;
+      } else if (action === 'liked') {
+        animationType = 'swipe-right';
+        message = `You liked "${item.title}"! 👍`;
+      } else { // notmyvibe
         animationType = 'swipe-left';
-        setRatedCountInSession(prev => prev + 1);
-        break;
-      case 'skip':
-        animationType = 'swipe-left';
-        break;
+        message = `"${item.title}" wasn't your vibe. Noted!`;
+      }
     }
     setAnimationAction(animationType);
+    setFeedbackMessage(message);
+
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+    }
+    feedbackTimeoutRef.current = window.setTimeout(() => setFeedbackMessage(null), 2500);
 
     setTimeout(() => {
-      setCurrentIndex(prevIndex => prevIndex + 1);
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
       setAnimationAction(null);
-      setIsLoadingNext(false);
-    }, 400);
+      setIsLoadingQueue(false); // Done processing
+      
+      // If we have swiped the last card from the current queue, try reloading.
+      if (newIndex >= itemQueue.length) {
+          loadAndShuffleItems();
+      }
+    }, 400); // Duration of the swipe animation
   };
-
-  if (!isActive && !hasLoadedOnce) { // Initial state before tab is active, or if reset
-     return (
-      <div className="text-center py-10 px-4">
-        <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-          Discover & Rate Movies
-        </h2>
-        <p className="text-slate-300">Activate this tab to start discovering movies.</p>
-      </div>
-    );
-  }
   
-  if (isActive && !hasLoadedOnce && movieQueue.length === 0) { // Loading state when tab becomes active for the first time
-    return (
-      <div className="text-center py-10 px-4">
-        <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-          Discover & Rate Movies
-        </h2>
-        <div className="flex justify-center items-center my-6">
-            <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-purple-500"></div>
-        </div>
-        <p className="text-slate-300">Shuffling the movie deck for you...</p>
-      </div>
-    );
-  }
+  if (!isActive) return null;
 
-
-  if (isActive && hasLoadedOnce && currentIndex >= movieQueue.length && movieQueue.length > 0) {
-     return (
-      <div className="text-center py-10 px-4">
-        <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">
-          All Done for Now!
-        </h2>
-        <p className="text-slate-300 mb-2">You've rated {ratedCountInSession} movie{ratedCountInSession === 1 ? '' : 's'} in this session.</p>
-        <p className="text-slate-400 mb-6">You've gone through all available popular movies we have for rating right now. Check back later for more!</p>
-        <button
-            onClick={loadMovies}
-            className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150"
-        >
-            Start Over / Check for New
-        </button>
-      </div>
-    );
-  }
-  
-  if (isActive && hasLoadedOnce && movieQueue.length === 0) {
-     return (
-      <div className="text-center py-10 px-4">
-        <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
-          No Movies to Discover
-        </h2>
-        <p className="text-slate-300 mb-6">It seems you've rated all the movies in our current discovery pool, or there are none available.</p>
-         <p className="text-sm text-slate-400">Check back later or try resetting your rated movies if you wish to see them again (not recommended for best suggestions).</p>
-      </div>
-    );
-  }
-
+  const currentVisibleItems = itemQueue.slice(currentIndex, currentIndex + MAX_VISIBLE_CARDS);
 
   return (
     <div className="flex flex-col items-center justify-start py-8 px-2 w-full">
       <h2 className="text-3xl font-bold mb-2 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-        Discover & Rate
+        Discover & Rate {itemTypeString}
       </h2>
       <p className="text-slate-300 mb-6 text-center max-w-md text-sm">
-        Swipe or tap to rate movies. Your feedback sharpens future recommendations!
+        Help us learn your taste! Rate these {itemTypeString.toLowerCase()} to get even better recommendations.
       </p>
 
-      <div className="discovery-card-stack">
-        {movieQueue.slice(currentIndex, currentIndex + MAX_VISIBLE_CARDS).reverse().map((movie, indexInStackRev) => {
-          const actualStackIndex = MAX_VISIBLE_CARDS - 1 - indexInStackRev;
-
-          return (
-            <DiscoveryCard
-              key={movie.id || `${movie.title}-${movie.year}`}
-              movie={movie}
-              onAction={handleAction}
-              isTopCard={actualStackIndex === 0}
-              stackPosition={actualStackIndex}
-              animationTrigger={actualStackIndex === 0 ? animationAction : null}
-              isLoading={isLoadingNext && actualStackIndex === 0}
-            />
-          );
-        })}
-      </div>
-       { currentIndex < movieQueue.length && (
-        <div className="text-sm text-slate-400 mt-8 text-center">
-          Showing movie {currentIndex + 1} of {movieQueue.length}. Rated {ratedCountInSession} this session.
+      {feedbackMessage && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-700 text-white px-4 py-2 rounded-md shadow-lg z-50 text-sm transition-opacity duration-300 animate-pulse">
+          {feedbackMessage}
         </div>
-       )}
+      )}
 
-      <p className="text-xs text-slate-500 italic text-center mt-4 max-w-xs">
-        The more you tell us what you like, the more personalised the movie suggestions get!
-      </p>
+      {isLoadingQueue && currentVisibleItems.length === 0 && (
+        <div className="mt-10">
+          <LoadingSpinner />
+        </div>
+      )}
+
+      {!isLoadingQueue && itemQueue.length > 0 && currentVisibleItems.length === 0 && (
+        <div className="text-center py-10 px-4">
+          <h2 className="text-2xl font-semibold mb-3 text-green-400">All Done For Now!</h2>
+          <p className="text-slate-300 mb-4">You've rated all available {itemTypeString.toLowerCase()} in this discovery session.</p>
+          <button
+            onClick={loadAndShuffleItems}
+            className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all"
+          >
+            Refresh & Discover More
+          </button>
+        </div>
+      )}
+
+      {currentVisibleItems.length > 0 && (
+        <div className="discovery-card-stack mb-8">
+          {currentVisibleItems.reverse().map((item, indexInStackRev) => {
+            const actualStackIndex = currentVisibleItems.length - 1 - indexInStackRev;
+            return (
+              <DiscoveryCard
+                key={item.id || `${item.title}-${item.year}-${currentIndex + actualStackIndex}`}
+                movie={item}
+                onAction={handleAction}
+                isTopCard={actualStackIndex === 0}
+                stackPosition={actualStackIndex}
+                animationTrigger={actualStackIndex === 0 ? animationAction : null}
+                isLoading={isLoadingQueue && actualStackIndex === 0}
+              />
+            );
+          })}
+        </div>
+      )}
+      
+      {!isLoadingQueue && itemQueue.length === 0 && !isActive && (
+         <p className="text-slate-400 mt-10">Activate this tab to start discovering.</p>
+      )}
+
+       {!isLoadingQueue && itemQueue.length > 0 && currentVisibleItems.length > 0 && (
+           <div className="text-sm text-slate-400 mt-2 text-center">
+              Showing {itemTypeString.toLowerCase()} {Math.min(currentIndex + 1, itemQueue.length)} of {itemQueue.length}.
+            </div>
+       )}
     </div>
   );
 };

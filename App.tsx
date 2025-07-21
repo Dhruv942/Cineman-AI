@@ -4,8 +4,8 @@ import { PreferenceForm } from './components/PreferenceForm';
 import { MovieList } from './components/MovieList';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Footer } from './components/Footer';
-import { getMovieRecommendations, findSimilarItemByName, getMoreSimilarItems, checkTasteMatch } from './services/geminiService';
-import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab, CurrentAppView, RecommendationType } from './types';
+import { getMovieRecommendations, findSimilarItemByName, getMoreSimilarItems, checkTasteMatch, getSingleReplacementRecommendation } from './services/geminiService';
+import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab, CurrentAppView, RecommendationType, MovieFeedback } from './types';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { SimilarMovieSearch } from './components/SimilarMovieSearch';
 import { MovieCard } from './components/MovieCard';
@@ -14,7 +14,7 @@ import { DiscoveryView } from './components/DiscoveryView';
 import { MyAccountPage } from './components/MyAccountPage';
 import { OtherSettingsPage } from './components/OtherSettingsPage';
 import { WatchPartyView } from './components/WatchPartyView';
-import { CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, CINE_SUGGEST_STABLE_PREFERENCES_KEY, MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, COUNTRIES } from './constants';
+import { CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, CINE_SUGGEST_STABLE_PREFERENCES_KEY, MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, COUNTRIES, CINE_SUGGEST_APP_SETTINGS_KEY } from './constants';
 
 
 const getDefaultStablePreferences = (): StableUserPreferences => {
@@ -35,9 +35,12 @@ const getDefaultStablePreferences = (): StableUserPreferences => {
 
 const App: React.FC = () => {
   const [recommendations, setRecommendations] = useState<Movie[]>([]);
+  const [prefetchedRecommendations, setPrefetchedRecommendations] = useState<Movie[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState<boolean>(false);
   const [recommendationError, setRecommendationError] = useState<string | null>(null);
   const [hasSearchedRecommendations, setHasSearchedRecommendations] = useState<boolean>(false);
+  const [sessionExcludedRecommendations, setSessionExcludedRecommendations] = useState<Movie[]>([]);
+  const [lastSessionPreferences, setLastSessionPreferences] = useState<SessionPreferences | null>(null);
 
   const [similarItemResult, setSimilarItemResult] = useState<Movie | null>(null);
   const [isLoadingSimilarItem, setIsLoadingSimilarItem] = useState<boolean>(false);
@@ -166,8 +169,11 @@ const App: React.FC = () => {
 
   const clearAllTabData = () => {
       setRecommendations([]);
+      setPrefetchedRecommendations([]);
       setHasSearchedRecommendations(false);
       setRecommendationError(null);
+      setSessionExcludedRecommendations([]);
+      setLastSessionPreferences(null);
       
       setSimilarItemResult(null);
       setHasSearchedSimilarItem(false);
@@ -204,7 +210,13 @@ const App: React.FC = () => {
     setIsLoadingRecommendations(true);
     setRecommendationError(null);
     setHasSearchedRecommendations(true);
+    setLastSessionPreferences(sessionPreferences);
+    
+    const combinedExclusions = [...sessionExcludedRecommendations, ...recommendations, ...prefetchedRecommendations];
+    setSessionExcludedRecommendations(combinedExclusions);
+
     setRecommendations([]);
+    setPrefetchedRecommendations([]);
 
     setTimeout(() => {
         if (loadingIndicatorRef.current) {
@@ -220,8 +232,10 @@ const App: React.FC = () => {
     };
 
     try {
-      const items = await getMovieRecommendations(fullPreferences, recommendationType);
-      setRecommendations(items);
+      const items = await getMovieRecommendations(fullPreferences, recommendationType, combinedExclusions);
+      const numToDisplay = 3; // Or get from settings
+      setRecommendations(items.slice(0, numToDisplay));
+      setPrefetchedRecommendations(items.slice(numToDisplay));
     } catch (err) {
       if (err instanceof Error) {
         setRecommendationError(err.message || `Failed to fetch ${recommendationType === 'series' ? 'series' : 'movie'} recommendations. Please check your API key and try again.`);
@@ -232,7 +246,47 @@ const App: React.FC = () => {
     } finally {
       setIsLoadingRecommendations(false);
     }
-  }, [getEnsuredStablePreferences, recommendationType]);
+  }, [getEnsuredStablePreferences, recommendationType, recommendations, sessionExcludedRecommendations, prefetchedRecommendations]);
+
+  const fetchAndAddToBuffer = useCallback(async () => {
+    if (!lastSessionPreferences) return;
+
+    const allCurrentItems = [...recommendations, ...prefetchedRecommendations, ...sessionExcludedRecommendations];
+
+    const currentStablePrefs = getEnsuredStablePreferences();
+    const fullPreferences: UserPreferences = {
+      ...currentStablePrefs,
+      ...lastSessionPreferences,
+    };
+
+    try {
+      const replacement = await getSingleReplacementRecommendation(fullPreferences, recommendationType, allCurrentItems);
+      if (replacement) {
+        setPrefetchedRecommendations(prev => [...prev, replacement]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch item for buffer:", err);
+    }
+  }, [lastSessionPreferences, recommendations, prefetchedRecommendations, sessionExcludedRecommendations, getEnsuredStablePreferences, recommendationType]);
+
+
+  const handleRecommendationFeedback = (movieId: string, feedbackType: MovieFeedback['feedback']) => {
+    const movieToReplace = recommendations.find(m => m.id === movieId);
+    if (!movieToReplace) return;
+
+    setSessionExcludedRecommendations(prev => [...prev, movieToReplace]);
+
+    if (prefetchedRecommendations.length > 0) {
+      const replacement = prefetchedRecommendations[0];
+      setRecommendations(prev => prev.map(rec => (rec.id === movieId ? replacement : rec)));
+      setPrefetchedRecommendations(prev => prev.slice(1));
+      fetchAndAddToBuffer(); // Top up buffer in the background
+    } else {
+      // If buffer is empty, just remove the card and try to fetch for the buffer.
+      setRecommendations(prev => prev.filter(rec => rec.id !== movieId));
+      fetchAndAddToBuffer();
+    }
+  };
 
   const handleFindSimilarItem = useCallback(async (itemTitleFromInput: string) => {
     setIsLoadingSimilarItem(true);
@@ -489,6 +543,7 @@ const App: React.FC = () => {
                     movies={recommendations} 
                     titleRef={recommendationsTitleRef} 
                     titleText={recommendationType === 'series' ? "Your Personalised Series Recommendations" : "Your Personalised Movie Recommendations"}
+                    onCardFeedback={handleRecommendationFeedback}
                 />
               </div>
             )}

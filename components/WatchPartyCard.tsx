@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Movie } from '../types';
 import { ICONS } from '../constants';
-//ghjuiu
+
 const genericFallbackImageUrl = 'https://picsum.photos/seed/fallbackpartycard/400/600?grayscale&blur=2';
 
 interface WatchPartyCardProps {

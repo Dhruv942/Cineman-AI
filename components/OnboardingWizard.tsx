@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { StableUserPreferences } from '../types';
-import { MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, OTT_PLATFORMS, MOVIE_ERAS, MOVIE_DURATIONS, ICONS, CINE_SUGGEST_STABLE_PREFERENCES_KEY, CINE_SUGGEST_ONBOARDING_COMPLETE_KEY } from '../constants';
+import { MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, OTT_PLATFORMS, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, CINE_SUGGEST_STABLE_PREFERENCES_KEY, CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, TOTAL_ONBOARDING_STEPS, ONBOARDING_STEP_MILESTONES, COUNTRIES } from '../constants';
 
 interface OnboardingWizardProps {
   onComplete: (preferences: StableUserPreferences) => void;
@@ -9,18 +9,9 @@ interface OnboardingWizardProps {
   onBack?: () => void;
 }
 
-const TOTAL_STEPS = 5;
-const STEP_MILESTONES = [
-  "Welcome",
-  "Viewing Habits",
-  "Content Style",
-  "Access & Language",
-  "Confirmation"
-];
-
-
 const getDefaultStablePreferences = (): StableUserPreferences => {
   const defaultLang = MOVIE_LANGUAGES.find(l => l.code === 'any')?.code || 'any';
+  const defaultCountry = COUNTRIES.find(c => c.code === 'any')?.code || 'any';
   return {
     movieFrequency: MOVIE_FREQUENCIES[1],
     actorDirectorPreference: ACTOR_DIRECTOR_PREFERENCES[0],
@@ -28,20 +19,39 @@ const getDefaultStablePreferences = (): StableUserPreferences => {
     ottPlatforms: [],
     era: [MOVIE_ERAS[0]],
     movieDuration: [MOVIE_DURATIONS[0]],
+    preferredNumberOfSeasons: [SERIES_SEASON_COUNTS[0]],
+    country: defaultCountry,
   };
 };
 
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, initialData, isEditMode, onBack }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [preferences, setPreferences] = useState<StableUserPreferences>(initialData || getDefaultStablePreferences());
+  
+  const initializePreferences = (): StableUserPreferences => {
+    const defaults = getDefaultStablePreferences();
+    if (initialData) {
+      return {
+        ...defaults,
+        ...initialData,
+        preferredNumberOfSeasons: Array.isArray(initialData.preferredNumberOfSeasons) && initialData.preferredNumberOfSeasons.length > 0 ? initialData.preferredNumberOfSeasons : defaults.preferredNumberOfSeasons,
+        era: Array.isArray(initialData.era) && initialData.era.length > 0 ? initialData.era : defaults.era,
+        movieDuration: Array.isArray(initialData.movieDuration) && initialData.movieDuration.length > 0 ? initialData.movieDuration : defaults.movieDuration,
+        preferredLanguages: Array.isArray(initialData.preferredLanguages) && initialData.preferredLanguages.length > 0 ? initialData.preferredLanguages : defaults.preferredLanguages,
+        country: typeof initialData.country === 'string' && COUNTRIES.some(c => c.code === initialData.country) ? initialData.country : defaults.country,
+      };
+    }
+    // For new onboarding, start with country unselected
+    return { ...defaults, country: isEditMode ? defaults.country : '' };
+  };
+
+  const [preferences, setPreferences] = useState<StableUserPreferences>(initializePreferences());
   const [animationClass, setAnimationClass] = useState('opacity-100');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
-    if (initialData) {
-      setPreferences(initialData);
-    }
-  }, [initialData]);
+    setPreferences(initializePreferences());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData, isEditMode]);
 
   const handleChange = (field: keyof StableUserPreferences, value: any) => {
     setPreferences(prev => ({ ...prev, [field]: value }));
@@ -77,16 +87,16 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const handleMovieEraToggle = (eraValue: string) => {
     setPreferences(prev => {
       let newEras: string[];
-      if (eraValue === MOVIE_ERAS[0]) {
+      if (eraValue === MOVIE_ERAS[0]) { 
         newEras = [MOVIE_ERAS[0]];
       } else {
-        const currentEras = prev.era.filter(e => e !== MOVIE_ERAS[0]);
+        const currentEras = prev.era.filter(e => e !== MOVIE_ERAS[0]); 
         if (currentEras.includes(eraValue)) {
           newEras = currentEras.filter(e => e !== eraValue);
         } else {
           newEras = [...currentEras, eraValue];
         }
-        if (newEras.length === 0) {
+        if (newEras.length === 0) { 
           newEras = [MOVIE_ERAS[0]];
         }
       }
@@ -95,9 +105,9 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   };
 
   const handleMovieDurationToggle = (durationValue: string) => {
-    setPreferences(prev => {
+     setPreferences(prev => {
       let newDurations: string[];
-      if (durationValue === MOVIE_DURATIONS[0]) {
+      if (durationValue === MOVIE_DURATIONS[0]) { 
         newDurations = [MOVIE_DURATIONS[0]];
       } else {
         const currentDurations = prev.movieDuration.filter(d => d !== MOVIE_DURATIONS[0]);
@@ -114,59 +124,84 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     });
   };
 
+  const handleSeasonCountToggle = (seasonCountValue: string) => {
+    setPreferences(prev => {
+      let newSeasonCounts: string[];
+      if (seasonCountValue === SERIES_SEASON_COUNTS[0]) { 
+        newSeasonCounts = [SERIES_SEASON_COUNTS[0]];
+      } else {
+        const currentSeasonCounts = prev.preferredNumberOfSeasons.filter(s => s !== SERIES_SEASON_COUNTS[0]);
+        if (currentSeasonCounts.includes(seasonCountValue)) {
+          newSeasonCounts = currentSeasonCounts.filter(s => s !== seasonCountValue);
+        } else {
+          newSeasonCounts = [...currentSeasonCounts, seasonCountValue];
+        }
+        if (newSeasonCounts.length === 0) {
+          newSeasonCounts = [SERIES_SEASON_COUNTS[0]];
+        }
+      }
+      return { ...prev, preferredNumberOfSeasons: newSeasonCounts };
+    });
+  };
+
   const nextStep = () => {
     if (isTransitioning) return;
+    if (currentStep === 4 && preferences.country === '') {
+        return;
+    }
     setIsTransitioning(true);
-    setAnimationClass('opacity-0 transition-opacity duration-150 ease-out'); // Start fade out
+    setAnimationClass('opacity-0 transition-opacity duration-150 ease-out'); 
     setTimeout(() => {
         setCurrentStep(prev => {
-            const newStep = Math.min(prev + 1, TOTAL_STEPS);
-            if (prev !== newStep) { // Check if step actually changed
-                setAnimationClass('opacity-0'); // Ensure new content is hidden before fade-in animation
+            const newStep = Math.min(prev + 1, TOTAL_ONBOARDING_STEPS);
+            if (prev !== newStep) { 
+                setAnimationClass('opacity-0'); 
                 setTimeout(() => {
-                    setAnimationClass('opacity-100 transition-opacity duration-300 ease-in'); // Fade in
+                    setAnimationClass('opacity-100 transition-opacity duration-300 ease-in'); 
                     setIsTransitioning(false);
-                }, 30); // Brief delay for DOM update
+                }, 30); 
             } else {
-                // If already at the last step and "Next" is clicked, or no change
                 setAnimationClass('opacity-100 transition-opacity duration-300 ease-in');
                 setIsTransitioning(false); 
             }
             return newStep;
         });
-    }, 150); // After fade-out duration
+    }, 150); 
   };
 
   const prevStep = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    setAnimationClass('opacity-0 transition-opacity duration-150 ease-out'); // Start fade out
+    setAnimationClass('opacity-0 transition-opacity duration-150 ease-out'); 
     setTimeout(() => {
         setCurrentStep(prev => {
             const newStep = Math.max(prev - 1, 1);
-             if (prev !== newStep) { // Check if step actually changed
-                setAnimationClass('opacity-0'); // Ensure new content is hidden
+             if (prev !== newStep) { 
+                setAnimationClass('opacity-0'); 
                 setTimeout(() => {
-                    setAnimationClass('opacity-100 transition-opacity duration-300 ease-in'); // Fade in
+                    setAnimationClass('opacity-100 transition-opacity duration-300 ease-in'); 
                     setIsTransitioning(false);
-                }, 30); // Brief delay for DOM update
+                }, 30); 
             } else {
-                 // If already at the first step and "Back" is clicked, or no change
                  setAnimationClass('opacity-100 transition-opacity duration-300 ease-in');
                  setIsTransitioning(false);
             }
             return newStep;
         });
-    }, 150); // After fade-out duration
+    }, 150); 
   };
 
   const handleSubmit = () => {
     if (isTransitioning) return;
-    localStorage.setItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY, JSON.stringify(preferences));
+    const finalPreferences = { ...preferences };
+    if (finalPreferences.country === '') {
+        finalPreferences.country = COUNTRIES.find(c => c.code === 'any')?.code || 'any';
+    }
+    localStorage.setItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY, JSON.stringify(finalPreferences));
     if (!isEditMode) {
       localStorage.setItem(CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, 'true');
     }
-    onComplete(preferences);
+    onComplete(finalPreferences);
   };
 
   const QuestionLabel: React.FC<{ htmlFor?: string; id?: string; icon: string; text: string; className?: string; }> =
@@ -179,12 +214,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 1:
+      case 1: // Welcome
         return (
           <div className="text-center">
             {isEditMode ? (
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-20 h-20 text-purple-400 mx-auto mb-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.39.44 1.022.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.11v1.093c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.427.27 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.78.93l-.15.893c-.09.543-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.149-.894c-.07-.424-.384-.764-.78-.93-.398-.164-.854-.142-1.204.108l-.738.527a1.125 1.125 0 0 1-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.11v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.93l.15-.893ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.39.44 1.022.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.11v1.093c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.427.27 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.78.93l-.15.893c-.09.543-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.149-.894c-.07-.424-.384-.764-.78-.93-.398-.164-.854-.142-1.204.108l-.738.527a1.125 1.125 0 0 1-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.11v-1.094c0 .55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.93l.15-.893ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" />
               </svg>
             ) : (
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-20 h-20 text-purple-400 mx-auto mb-6">
@@ -192,18 +227,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               </svg>
             )}
             <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-              {isEditMode ? "Edit Your Preferences" : "Welcome to What to watch!"}
+              {isEditMode ? "Edit Your Preferences" : "Welcome to CineMan AI"}
             </h2>
             <p className="text-slate-300 text-lg mb-6">
-              {isEditMode ? "Update your stable preferences below. These help us tailor movie recommendations to your long-term tastes." : "Let's set up some basic preferences to help us find movies you'll love. This will only take a moment!"}
+              {isEditMode ? "Update your stable preferences below. These help us tailor movie and series recommendations to your long-term tastes." : "Let's set up some basic preferences to help us find movies and series you'll love. This will only take a moment!"}
             </p>
           </div>
         );
-      case 2:
+      case 2: // Viewing Habits (Movie Frequency, Movie Duration, Series Seasons)
         return (
           <>
             <div className="mb-8">
-              <QuestionLabel icon={ICONS.question_frequency} id="movieFrequency-label" text="How often do you watch movies?" />
+              <QuestionLabel icon={ICONS.question_frequency} id="movieFrequency-label" text="How often do you watch movies/series?" />
               <div role="radiogroup" aria-labelledby="movieFrequency-label" className="flex flex-wrap gap-3 justify-center">
                 {MOVIE_FREQUENCIES.map(freq => (
                   <button type="button" key={freq} onClick={() => handleChange('movieFrequency', freq)}
@@ -214,21 +249,35 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                 ))}
               </div>
             </div>
+             <div className="mb-8 w-full max-w-lg mx-auto">
+                <QuestionLabel icon={ICONS.question_duration} id="movieDuration-label" text="Preferred Movie Duration(s)" />
+                <div role="group" aria-labelledby="movieDuration-label" className="flex flex-wrap gap-3 justify-center">
+                    {MOVIE_DURATIONS.map(duration => (
+                    <button type="button" key={duration} onClick={() => handleMovieDurationToggle(duration)}
+                        aria-pressed={preferences.movieDuration.includes(duration)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${preferences.movieDuration.includes(duration) ? 'bg-purple-500 text-white shadow-md ring-2 ring-purple-300' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                        {duration}
+                    </button>
+                    ))}
+                </div>
+                <p className="text-xs text-slate-400 text-center mt-3">This primarily applies when looking for movies.</p>
+            </div>
             <div className="w-full max-w-lg mx-auto">
-              <QuestionLabel icon={ICONS.question_duration} id="movieDuration-label" text="Preferred Movie Duration(s)" />
-              <div role="group" aria-labelledby="movieDuration-label" className="flex flex-wrap gap-3 justify-center">
-                {MOVIE_DURATIONS.map(duration => (
-                  <button type="button" key={duration} onClick={() => handleMovieDurationToggle(duration)}
-                    aria-pressed={preferences.movieDuration.includes(duration)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${preferences.movieDuration.includes(duration) ? 'bg-purple-500 text-white shadow-md ring-2 ring-purple-300' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
-                    {duration}
-                  </button>
-                ))}
-              </div>
+                <QuestionLabel icon={ICONS.question_seasons} id="seriesSeasons-label" text="Preferred Number of Seasons (for series)" />
+                <div role="group" aria-labelledby="seriesSeasons-label" className="flex flex-wrap gap-3 justify-center">
+                    {SERIES_SEASON_COUNTS.map(count => (
+                    <button type="button" key={count} onClick={() => handleSeasonCountToggle(count)}
+                        aria-pressed={preferences.preferredNumberOfSeasons.includes(count)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${preferences.preferredNumberOfSeasons.includes(count) ? 'bg-purple-500 text-white shadow-md ring-2 ring-purple-300' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                        {count}
+                    </button>
+                    ))}
+                </div>
+                <p className="text-xs text-slate-400 text-center mt-3">This applies when looking for series recommendations.</p>
             </div>
           </>
         );
-      case 3:
+      case 3: // Content Style (Actor/Director, Era)
         return (
           <>
             <div className="mb-8">
@@ -244,7 +293,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               </div>
             </div>
             <div className="w-full max-w-lg mx-auto">
-              <QuestionLabel icon={ICONS.question_era} id="movieEra-label" text="Preferred Movie Era(s)" />
+              <QuestionLabel icon={ICONS.question_era} id="movieEra-label" text="Preferred Movie/Series Era(s)" />
               <div role="group" aria-labelledby="movieEra-label" className="flex flex-wrap gap-3 justify-center">
                 {MOVIE_ERAS.map(e => (
                   <button type="button" key={e} onClick={() => handleMovieEraToggle(e)}
@@ -257,11 +306,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             </div>
           </>
         );
-      case 4:
+      case 4: // Access & Language (Language, OTT, Country)
         return (
           <>
             <div className="mb-8">
-              <QuestionLabel icon={ICONS.question_language} id="languagePreference-label" text="Preferred Movie Languages" />
+              <QuestionLabel icon={ICONS.question_language} id="languagePreference-label" text="Preferred Movie/Series Languages" />
               <div role="group" aria-labelledby="languagePreference-label" className="flex flex-wrap gap-3 justify-center">
                 {MOVIE_LANGUAGES.map(lang => (
                   <button type="button" key={lang.code} onClick={() => handleLanguageToggle(lang.code)}
@@ -272,6 +321,31 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                   </button>
                 ))}
               </div>
+            </div>
+            <div className="mb-8">
+              <QuestionLabel icon={ICONS.question_country} id="country-label" text="Your Country (for content availability)" />
+                <select
+                    id="country"
+                    value={preferences.country}
+                    onChange={(e) => handleChange('country', e.target.value)}
+                    className={`w-full p-3 bg-slate-700 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors text-slate-200 placeholder-slate-400 text-sm ${preferences.country === '' ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-600'}`}
+                    aria-labelledby="country-label"
+                    aria-required="true"
+                >
+                    {isEditMode && !COUNTRIES.find(c => c.code === preferences.country) && <option value={preferences.country} disabled>{preferences.country} (current)</option>}
+                    {!isEditMode && preferences.country === '' && <option value="" disabled>-- Select your country --</option>}
+                    {COUNTRIES.map(country => (
+                    <option key={country.code} value={country.code}>
+                        {country.name}
+                    </option>
+                    ))}
+                </select>
+                {preferences.country === '' && (
+                    <p className="text-xs text-red-400 text-center mt-2">Please select your country to continue. This helps us find content available in your region.</p>
+                )}
+                 {preferences.country !== '' && (
+                    <p className="text-xs text-slate-400 text-center mt-2">This helps us find content available in your region.</p>
+                 )}
             </div>
             <div>
               <QuestionLabel icon={ICONS.question_ott} text="Your Streaming Services (optional)" />
@@ -288,7 +362,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             </div>
           </>
         );
-       case 5:
+       case 5: // Confirmation
         return (
           <div className="text-center">
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-20 h-20 text-green-400 mx-auto mb-6">
@@ -301,7 +375,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                 {isEditMode ? "Your preferences have been saved." : "Your preferences have been saved. You can change these later using the settings icon in the header."}
             </p>
             <p className="text-slate-400 text-sm">
-                {isEditMode ? "Click \"Save Changes\" to return to the app." : "Click \"Start Discovering\" to find your next favorite movie."}
+                {isEditMode ? "Click \"Save Changes\" to return to the app." : "Click \"Start Discovering\" to find your next favorite movie or series."}
             </p>
           </div>
         );
@@ -309,6 +383,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         return null;
     }
   };
+
+  const isCountryStepAndInvalid = currentStep === 4 && preferences.country === '';
 
   return (
     <div className="fixed inset-0 bg-slate-900 bg-opacity-95 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-[100]">
@@ -331,17 +407,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
             <div className="flex mb-2 items-center justify-between">
               <div>
                 <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-purple-300 bg-purple-800/60">
-                   {STEP_MILESTONES[currentStep - 1]}
+                   {ONBOARDING_STEP_MILESTONES[currentStep - 1]}
                 </span>
               </div>
                <div className="text-right">
                 <span className="text-xs font-semibold inline-block text-purple-300">
-                  Step {currentStep} of {TOTAL_STEPS}
+                  Step {currentStep} of {TOTAL_ONBOARDING_STEPS}
                 </span>
               </div>
             </div>
             <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-purple-200/30">
-              <div style={{ width: `${(currentStep / TOTAL_STEPS) * 100}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"></div>
+              <div style={{ width: `${(currentStep / TOTAL_ONBOARDING_STEPS) * 100}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"></div>
             </div>
           </div>
         </div>
@@ -352,7 +428,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
 
         <div className="mt-8 pt-6 border-t border-slate-700 flex justify-between items-center">
           <div className="flex items-center">
-            {isEditMode && onBack && currentStep > 1 && (
+            {isEditMode && onBack && currentStep > 1 && ( 
                 <button
                     type="button"
                     onClick={onBack}
@@ -363,28 +439,28 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                     Back to App
                 </button>
             )}
-            {currentStep > 1 && (
+            {currentStep > 1 && ( 
               <button
                 type="button"
                 onClick={prevStep}
-                disabled={isTransitioning}
-                className={`px-6 py-2.5 bg-slate-600 hover:bg-slate-500 text-white font-medium rounded-lg shadow-md transition-colors duration-150 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={isTransitioning || (isEditMode && currentStep === 1 && !!onBack)} 
+                className={`px-6 py-2.5 bg-slate-600 hover:bg-slate-500 text-white font-medium rounded-lg shadow-md transition-colors duration-150 ${isTransitioning || (isEditMode && currentStep ===1 && !!onBack) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 aria-label="Previous step"
               >
                 Back
               </button>
             )}
-             {/* Placeholder to balance flex when Back button is not shown on step 1 */}
-            {currentStep === 1 && (!isEditMode || !onBack) && <div className="w-0 h-0 invisible"></div>}
+             {currentStep === 1 && (!isEditMode || !onBack) && <div className="w-0 h-0 invisible"></div>}
 
           </div>
-          {currentStep < TOTAL_STEPS ? (
+          {currentStep < TOTAL_ONBOARDING_STEPS ? (
             <button
               type="button"
               onClick={nextStep}
-              disabled={isTransitioning}
-              className={`px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isTransitioning || isCountryStepAndInvalid}
+              className={`px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ${isTransitioning || isCountryStepAndInvalid ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Next step"
+              title={isCountryStepAndInvalid ? "Please select a country to proceed" : undefined}
             >
               Next
             </button>

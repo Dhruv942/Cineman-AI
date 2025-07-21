@@ -1,15 +1,15 @@
-
 import React from 'react';
-import type { Movie } from '../types';
+import type { Movie, MovieFeedback } from '../types';
 import { MovieCard } from './MovieCard';
 
 interface MovieListProps {
   movies: Movie[];
   titleRef?: React.RefObject<HTMLHeadingElement>;
-  titleText?: string; // New optional prop for custom title
+  titleText?: string;
+  onCardFeedback?: (movieId: string, feedbackType: MovieFeedback['feedback']) => void;
 }
 
-export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleText }) => {
+export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleText, onCardFeedback }) => {
   if (movies.length === 0) {
     return null;
   }
@@ -29,7 +29,10 @@ export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleTex
       {movies.length === 1 ? (
         <div className="flex justify-center px-2"> {/* Added padding for small screens */}
           <div className="w-full max-w-sm"> {/* Container to constrain the single MovieCard */}
-            <MovieCard movie={movies[0]} />
+            <MovieCard 
+              movie={movies[0]}
+              onFeedback={onCardFeedback && movies[0].id ? (feedbackType) => onCardFeedback(movies[0].id!, feedbackType) : undefined}
+            />
           </div>
         </div>
       ) : (
@@ -40,8 +43,12 @@ export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleTex
             : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // For 3+ items
           }`}
         >
-          {movies.map((movie, index) => (
-            <MovieCard key={`${movie.id || movie.title}-${index}-${movie.matchScore || 'ns'}`} movie={movie} />
+          {movies.map((movie) => (
+            <MovieCard 
+              key={movie.id || `${movie.title}-${movie.year}`} 
+              movie={movie}
+              onFeedback={onCardFeedback && movie.id ? (feedbackType) => onCardFeedback(movie.id!, feedbackType) : undefined}
+            />
           ))}
         </div>
       )}

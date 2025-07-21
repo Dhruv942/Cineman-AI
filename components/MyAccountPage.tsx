@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface MyAccountPageProps {
@@ -30,7 +29,7 @@ export const MyAccountPage: React.FC<MyAccountPageProps> = ({ onBackToMain }) =>
       </div>
        <footer className="absolute bottom-6 text-center w-full">
         <p className="text-slate-400 text-sm">
-          &copy; {new Date().getFullYear()} What to watch!
+          &copy; {new Date().getFullYear()} CineMan AI.
         </p>
       </footer>
     </div>
