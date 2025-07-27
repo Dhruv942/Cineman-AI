@@ -463,7 +463,7 @@ const App: React.FC = () => {
                 }`}
                 aria-pressed={recommendationType === 'series'}
             >
-                <span dangerouslySetInnerHTML={{ __html: ICONS.series_toggle_icon }} className="w-5 h-5 mr-2 mb-2" />
+                <span dangerouslySetInnerHTML={{ __html: ICONS.series_toggle_icon }} className="w-5 h-5 mr-2 " />
                 Series
             </button>
         </div>
