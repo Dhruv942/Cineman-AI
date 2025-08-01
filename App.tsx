@@ -5,7 +5,7 @@ import { MovieList } from './components/MovieList';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Footer } from './components/Footer';
 import { getMovieRecommendations, findSimilarItemByName, getMoreSimilarItems, checkTasteMatch, getSingleReplacementRecommendation } from './services/geminiService';
-import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab, CurrentAppView, RecommendationType, MovieFeedback } from './types';
+import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab, view, RecommendationType, MovieFeedback } from './types';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { SimilarMovieSearch } from './components/SimilarMovieSearch';
 import { MovieCard } from './components/MovieCard';
@@ -14,8 +14,10 @@ import { DiscoveryView } from './components/DiscoveryView';
 import { MyAccountPage } from './components/MyAccountPage';
 import { OtherSettingsPage } from './components/OtherSettingsPage';
 import { WatchPartyView } from './components/WatchPartyView';
+import { LandingPage } from './components/LandingPage';
 import { CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, CINE_SUGGEST_STABLE_PREFERENCES_KEY, MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, COUNTRIES, CINE_SUGGEST_APP_SETTINGS_KEY } from './constants';
 
+type AppView = 'loading' | 'landing' | 'onboarding' | 'main' | 'onboardingEdit' | 'myAccount' | 'otherSettings';
 
 const getDefaultStablePreferences = (): StableUserPreferences => {
   const defaultLang = MOVIE_LANGUAGES.find(l => l.code === 'any')?.code || 'any';
@@ -53,7 +55,6 @@ const App: React.FC = () => {
   const [additionalSimilarError, setAdditionalSimilarError] = useState<string | null>(null);
   const [hasAttemptedViewMore, setHasAttemptedViewMore] = useState<boolean>(false);
 
-  // State for "Will I Like This?" feature
   const [tasteCheckResult, setTasteCheckResult] = useState<Movie | null>(null);
   const [isLoadingTasteCheck, setIsLoadingTasteCheck] = useState<boolean>(false);
   const [tasteCheckError, setTasteCheckError] = useState<string | null>(null);
@@ -63,11 +64,10 @@ const App: React.FC = () => {
 
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('recommendations');
-  const [showOnboarding, setShowOnboarding] = useState<boolean>(false); 
   const [stablePreferences, setStablePreferences] = useState<StableUserPreferences | null>(null);
   const [recommendationType, setRecommendationType] = useState<RecommendationType>('movie');
 
-  const [currentAppView, setCurrentAppView] = useState<CurrentAppView>('main');
+  const [view, setView] = useState<AppView>('loading');
 
 
   const recommendationsTitleRef = useRef<HTMLHeadingElement>(null);
@@ -110,19 +110,18 @@ const App: React.FC = () => {
   useEffect(() => {
     const onboardingComplete = localStorage.getItem(CINE_SUGGEST_ONBOARDING_COMPLETE_KEY);
     if (!onboardingComplete) {
-      setShowOnboarding(true);
-      setCurrentAppView('main');
+      setView('landing');
     } else {
-      setShowOnboarding(false);
       const currentPrefs = getEnsuredStablePreferences();
       if (!stablePreferences) { 
           setStablePreferences(currentPrefs);
       }
+      setView('main');
     }
   }, [getEnsuredStablePreferences, stablePreferences]);
 
   useEffect(() => {
-    if (currentAppView === 'main' && activeTab === 'recommendations' && recommendations.length > 0 && !isLoadingRecommendations && hasSearchedRecommendations) {
+    if (view === 'main' && activeTab === 'recommendations' && recommendations.length > 0 && !isLoadingRecommendations && hasSearchedRecommendations) {
       const timer = setTimeout(() => {
         if (recommendationsTitleRef.current) {
           recommendationsTitleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -130,10 +129,10 @@ const App: React.FC = () => {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [recommendations, isLoadingRecommendations, hasSearchedRecommendations, activeTab, currentAppView]);
+  }, [recommendations, isLoadingRecommendations, hasSearchedRecommendations, activeTab, view]);
 
   useEffect(() => {
-    if (currentAppView === 'main' && activeTab === 'similarSearch' && additionalSimilarItems.length > 0 && !isLoadingAdditionalSimilar && hasAttemptedViewMore) {
+    if (view === 'main' && activeTab === 'similarSearch' && additionalSimilarItems.length > 0 && !isLoadingAdditionalSimilar && hasAttemptedViewMore) {
       const timer = setTimeout(() => {
         if (additionalSimilarTitleRef.current) {
           additionalSimilarTitleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -141,29 +140,34 @@ const App: React.FC = () => {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [additionalSimilarItems, isLoadingAdditionalSimilar, hasAttemptedViewMore, activeTab, currentAppView]);
+  }, [additionalSimilarItems, isLoadingAdditionalSimilar, hasAttemptedViewMore, activeTab, view]);
 
 
+
+
+   const handleStartOnboarding = () => {
+    setView('onboarding');
+  };
+  
   const handleOnboardingComplete = (completedStablePreferences: StableUserPreferences) => {
     setStablePreferences(completedStablePreferences);
-    setShowOnboarding(false);
-    setCurrentAppView('main');
+    setView('main');
   };
 
   const handleEditPreferences = () => {
-    setCurrentAppView('onboardingEdit');
+    setView('onboardingEdit');
   };
 
   const handleShowMyAccount = () => {
-    setCurrentAppView('myAccount');
+    setView('myAccount');
   };
 
   const handleShowOtherSettings = () => {
-    setCurrentAppView('otherSettings');
+    setView('otherSettings');
   };
 
   const handleBackToMain = () => {
-    setCurrentAppView('main');
+    setView('main');
   };
 
 
@@ -411,27 +415,30 @@ const App: React.FC = () => {
     backgroundSize: 'cover',
   };
 
-  if (showOnboarding) {
-    return <OnboardingWizard onComplete={handleOnboardingComplete} isEditMode={false} />;
-  }
-
-  if (currentAppView === 'onboardingEdit' && stablePreferences) {
-    return <OnboardingWizard
-              onComplete={handleOnboardingComplete}
-              initialData={stablePreferences}
-              isEditMode={true}
-              onBack={handleBackToMain}
-           />;
-  }
-
-  if (currentAppView === 'myAccount') {
-    return <MyAccountPage onBackToMain={handleBackToMain} />;
-  }
-
-  if (currentAppView === 'otherSettings') {
-    return <OtherSettingsPage onBackToMain={handleBackToMain} />;
-  }
-
+  const renderContent = () => {
+    switch(view) {
+      case 'loading':
+        return (
+            <div style={appStyle} className="flex-grow flex flex-col items-center justify-center">
+              <LoadingSpinner />
+            </div>
+        );
+      case 'landing':
+        return <LandingPage onStartOnboarding={handleStartOnboarding} />;
+      case 'onboarding':
+        return <OnboardingWizard onComplete={handleOnboardingComplete} isEditMode={false} />;
+      case 'onboardingEdit':
+        return <OnboardingWizard
+                  onComplete={handleOnboardingComplete}
+                  initialData={stablePreferences!}
+                  isEditMode={true}
+                  onBack={handleBackToMain}
+              />;
+      case 'myAccount':
+        return <MyAccountPage onBackToMain={handleBackToMain} />;
+      case 'otherSettings':
+        return <OtherSettingsPage onBackToMain={handleBackToMain} />;
+      case 'main':
   return (
     <div style={appStyle} className="flex-grow flex flex-col text-slate-100">
       <Header
@@ -470,20 +477,25 @@ const App: React.FC = () => {
 
         <nav className="mb-8 flex justify-center space-x-0.5 sm:space-x-1 border-b border-slate-700 w-full max-w-5xl" role="tablist">
           <TabButton tabName="recommendations" currentTab={activeTab} onClick={() => handleTabChange('recommendations')} icon={ICONS.recommendations_tab_icon}>
-            Recommendations
-          </TabButton>
-          <TabButton tabName="similarSearch" currentTab={activeTab} onClick={() => handleTabChange('similarSearch')} icon={ICONS.similar_search_tab_icon}>
-            Find Similar
-          </TabButton>
-           <TabButton tabName="tasteCheck" currentTab={activeTab} onClick={() => handleTabChange('tasteCheck')} icon={ICONS.taste_check_tab_icon}>
-            Will I Like This?
-          </TabButton>
-          <TabButton tabName="discovery" currentTab={activeTab} onClick={() => handleTabChange('discovery')} icon={ICONS.discovery_tab_icon}>
-            Discover & Rate
-          </TabButton>
-          <TabButton tabName="watchParty" currentTab={activeTab} onClick={() => handleTabChange('watchParty')} icon={ICONS.watch_party_tab_icon}>
-            Watch Party
-          </TabButton>
+                    <span className="hidden sm:inline">Recommendations</span>
+                    <span className="inline sm:hidden">Recs</span>
+                  </TabButton>
+                  <TabButton tabName="similarSearch" currentTab={activeTab} onClick={() => handleTabChange('similarSearch')} icon={ICONS.similar_search_tab_icon}>
+                    <span className="hidden sm:inline">Find Similar</span>
+                    <span className="inline sm:hidden">Similar</span>
+                  </TabButton>
+                  <TabButton tabName="tasteCheck" currentTab={activeTab} onClick={() => handleTabChange('tasteCheck')} icon={ICONS.taste_check_tab_icon}>
+                    <span className="hidden sm:inline">Will I Like This?</span>
+                    <span className="inline sm:hidden">Taste</span>
+                  </TabButton>
+                  <TabButton tabName="discovery" currentTab={activeTab} onClick={() => handleTabChange('discovery')} icon={ICONS.discovery_tab_icon}>
+                    <span className="hidden sm:inline">Discover & Rate</span>
+                    <span className="inline sm:hidden">Discover</span>
+                  </TabButton>
+                  <TabButton tabName="watchParty" currentTab={activeTab} onClick={() => handleTabChange('watchParty')} icon={ICONS.watch_party_tab_icon}>
+                    <span className="hidden sm:inline">Watch Party</span>
+                    <span className="inline sm:hidden">Party</span>
+                  </TabButton>
         </nav>
 
         <div className="w-full max-w-7xl relative flex flex-col flex-grow min-h-0">
@@ -739,6 +751,12 @@ const App: React.FC = () => {
       <Footer />
     </div>
   );
+  default:
+        return null; // Should not happen
+    }
+  };
+
+  return renderContent();
 };
 
 export default App;

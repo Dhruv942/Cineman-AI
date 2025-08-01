@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { SessionPreferences, RecommendationType } from '../types';
 import { MOVIE_GENRES, ICONS } from '../constants';
@@ -61,7 +60,7 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
   };
   
   const QuestionLabel: React.FC<{ htmlFor?: string; id?: string; icon: string; text: string; className?: string; isOptional?: boolean }> = 
-  ({ htmlFor, id, icon, text, className = "block text-xl font-semibold mb-4 text-purple-300 text-center", isOptional = false }) => (
+  ({ htmlFor, id, icon, text, className = "block text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-purple-300 text-center", isOptional = false }) => (
     <label htmlFor={htmlFor} id={id} className={className}>
       <span dangerouslySetInnerHTML={{ __html: icon }} className="inline-block align-middle" />
       {text} {isOptional && <span className="text-sm text-slate-400">(optional)</span>}
@@ -69,13 +68,13 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 bg-slate-800 p-6 sm:p-8 rounded-xl shadow-2xl">
+    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 bg-slate-800 p-4 sm:p-6 md:p-8 rounded-xl shadow-2xl">
       <div>
         <QuestionLabel 
             icon={ICONS.question_genre} 
             text={`What kind of ${itemTypeString} are you in the mood for now? (select up to 5 genres)`} 
         />
-        <div className="flex flex-wrap gap-3 justify-center">
+        <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
           {MOVIE_GENRES.map(genre => (
             <button
               type="button"
@@ -83,7 +82,7 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
               onClick={() => handleGenreToggle(genre)}
               disabled={selectedGenres.length >= 5 && !selectedGenres.includes(genre)}
               aria-pressed={selectedGenres.includes(genre)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ease-in-out flex items-center
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-150 ease-in-out flex items-center
                 ${selectedGenres.includes(genre)
                   ? 'bg-purple-500 text-white shadow-md ring-2 ring-purple-300'
                   : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
@@ -99,7 +98,7 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
         {selectedGenres.length >= 5 && <p className="text-xs text-amber-400 mt-2 text-center">Maximum 5 genres selected for inclusion.</p>}
       </div>
 
-      <div className="text-center -mt-6">
+      <div className="text-center -my-3 sm:-my-4">
         <button
           type="button"
           onClick={() => setShowExcludeGenres(!showExcludeGenres)}
@@ -118,22 +117,22 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
       <div
         id="exclude-genres-section"
         className={`transition-all duration-300 ease-in-out overflow-hidden ${
-          showExcludeGenres ? 'max-h-[500px] opacity-100 mt-2 -mb-4' : 'max-h-0 opacity-0 mt-0' 
+          showExcludeGenres ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0' 
         }`}
         aria-hidden={!showExcludeGenres}
       >
         {showExcludeGenres && (
-          <div className="border-t border-slate-700 pt-4">
+          <div className="border-t border-slate-700 pt-4 sm:pt-6">
             <QuestionLabel icon={ICONS.horror} text="Genres to Exclude" />
             <p className="text-xs text-slate-400 text-center mb-4">Select genres you'd prefer to avoid.</p>
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
               {MOVIE_GENRES.map(genre => (
                 <button
                   type="button"
                   key={`exclude-${genre}`}
                   onClick={() => handleExcludeGenreToggle(genre)}
                   aria-pressed={excludedGenres.includes(genre)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ease-in-out flex items-center
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-150 ease-in-out flex items-center
                     ${excludedGenres.includes(genre)
                       ? 'bg-red-700 text-white shadow-md ring-2 ring-red-400'
                       : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
@@ -149,7 +148,7 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
         )}
       </div>
 
-      <div className={!showExcludeGenres ? '-mt-4' : ''}> 
+      <div>
         <QuestionLabel icon={ICONS.question_mood} htmlFor="mood" text="Describe the mood, vibe, or plot" isOptional={true} />
         <textarea
           id="mood"
@@ -173,12 +172,11 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
         />
       </div>
 
-      <div className="mt-10 text-center">
+      <div className="text-center pt-4 sm:pt-6">
         <button
           type="submit"
-          disabled={isLoading}
-          className={`group inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ease-in-out text-xl w-auto
-                      ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={isLoading || (selectedGenres.length === 0 && !mood && !keywords)}
+          className="inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed group text-base sm:text-lg"
         >
           {isLoading ? (
             <>
@@ -186,15 +184,18 @@ export const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoad
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Working...
+              Finding {itemTypeString}s...
             </>
           ) : (
             <>
-             Go!
-             <span dangerouslySetInnerHTML={{ __html: ICONS.go_cta }} />
+              Find My {itemTypeString === 'series' ? 'Series' : 'Movies'}
+              <span dangerouslySetInnerHTML={{ __html: ICONS.go_cta }} className="inline-block" />
             </>
           )}
         </button>
+        {(selectedGenres.length === 0 && !mood && !keywords) && (
+            <p className="text-xs text-slate-400 mt-2">Please select at least one genre or provide a mood/keyword.</p>
+        )}
       </div>
     </form>
   );

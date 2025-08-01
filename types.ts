@@ -61,7 +61,7 @@ export interface PopularItemEntry { // Renamed from PopularMovieEntry
   posterUrl?: string; 
 }
 
-export type CurrentAppView = 'main' | 'onboardingEdit' | 'myAccount' | 'otherSettings';
+export type view = 'main' | 'onboardingEdit' | 'myAccount' | 'otherSettings';
 
 export interface AppSettings {
   numberOfRecommendations: number;
