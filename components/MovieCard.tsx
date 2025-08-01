@@ -76,7 +76,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
       <img
         src={posterUrl || initialImageUrl}
         alt={`Poster for ${movie.title}`}
-        className="w-full aspect-[4/3] object-cover rounded-t-lg relative z-0"
+        className="w-full aspect-[2/3] object-cover rounded-t-lg relative z-0"
         onError={(e) => {
           const target = e.currentTarget;
           if (target.src === movie.posterUrl && movie.posterUrl !== placeholderImageUrl) {
