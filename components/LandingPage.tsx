@@ -1,11 +1,15 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface LandingPageProps {
   onStartOnboarding: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) => {
+  console.log('[LandingPage] Rendered');
+
+  useEffect(() => {
+    console.log('[LandingPage] Mounted');
+  }, []);
 
   const appStyle: React.CSSProperties = {
     background: `
@@ -16,29 +20,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
     backgroundAttachment: 'fixed',
   };
 
-  const FeatureCard: React.FC<{ icon: string; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
-    <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg text-center transform hover:-translate-y-1 transition-transform duration-200">
-      <div className="flex items-center justify-center mb-4 w-12 h-12 rounded-full bg-purple-500/20 mx-auto"
-           dangerouslySetInnerHTML={{ __html: icon }}>
+  const FeatureCard: React.FC<{ icon: string; title: string; children: React.ReactNode }> = ({ icon, title, children }) => {
+    console.log('[LandingPage] Rendering FeatureCard:', title);
+    return (
+      <div className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg text-center transform hover:-translate-y-1 transition-transform duration-200">
+        <div
+          className="flex items-center justify-center mb-4 w-12 h-12 rounded-full bg-purple-500/20 mx-auto"
+          dangerouslySetInnerHTML={{ __html: icon }}
+        />
+        <h3 className="text-lg font-semibold mb-2 text-white">{title}</h3>
+        <p className="text-slate-300">{children}</p>
       </div>
-      <h3 className="text-xl font-semibold mb-2 text-purple-300">{title}</h3>
-      <p className="text-slate-400 text-sm">{children}</p>
-    </div>
-  );
+    );
+  };
 
   return (
     <div style={appStyle} className="min-h-screen flex flex-col items-center justify-center p-4 text-slate-100 text-center overflow-hidden">
       <main className="flex-grow flex flex-col items-center justify-center">
-        <div style={{ animation: 'fade-in-hero 0.8s ease-out forwards' }} className="opacity-0">
+        <div >
             <div className="flex items-center justify-center space-x-3 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 sm:w-14 sm:h-14 text-purple-400">
-                <path d="M18 4H6c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h1.1c.42 3.38 1.42 6.55 2.9 9l2-5 2 5c1.48-2.45 2.48-5.62 2.9-9H18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7 6h10v3H7V6zm5 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
-                </svg>
+                <img
+           src="./icons/icon128.png"
+           //alt="CineMate AI logo"
+           className="w-8 h-8 sm:w-10 sm:h-10"
+             />
                 <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
                 CineMan AI
                 </h1>
             </div>
-            <p className="max-w-xl text-lg sm:text-2xl font-semibold text-slate-200 mb-4">
+            <p className="max-w-xl ml-20 text-lg sm:text-2xl font-semibold text-slate-200 mb-4">
                 Stop Scrolling, Start Watching.
             </p>
             <p className="max-w-2xl text-md sm:text-lg text-slate-300 mb-10">
@@ -52,7 +62,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
             </button>
         </div>
 
-        <div className="mt-24 w-full max-w-5xl mx-auto opacity-0" style={{ animation: 'fade-in-hero 0.8s ease-out 0.3s forwards' }}>
+        <div className="mt-24 w-full max-w-5xl mx-auto " style={{ animation: 'fade-in-hero 0.8s ease-out 0.3s forwards' }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard
               icon={`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-sky-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>`}

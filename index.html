@@ -70,17 +70,17 @@
   /* Discovery View Card Stack Styles */
   .discovery-card-stack {
     position: relative;
-    width: 100%;
+    width: 90vw; /* Use viewport width for responsiveness */
     max-width: 360px; /* Max width of the card */
-    height: 580px; /* Fixed height for the stack area */
+    height: 75vh; /* Use viewport height for responsiveness */
+    max-height: 560px; /* Max height to avoid being too tall on long screens */
     margin: auto;
   }
 
   .discovery-card {
     position: absolute;
     width: 100%;
-    height: 100%; /* Card takes full height of its content */
-    max-height: 540px;
+    height: 100%; /* Card takes full height of stack */
     background-color: #1e293b; /* slate-800 */
     border-radius: 1rem; /* 16px */
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -93,7 +93,7 @@
 
   .discovery-card .card-poster-container {
     width: 100%;
-    height: 70%; /* Adjusted poster height */
+    height: 65%; /* Adjusted poster height for better balance on mobile */
     overflow: hidden;
     position: relative;
   }
@@ -106,7 +106,7 @@
   }
 
   .discovery-card .card-info {
-    padding: 1rem; /* 16px */
+    padding: 0.75rem; /* Smaller base padding */
     text-align: center;
     flex-grow: 1;
     display: flex;
@@ -115,7 +115,8 @@
   }
   
   .discovery-card .card-title {
-    font-size: 1.25rem; /* 20px */
+    font-size: 1.1rem; /* Smaller base font size */
+    line-height: 1.5rem;
     font-weight: 600; /* semibold */
     color: #c084fc; /* purple-400 */
     margin-bottom: 0.25rem; /* 4px */
@@ -125,13 +126,13 @@
   }
 
   .discovery-card .card-year {
-    font-size: 0.875rem; /* 14px */
+    font-size: 0.8rem; /* Smaller base font size */
     color: #94a3b8; /* slate-400 */
-    margin-bottom: 0.75rem; /* 12px */
+    margin-bottom: 0.5rem; /* 8px */
   }
 
   .discovery-card .card-actions {
-    padding: 0.75rem 1rem 1rem; /* 12px top, 16px bottom/sides */
+    padding: 0.5rem 0.75rem 0.75rem; /* Smaller base padding */
     border-top: 1px solid #334155; /* slate-700 */
     display: flex;
     gap: 0.75rem; /* 12px */
@@ -140,22 +141,43 @@
   }
   
   .discovery-card .action-button {
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.5rem; /* Adjusted padding */
     border-radius: 0.5rem; /* 8px */
     font-weight: 500; /* medium */
-    font-size: 0.875rem;
+    font-size: 0.8rem; /* Adjusted font size */
     transition: background-color 0.2s, transform 0.1s;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-grow: 1;
-    min-height: 40px;
+    min-height: 36px; /* Slightly smaller min-height */
+    white-space: nowrap; /* Prevent text wrapping */
   }
   .discovery-card .action-button:hover {
     transform: translateY(-1px);
   }
   .discovery-card .action-button:active {
     transform: translateY(0px);
+  }
+
+  @media (min-width: 640px) { /* sm breakpoint */
+    .discovery-card .card-info {
+      padding: 1rem;
+    }
+    .discovery-card .card-title {
+      font-size: 1.25rem;
+    }
+    .discovery-card .card-year {
+      font-size: 0.875rem;
+    }
+    .discovery-card .card-actions {
+      padding: 0.75rem 1rem 1rem;
+    }
+    .discovery-card .action-button {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      min-height: 40px;
+    }
   }
 
 
@@ -218,6 +240,20 @@
       transform: translateY(0) scale(1);
       opacity: 1;
     }
+  }
+
+  @keyframes movie-card-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .movie-card-enter {
+    animation: movie-card-fade-in 0.4s ease-out forwards;
+  }
+  
+  @keyframes fade-in-hero {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
 </style>

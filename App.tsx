@@ -5,7 +5,7 @@ import { MovieList } from './components/MovieList';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Footer } from './components/Footer';
 import { getMovieRecommendations, findSimilarItemByName, getMoreSimilarItems, checkTasteMatch, getSingleReplacementRecommendation } from './services/geminiService';
-import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab, view, RecommendationType, MovieFeedback } from './types';
+import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab,  RecommendationType, MovieFeedback } from './types';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { SimilarMovieSearch } from './components/SimilarMovieSearch';
 import { MovieCard } from './components/MovieCard';
@@ -141,8 +141,6 @@ const App: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [additionalSimilarItems, isLoadingAdditionalSimilar, hasAttemptedViewMore, activeTab, view]);
-
-
 
 
    const handleStartOnboarding = () => {
@@ -389,6 +387,7 @@ const App: React.FC = () => {
   const TabButton: React.FC<{tabName: ActiveTab; currentTab: ActiveTab; onClick: () => void; children: React.ReactNode, icon?: string}> =
     ({ tabName, currentTab, onClick, children, icon }) => (
     <button
+    id={`tab-${tabName}`}
       onClick={onClick}
       className={`flex items-center justify-center px-2.5 sm:px-4 py-3 text-xs sm:text-sm font-medium rounded-t-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400
                   ${currentTab === tabName
@@ -396,6 +395,7 @@ const App: React.FC = () => {
                     : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-200'}`}
       role="tab"
       aria-selected={currentTab === tabName}
+      aria-controls={`tabpanel-${tabName}`}
     >
       {icon && <span dangerouslySetInnerHTML={{ __html: icon }} className="mr-1 sm:mr-1.5 w-3.5 h-3.5 sm:w-4 sm:h-4 inline-block" />}
       {children}
@@ -499,15 +499,16 @@ const App: React.FC = () => {
         </nav>
 
         <div className="w-full max-w-7xl relative flex flex-col flex-grow min-h-0">
-          <section
-            role="tabpanel"
-            aria-labelledby="tab-recommendations"
-            className={`transition-opacity duration-500 ease-in-out
-              ${activeTab === 'recommendations'
-                ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
-                : 'opacity-0 pointer-events-none absolute inset-0'
-              }`}
-          >
+        <section
+                    id="tabpanel-recommendations"
+                    role="tabpanel"
+                    aria-labelledby="tab-recommendations"
+                    className={`transition-opacity duration-500 ease-in-out
+                      ${activeTab === 'recommendations'
+                        ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
+                        : 'opacity-0 pointer-events-none absolute inset-0'
+                      }`}
+                  >
             <div className="max-w-3xl mx-auto">
               <PreferenceForm 
                 onSubmit={handleGetRecommendations} 
@@ -568,14 +569,15 @@ const App: React.FC = () => {
           </section>
 
           <section
-            role="tabpanel"
-            aria-labelledby="tab-similarSearch"
-            className={`transition-opacity duration-500 ease-in-out
-              ${activeTab === 'similarSearch'
-                ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
-                : 'opacity-0 pointer-events-none absolute inset-0'
-              }`}
-          >
+                    id="tabpanel-similarSearch"
+                    role="tabpanel"
+                    aria-labelledby="tab-similarSearch"
+                    className={`transition-opacity duration-500 ease-in-out
+                      ${activeTab === 'similarSearch'
+                        ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
+                        : 'opacity-0 pointer-events-none absolute inset-0'
+                      }`}
+                  >
             <div className="max-w-3xl mx-auto">
               <SimilarMovieSearch
                 onSearch={handleFindSimilarItem}
@@ -655,14 +657,15 @@ const App: React.FC = () => {
           </section>
 
           <section
-            role="tabpanel"
-            aria-labelledby="tab-tasteCheck"
-            className={`transition-opacity duration-500 ease-in-out
-              ${activeTab === 'tasteCheck'
-                ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
-                : 'opacity-0 pointer-events-none absolute inset-0'
-              }`}
-          >
+                    id="tabpanel-tasteCheck"
+                    role="tabpanel"
+                    aria-labelledby="tab-tasteCheck"
+                    className={`transition-opacity duration-500 ease-in-out
+                      ${activeTab === 'tasteCheck'
+                        ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
+                        : 'opacity-0 pointer-events-none absolute inset-0'
+                      }`}
+                  >
             <div className="max-w-3xl mx-auto">
               <SimilarMovieSearch
                 onSearch={handleCheckTasteMatch}
@@ -723,28 +726,30 @@ const App: React.FC = () => {
           </section>
 
           <section
-            role="tabpanel"
-            aria-labelledby="tab-discovery"
-            className={`transition-opacity duration-500 ease-in-out
-              ${activeTab === 'discovery'
-                ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
-                : 'opacity-0 pointer-events-none absolute inset-0'
-              }`}
-          >
+                    id="tabpanel-discovery"
+                    role="tabpanel"
+                    aria-labelledby="tab-discovery"
+                    className={`transition-opacity duration-500 ease-in-out
+                      ${activeTab === 'discovery'
+                        ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
+                        : 'opacity-0 pointer-events-none absolute inset-0'
+                      }`}
+                  >
             <DiscoveryView isActive={activeTab === 'discovery'} recommendationType={recommendationType} />
           </section>
 
           <section
-            role="tabpanel"
-            aria-labelledby="tab-watchParty"
-            className={`transition-opacity duration-500 ease-in-out
-              ${activeTab === 'watchParty'
-                ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
-                : 'opacity-0 pointer-events-none absolute inset-0'
-              }`}
-          >
-            <WatchPartyView isActive={activeTab === 'watchParty'} recommendationType={recommendationType} />
-          </section>
+                    id="tabpanel-watchParty"
+                    role="tabpanel"
+                    aria-labelledby="tab-watchParty"
+                    className={`transition-opacity duration-500 ease-in-out
+                      ${activeTab === 'watchParty'
+                        ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
+                        : 'opacity-0 pointer-events-none absolute inset-0'
+                      }`}
+                  >
+                    <WatchPartyView isActive={activeTab === 'watchParty'} recommendationType={recommendationType} />
+                  </section>
 
         </div>
       </main>
