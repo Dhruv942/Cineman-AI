@@ -348,7 +348,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                  )}
             </div>
             <div>
-              <QuestionLabel icon={ICONS.question_ott} text="Your Streaming Services (optional)" />
+              <QuestionLabel  text="Your Streaming Services (optional)" />
               <div className="flex flex-wrap gap-3 justify-center">
                 {OTT_PLATFORMS.map(platform => (
                   <button type="button" key={platform} onClick={() => handleOttPlatformToggle(platform)}

@@ -13,7 +13,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
   const imageIdSeed = movie.title.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10) + movie.year;
   const placeholderImageUrl = `https://picsum.photos/seed/${imageIdSeed}/400/300`; 
   const genericFallbackImageUrl = 'https://picsum.photos/400/300?grayscale&blur=2'; 
- const [posterUrl, setPosterUrl] = useState<string>(movie.posterUrl || placeholderImageUrl);
+  const [posterUrl, setPosterUrl] = useState<string>(movie.posterUrl || placeholderImageUrl);
   const [feedbackGiven, setFeedbackGiven] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(true);
 
@@ -22,7 +22,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
     const timer = setTimeout(() => setIsNew(false), 500); // Animation duration
     return () => clearTimeout(timer);
   }, [movie]); 
-
 
   useEffect(() => {
     if (isSearchResult) return;
@@ -35,7 +34,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
     }
   }, [movie.title, movie.year, isSearchResult]);
 
- useEffect(() => {
+  useEffect(() => {
     const fetchPoster = async () => {
       const res = await fetch(
         `https://www.omdbapi.com/?t=${encodeURIComponent(movie.title)}&y=${movie.year}&apikey=eb2a7002`
@@ -48,7 +47,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
 
     fetchPoster();
   }, [movie.title, movie.year]);
-
 
   const handleFeedback = (feedbackType: MovieFeedback['feedback']) => {
     saveMovieFeedback(movie.title, movie.year, feedbackType);
@@ -70,24 +68,25 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
     ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A11.978 11.978 0 0 1 12 16.5c-2.998 0-5.74-1.1-7.843-2.918m15.686-5.834A8.959 8.959 0 0 0 3 12c0 .778-.099 1.533.284 2.253m0 0A11.978 11.978 0 0 0 12 16.5c2.998 0 5.74 1.1 7.843 2.918" /></svg>` // Globe / Target icon
     : '❤️';
 
-
   return (
     <div className={`bg-slate-800 rounded-lg shadow-xl flex flex-col transition-all duration-300 w-full relative ${isSearchResult ? 'border-2 border-purple-500' : 'hover:shadow-2xl'} ${isNew ? 'movie-card-enter' : ''}`}>
-      <img
-        src={posterUrl || initialImageUrl}
-        alt={`Poster for ${movie.title}`}
-        className="w-full aspect-[4/3] object-center rounded-t-lg relative z-0"
-        onError={(e) => {
-          const target = e.currentTarget;
-          if (target.src === movie.posterUrl && movie.posterUrl !== placeholderImageUrl) {
-            target.src = placeholderImageUrl;
-          } else if (target.src === placeholderImageUrl && placeholderImageUrl !== genericFallbackImageUrl) {
-            target.src = genericFallbackImageUrl;
-          } else if (target.src !== genericFallbackImageUrl) {
-             target.src = genericFallbackImageUrl;
-          }
-        }}
-      />
+      <div className="w-full h-80 bg-black rounded-t-lg overflow-hidden flex items-center justify-center">
+        <img
+          src={posterUrl || initialImageUrl}
+          alt={`Poster for ${movie.title}`}
+          className="max-w-full max-h-full object-contain"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (target.src === movie.posterUrl && movie.posterUrl !== placeholderImageUrl) {
+              target.src = placeholderImageUrl;
+            } else if (target.src === placeholderImageUrl && placeholderImageUrl !== genericFallbackImageUrl) {
+              target.src = genericFallbackImageUrl;
+            } else if (target.src !== genericFallbackImageUrl) {
+               target.src = genericFallbackImageUrl;
+            }
+          }}
+        />
+      </div>
       <div className="p-5 flex flex-col flex-grow relative z-10">
         <div className="min-w-0 text-center">
           <h3 className="truncate text-xl font-semibold text-purple-300 mb-1">{movie.title} ({movie.year})</h3>
@@ -102,7 +101,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
             {scoreLabel}: {movie.matchScore}/100
           </div>
         )}
-
 
         {movie.durationMinutes && (
           <p className="text-xs text-slate-400 mb-2 text-center">
@@ -124,7 +122,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
             {movie.summary}
           </p>
         </div>
-
 
         {movie.similarTo && (
           <p className="text-xs text-slate-300 mb-2 flex items-start justify-center sm:justify-start">
