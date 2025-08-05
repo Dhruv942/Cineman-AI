@@ -221,7 +221,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
               <img
             src="./icons/icon128.png"
             alt="CineMan AI logo"
-            className="w-20 h-20 text-purple-400 mx-auto mb-6
+            className="w-20 h-20 text-purple-400 mx-auto mb-6"
           />
             ) : (
              <img
