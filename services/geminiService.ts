@@ -2,14 +2,177 @@ import { GoogleGenAI } from "@google/genai";
 import type { UserPreferences, Movie, GeminiMovieRecommendation, AppSettings, MovieFeedback as AppMovieFeedbackType, RecommendationType, ItemTitleSuggestion as AppItemTitleSuggestion, StableUserPreferences, TasteCheckGeminiResponse, TasteCheckGeminiResponseItem, TasteCheckServiceResponse } from '../types';
 import { MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, CINE_SUGGEST_MOVIE_FEEDBACK_KEY, CINE_SUGGEST_APP_SETTINGS_KEY, COUNTRIES } from '../constants';
 
+// Cache for API responses to prevent duplicate calls
+const responseCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
-const API_KEY = 'AIzaSyAiHRKTElZSZjrRA80audcZw5nZpbC_fDM';
+// Use environment variable for API key
+const API_KEY ='AIzaSyBJqkrD1MteQ9FV6v3Dtdo39dhLUf4BRB4';
 
-if (!API_KEY) {
-  console.error("API_KEY is not set in environment variables. Movie recommendations will not work.");
+// Cache TTL in milliseconds (10 minutes)
+const CACHE_TTL = 10 * 60 * 1000;
+
+// Available models with fallback order
+const AVAILABLE_MODELS = [
+  "gemini-2.0-flash",
+  "gemini-1.5-flash", 
+  "gemini-1.5-pro",
+  "gemini-1.0-pro"
+];
+
+// Track current model index
+let currentModelIndex = 0;
+
+// Get current model
+function getCurrentModel(): string {
+  return AVAILABLE_MODELS[currentModelIndex];
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! }); 
+// Switch to next available model
+function switchToNextModel(): string {
+  currentModelIndex = (currentModelIndex + 1) % AVAILABLE_MODELS.length;
+  const newModel = getCurrentModel();
+  console.log(`🔄 Switched to model: ${newModel}`);
+  return newModel;
+}
+
+// Reset to first model (internal function)
+
+// Cache management functions
+export const clearCache = () => {
+  responseCache.clear();
+  console.log("API response cache cleared");
+};
+
+export const getCacheStats = () => {
+  const validEntries = Array.from(responseCache.values()).filter(entry => isCacheValid(entry));
+  const expiredEntries = Array.from(responseCache.values()).filter(entry => !isCacheValid(entry));
+  
+  // Clean up expired entries
+  for (const [key, entry] of responseCache.entries()) {
+    if (!isCacheValid(entry)) {
+      responseCache.delete(key);
+    }
+  }
+  
+  return {
+    totalEntries: responseCache.size,
+    validEntries: validEntries.length,
+    expiredEntries: expiredEntries.length
+  };
+};
+
+// Model management functions
+export const getCurrentModelInfo = () => {
+  return {
+    currentModel: getCurrentModel(),
+    currentIndex: currentModelIndex,
+    totalModels: AVAILABLE_MODELS.length,
+    availableModels: [...AVAILABLE_MODELS]
+  };
+};
+
+export const manuallySwitchModel = (modelIndex: number) => {
+  if (modelIndex >= 0 && modelIndex < AVAILABLE_MODELS.length) {
+    currentModelIndex = modelIndex;
+    console.log(`🔄 Manually switched to model: ${getCurrentModel()}`);
+    return getCurrentModel();
+  } else {
+    console.error(`Invalid model index: ${modelIndex}. Available: 0-${AVAILABLE_MODELS.length - 1}`);
+    return null;
+  }
+};
+
+export const resetToFirstModel = () => {
+  currentModelIndex = 0;
+  console.log(`🔄 Reset to first model: ${getCurrentModel()}`);
+};
+
+if (!API_KEY) {
+  console.error("GEMINI_API_KEY is not set in environment variables. Movie recommendations will not work.");
+  console.error("Please create a .env file in your project root with: GEMINI_API_KEY=your_api_key_here");
+} else {
+  console.log("API Key loaded successfully:", API_KEY.substring(0, 10) + "...");
+}
+
+const ai = new GoogleGenAI({ apiKey: API_KEY! });
+
+// Helper function to generate cache key
+function generateCacheKey(prompt: string, config: any): string {
+  return btoa(prompt + JSON.stringify(config));
+}
+
+// Helper function to check if cache entry is valid
+function isCacheValid(cacheEntry: { data: any; timestamp: number; ttl: number }): boolean {
+  return Date.now() - cacheEntry.timestamp < cacheEntry.ttl;
+}
+
+// Helper function to call Gemini API with caching and automatic model fallback
+async function callGeminiAPIWithCache(prompt: string, config: any = {}): Promise<any> {
+  const cacheKey = generateCacheKey(prompt, config);
+  
+  // Check cache first
+  const cachedResponse = responseCache.get(cacheKey);
+  if (cachedResponse && isCacheValid(cachedResponse)) {
+    console.log("Using cached response for:", cacheKey.substring(0, 50) + "...");
+    return cachedResponse.data;
+  }
+
+  // Try with current model and fallback to others if needed
+  const maxRetries = AVAILABLE_MODELS.length;
+  let lastError: any = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const currentModel = getCurrentModel();
+    
+    try {
+      console.log(`🚀 Attempting API call with model: ${currentModel} (attempt ${attempt + 1}/${maxRetries})`);
+      
+      const response = await ai.models.generateContent({
+        model: currentModel,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          ...config
+        }
+      });
+      
+      // Cache the response
+      responseCache.set(cacheKey, {
+        data: response,
+        timestamp: Date.now(),
+        ttl: CACHE_TTL
+      });
+
+      console.log(`✅ API call successful with ${currentModel}, cached for 10 minutes`);
+      return response;
+      
+    } catch (error) {
+      lastError = error;
+      console.warn(`❌ Failed with ${currentModel}:`, error instanceof Error ? error.message : String(error));
+      
+      // Check if it's a quota/resource error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isQuotaError = errorMessage.includes('429') || 
+                          errorMessage.includes('RESOURCE_EXHAUSTED') || 
+                          errorMessage.includes('Quota exceeded') ||
+                          errorMessage.includes('rate limit');
+      
+      if (isQuotaError && attempt < maxRetries - 1) {
+        // Switch to next model for quota issues
+        switchToNextModel();
+        console.log(`🔄 Retrying with next model due to quota issue...`);
+      } else if (attempt < maxRetries - 1) {
+        // For other errors, also try next model
+        switchToNextModel();
+        console.log(`🔄 Retrying with next model due to error...`);
+      }
+    }
+  }
+
+  // All models failed
+  console.error("❌ All models failed. Last error:", lastError);
+  throw lastError;
+} 
 
 function getStoredFeedback(): AppMovieFeedbackType[] {
   if (typeof localStorage !== 'undefined') {
@@ -266,15 +429,10 @@ export const getMovieRecommendations = async (preferences: UserPreferences, reco
   const prompt = constructPrompt(preferences, recommendationType, sessionExcludedItems, numToFetch);
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.5, 
-        topP: 0.95,
-        topK: 40,
-      }
+    const response = await callGeminiAPIWithCache(prompt, {
+      temperature: 0.5, 
+      topP: 0.95,
+      topK: 40,
     });
     
     if (typeof response.text !== 'string') {
@@ -297,6 +455,12 @@ export const getMovieRecommendations = async (preferences: UserPreferences, reco
 
   } catch (error) {
     console.error(`Error fetching ${recommendationType} recommendations from Gemini:`, error);
+    console.error("Full error details:", {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
     if (error instanceof Error) {
         if (error.message.includes("API_KEY_INVALID")) {
             throw new Error("Invalid Gemini API Key. Please check your API_KEY environment variable.");
@@ -306,6 +470,9 @@ export const getMovieRecommendations = async (preferences: UserPreferences, reco
         }
         if (error.message.includes("The AI's response was not valid JSON")) {
             throw error; 
+        }
+        if (error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('Quota exceeded')) {
+            throw new Error("API rate limit exceeded. Please try again in a few minutes.");
         }
     }
     throw new Error(`Failed to get ${recommendationType} recommendations from AI. There might be an issue with the service, your query, or safety filters.`);
@@ -321,15 +488,10 @@ export const getSingleReplacementRecommendation = async (preferences: UserPrefer
   const itemTypeString = recommendationType === 'series' ? 'series' : 'movie';
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.7,
-        topP: 0.95,
-        topK: 50,
-      }
+    const response = await callGeminiAPIWithCache(prompt, {
+      temperature: 0.7,
+      topP: 0.95,
+      topK: 50,
     });
 
     if (typeof response.text !== 'string') {
@@ -432,16 +594,10 @@ export const findSimilarItemByName = async (itemTitle: string, recommendationTyp
   const itemTypeString = recommendationType === 'series' ? 'series' : 'movie';
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.4, 
-        topP: 0.95,
-        topK: 40,
-        thinkingConfig: { thinkingBudget: 0 } 
-      }
+    const response = await callGeminiAPIWithCache(prompt, {
+      temperature: 0.4, 
+      topP: 0.95,
+      topK: 40,
     });
 
     if (typeof response.text !== 'string') {
@@ -546,16 +702,10 @@ EXTREMELY IMPORTANT INSTRUCTIONS FOR JSON OUTPUT:
 `;
 
   try {
-    const genAIResponse = await ai.models.generateContent({ 
-      model: "gemini-2.5-flash", 
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.2, 
-        topP: 0.8,
-        topK: 10,
-        thinkingConfig: { thinkingBudget: 0 } 
-      }
+    const genAIResponse = await callGeminiAPIWithCache(prompt, {
+      temperature: 0.2, 
+      topP: 0.8,
+      topK: 10,
     });
 
     if (typeof genAIResponse.text !== 'string') {
@@ -701,15 +851,10 @@ export const getMoreSimilarItems = async (
 
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.6, 
-        topP: 0.95,
-        topK: 40,
-      }
+    const response = await callGeminiAPIWithCache(prompt, {
+      temperature: 0.6, 
+      topP: 0.95,
+      topK: 40,
     });
 
     if (typeof response.text !== 'string') {
@@ -862,18 +1007,12 @@ export const checkTasteMatch = async (itemTitle: string, recommendationType: Rec
   }
 
   const prompt = constructTasteCheckPrompt(itemTitle, recommendationType, userPreferences);
-  const itemTypeString = recommendationType === 'series' ? 'series' : 'movie';
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.3, 
-        topP: 0.9,
-        topK: 30,
-      }
+    const response = await callGeminiAPIWithCache(prompt, {
+      temperature: 0.3, 
+      topP: 0.9,
+      topK: 30,
     });
 
     if (typeof response.text !== 'string') {
