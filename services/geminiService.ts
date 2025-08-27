@@ -6,7 +6,7 @@ import { MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, CIN
 const responseCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
 // Use environment variable for API key
-const API_KEY ='AIzaSyBJqkrD1MteQ9FV6v3Dtdo39dhLUf4BRB4';
+const API_KEY = process.env.GEMINI_API_KEY;
 
 // Cache TTL in milliseconds (10 minutes)
 const CACHE_TTL = 10 * 60 * 1000;
