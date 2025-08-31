@@ -4,25 +4,6 @@ import { GoogleGenAI } from "@google/genai";
 import type { UserPreferences, Movie, GeminiMovieRecommendation, AppSettings, MovieFeedback as AppMovieFeedbackType, RecommendationType, ItemTitleSuggestion as AppItemTitleSuggestion, StableUserPreferences, TasteCheckGeminiResponse, TasteCheckGeminiResponseItem, TasteCheckServiceResponse } from '../types';
 import { MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, CINE_SUGGEST_MOVIE_FEEDBACK_KEY, CINE_SUGGEST_APP_SETTINGS_KEY, COUNTRIES } from '../constants';
 
-// Cache configuration
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const CACHE_PREFIX = 'cine_suggest_cache_';
-
-// Model fallback configuration
-const MODELS = [
-  'gemini-2.0-flash-exp',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro'
-] as const;
-
-type CacheEntry = {
-  data: any;
-  timestamp: number;
-  model: string;
-};
-
-type CacheKey = string;
 
 const API_KEY = process.env.GEMINI_API_KEY; 
 
@@ -30,131 +11,7 @@ if (!API_KEY) {
   console.error("API_KEY is not set in environment variables. Movie recommendations will not work.");
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
-
-// Cache management functions
-function generateCacheKey(prompt: string, model: string): CacheKey {
-  const hash = btoa(prompt).slice(0, 50); // Simple hash for cache key
-  return `${CACHE_PREFIX}${model}_${hash}`;
-}
-
-function getFromCache(cacheKey: CacheKey): any | null {
-  if (typeof localStorage === 'undefined') return null;
-  
-  try {
-    const cached = localStorage.getItem(cacheKey);
-    if (!cached) return null;
-    
-    const entry: CacheEntry = JSON.parse(cached);
-    const now = Date.now();
-    
-    if (now - entry.timestamp > CACHE_DURATION) {
-      localStorage.removeItem(cacheKey);
-      return null;
-    }
-    
-    return entry.data;
-  } catch (error) {
-    console.warn('Cache read error:', error);
-    return null;
-  }
-}
-
-function setCache(cacheKey: CacheKey, data: any, model: string): void {
-  if (typeof localStorage === 'undefined') return;
-  
-  try {
-    const entry: CacheEntry = {
-      data,
-      timestamp: Date.now(),
-      model
-    };
-    localStorage.setItem(cacheKey, JSON.stringify(entry));
-  } catch (error) {
-    console.warn('Cache write error:', error);
-  }
-}
-
-function clearExpiredCache(): void {
-  if (typeof localStorage === 'undefined') return;
-  
-  try {
-    const keys = Object.keys(localStorage);
-    const now = Date.now();
-    
-    keys.forEach(key => {
-      if (key.startsWith(CACHE_PREFIX)) {
-        try {
-          const entry: CacheEntry = JSON.parse(localStorage.getItem(key)!);
-          if (now - entry.timestamp > CACHE_DURATION) {
-            localStorage.removeItem(key);
-          }
-        } catch (error) {
-          localStorage.removeItem(key);
-        }
-      }
-    });
-  } catch (error) {
-    console.warn('Cache cleanup error:', error);
-  }
-}
-
-// Initialize cache cleanup
-if (typeof window !== 'undefined') {
-  clearExpiredCache();
-  // Clean up cache every hour
-  setInterval(clearExpiredCache, 60 * 60 * 1000);
-}
-
-// Generic API call function with model fallback and caching
-async function callGeminiWithFallback(prompt: string, operation: string): Promise<string> {
-  const cacheKey = generateCacheKey(prompt, MODELS[0]);
-  
-  // Check cache first
-  const cached = getFromCache(cacheKey);
-  if (cached) {
-    console.log(`Cache hit for ${operation}`);
-    return cached;
-  }
-  
-  // Try each model in order
-  for (const model of MODELS) {
-    try {
-      console.log(`Trying model: ${model} for ${operation}`);
-      
-      const response = await ai.models.generateContent({
-        model: model,
-        contents: prompt,
-        config: {
-          // Low latency for autosuggest operations
-          thinkingConfig: operation.includes('suggest') ? { thinkingBudget: 0 } : undefined
-        }
-      });
-      
-      const result = response.text;
-      if (result && result.trim()) {
-        // Cache the successful result
-        setCache(cacheKey, result, model);
-        console.log(`Success with model: ${model} for ${operation}`);
-        return result;
-      }
-    } catch (error: any) {
-      console.warn(`Model ${model} failed for ${operation}:`, error.message);
-      
-      // If it's a quota/safety error, don't try other models
-      if (error.message?.toLowerCase().includes('quota') || 
-          error.message?.toLowerCase().includes('safety') ||
-          error.message?.toLowerCase().includes('billing')) {
-        throw error;
-      }
-      
-      // Continue to next model
-      continue;
-    }
-  }
-  
-  throw new Error(`All models failed for ${operation}. Please try again later.`);
-} 
+const ai = new GoogleGenAI({ apiKey: API_KEY! }); 
 
 function getStoredFeedback(): AppMovieFeedbackType[] {
   if (typeof localStorage !== 'undefined') {
@@ -422,8 +279,12 @@ export const getMovieRecommendations = async (preferences: UserPreferences, reco
   const prompt = constructPrompt(preferences, recommendationType, excludedMovies, totalItemsToFetch);
 
   try {
-    const jsonStr = await callGeminiWithFallback(prompt, `movie_recommendations_${recommendationType}`);
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
     
+    const jsonStr = response.text;
     if (!jsonStr) {
         console.error("Gemini response was empty or did not contain text.");
         throw new Error(`Failed to get a response from the AI. The response was empty.`);
@@ -455,8 +316,12 @@ export const getSingleReplacementRecommendation = async (preferences: UserPrefer
     const prompt = constructPrompt(preferences, recommendationType, allCurrentItems, 1);
 
     try {
-        const jsonStr = await callGeminiWithFallback(prompt, `single_replacement_${recommendationType}`);
-        
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+
+        const jsonStr = response.text;
          if (!jsonStr) {
             console.warn("Received no text from Gemini for a single replacement.");
             return null;
@@ -511,8 +376,12 @@ IMPORTANT: If you cannot find a reasonably close match for "${itemTitle}", retur
 Under NO circumstances should you add ANY text or markdown before or after the single JSON object. Your entire response must be ONLY the JSON object.`;
 
     try {
-        const jsonStr = await callGeminiWithFallback(prompt, `find_similar_${itemTypeLower}_${itemTitle}`);
-        
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+
+        const jsonStr = response.text;
         if (!jsonStr) {
             throw new Error(`The AI returned an empty response while searching for "${itemTitle}".`);
         }
@@ -592,8 +461,12 @@ Return ONLY a VALID JSON array of 5 objects. Each object must strictly follow th
 IMPORTANT: Your entire response must be ONLY the JSON array. Do not include any text, comments, or markdown before or after the JSON array.`;
 
     try {
-        const jsonStr = await callGeminiWithFallback(prompt, `more_similar_${pluralItemType}_${originalItemTitle}`);
-        
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+
+        const jsonStr = response.text;
          if (!jsonStr) {
             throw new Error("The AI returned an empty response.");
         }
@@ -622,8 +495,15 @@ If no good matches are found, return an empty array [].
 Your entire response must be ONLY the JSON array. No other text or markdown is allowed.`;
 
     try {
-        const jsonStr = await callGeminiWithFallback(prompt, `title_suggestions_${query}`);
-        
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+              // Low latency is key for autosuggest
+              thinkingConfig: { thinkingBudget: 0 }
+          }
+        });
+        const jsonStr = response.text;
         if (!jsonStr) return [];
 
         let cleanedJsonStr = jsonStr.trim().replace(/^```json\s*|```$/g, '');
@@ -692,8 +572,11 @@ CRITICAL: If you absolutely cannot identify the ${itemTypeLower} from the title 
 Do not add any text, comments, or markdown before or after the JSON object.`;
 
     try {
-        const jsonStr = await callGeminiWithFallback(prompt, `taste_check_${itemTitle}`);
-        
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+        const jsonStr = response.text;
          if (!jsonStr) {
             throw new Error(`The AI returned an empty response for taste check on "${itemTitle}".`);
         }
