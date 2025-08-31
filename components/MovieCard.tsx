@@ -7,9 +7,10 @@ interface MovieCardProps {
   movie: Movie;
   isSearchResult?: boolean;
   onFeedback?: (feedbackType: MovieFeedback['feedback']) => void;
+  onViewTrailer?: (movie: Movie) => void;
 }
 
-export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = false, onFeedback }) => {
+export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = false, onFeedback, onViewTrailer }) => {
   const imageIdSeed = movie.title.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10) + movie.year;
   const placeholderImageUrl = `https://picsum.photos/seed/${imageIdSeed}/400/300`; 
   const genericFallbackImageUrl = 'https://picsum.photos/400/300?grayscale&blur=2'; 
@@ -86,6 +87,26 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
             }
           }}
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none"></div>
+
+        {movie.socialProofTag && (
+          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg z-10">
+            ⭐ {movie.socialProofTag}
+          </div>
+        )}
+        
+        {movie.youtubeTrailerId && onViewTrailer && (
+            <button
+                onClick={() => onViewTrailer(movie)}
+                className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg z-10 flex items-center hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+                aria-label={`View trailer for ${movie.title}`}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 mr-1">
+                    <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
+                </svg>
+                Trailer
+            </button>
+        )}
       </div>
       <div className="p-5 flex flex-col flex-grow relative z-10">
         <div className="min-w-0 text-center">
@@ -108,8 +129,19 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
           </p>
         )}
 
-        <div className="mb-3 flex flex-wrap gap-2 justify-center">
-          {movie.genres && movie.genres.length > 0 && (
+        {movie.justification && (
+          <div className="my-2 p-2 sm:p-3 bg-purple-900/30 rounded-lg border border-purple-800/50">
+            <p className="text-sm italic text-purple-200 text-center flex items-center justify-center">
+               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 mr-2 flex-shrink-0 text-yellow-300">
+                  <path d="M10 2a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 2ZM10 15a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 10 15ZM10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM15.75 4.97a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM4.25 15.03a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM15.03 15.75a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75ZM4.97 4.25a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75ZM2.25 10a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75ZM17.75 10a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75ZM3.52 6.03a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06a.75.75 0 0 1-1.06 0ZM13.97 16.48a.75.75 0 0 1 0-1.06l1.06-1.06a.75.75 0 1 1 1.06 1.06l-1.06 1.06a.75.75 0 0 1-1.06 0ZM6.03 16.48a.75.75 0 0 1-1.06 0l-1.06-1.06a.75.75 0 1 1 1.06-1.06l1.06 1.06a.75.75 0 0 1 0 1.06ZM16.48 3.97a.75.75 0 0 1-1.06 0l-1.06-1.06a.75.75 0 1 1 1.06-1.06l1.06 1.06a.75.75 0 0 1 0 1.06Z" />
+              </svg>
+              <span className="flex-1">"{movie.justification}"</span>
+            </p>
+          </div>
+        )}
+
+        <div className="mb-3 flex flex-wrap gap-1.5 justify-center">
+         {movie.genres && movie.genres.length > 0 && (
               movie.genres.slice(0, 4).map(genre => (
                 <span key={genre} className="px-2 py-0.5 bg-slate-700 text-xs text-purple-200 rounded-full">
                   {genre}
@@ -117,8 +149,8 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
               ))
           )}
         </div>
-         <div className="min-w-0 flex-grow">
-          <p className="text-slate-300 text-sm leading-relaxed mb-3 text-center sm:text-left line-clamp-4">
+         <div className="min-w-0 flex-grow mb-4">
+          <p className="text-slate-300 text-sm leading-relaxed text-center line-clamp-4">
             {movie.summary}
           </p>
         </div>
@@ -142,75 +174,77 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, isSearchResult = fa
             </span>
           </p>
         )}
-
+            
         {!isSearchResult && (
-            <div className="my-4 py-3 border-y border-slate-700">
+          <div className="pt-2">
             {feedbackGiven ? (
-                <p className="text-sm text-center text-green-400 font-semibold">Your feedback: {feedbackGiven}!</p>
+              <p className="text-sm text-center text-green-400 font-semibold">Your feedback: {feedbackGiven}!</p>
             ) : (
               <>
                 <div className="group relative text-center">
                   <button
-                      type="button"
-                      className="px-4 py-2 rounded-md text-sm font-medium transition-all duration-150 ease-in-out bg-purple-500/30 text-purple-200 hover:bg-purple-500/50 hover:text-white ring-1 ring-purple-500/50"
-                      aria-expanded="false"
-                      aria-haspopup="true"
+                    type="button"
+                    className="px-4 py-2 rounded-md text-sm font-medium transition-all duration-150 ease-in-out bg-purple-500/30 text-purple-200 hover:bg-purple-500/50 hover:text-white ring-1 ring-purple-500/50"
+                    aria-expanded="false"
+                    aria-haspopup="true"
                   >
-                      Already Watched This?
+                    Already Watched This?
                   </button>
                   <div
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max p-2
-                                  bg-slate-900 border border-slate-600 rounded-md shadow-lg
-                                  opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible
-                                  transition-all duration-200 ease-in-out flex space-x-2 z-20"
-                      role="menu"
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max p-2
+                              bg-slate-900 border border-slate-600 rounded-md shadow-lg
+                              opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible
+                              transition-all duration-200 ease-in-out flex space-x-2 z-20"
+                    role="menu"
                   >
-                      <button
+                    <button
                       onClick={() => handleFeedback("Loved it!")}
                       className="text-xs px-3 py-1.5 rounded bg-green-600 hover:bg-green-500 text-white font-semibold"
                       role="menuitem"
-                      >
+                    >
                       Loved it! 😍
-                      </button>
-                      <button
+                    </button>
+                    <button
                       onClick={() => handleFeedback("Liked it")}
                       className="text-xs px-3 py-1.5 rounded bg-sky-600 hover:bg-sky-500 text-white font-semibold"
                       role="menuitem"
-                      >
+                    >
                       Liked it 😊
-                      </button>
-                      <button
+                    </button>
+                    <button
                       onClick={() => handleFeedback("Not my vibe")}
                       className="text-xs px-3 py-1.5 rounded bg-red-600 hover:bg-red-500 text-white font-semibold"
                       role="menuitem"
-                      >
+                    >
                       Not my vibe 😕
-                      </button>
+                    </button>
                   </div>
                 </div>
                 <p className="text-xs text-slate-400 italic text-center mt-2 px-2">
-                    The more you tell us what you like, the more personalised the movie suggestions get!
+                  Your feedback makes future recommendations even better!
                 </p>
               </>
             )}
-            </div>
+            <p className="text-xs text-slate-400 italic text-center mt-2 px-2">
+              The more you tell us what you like, the more personalised the movie suggestions get!
+            </p>
+          </div>
         )}
 
         <div className="mt-auto text-center">
-            <a
+          <a
             href={moreInfoLink}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-xs text-slate-400 hover:text-purple-300 transition-colors"
             aria-label={`More information about ${movie.title} on Google`}
-            >
+          >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5 mr-1">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V10.5m-7.5 0h7.5" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-4.5 0V6.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V10.5m-7.5 0h7.5" />
             </svg>
             More Info on Google
-            </a>
+          </a>
         </div>
-
       </div>
     </div>
   );

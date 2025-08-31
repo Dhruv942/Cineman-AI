@@ -1,177 +1,159 @@
+
+
 import { GoogleGenAI } from "@google/genai";
 import type { UserPreferences, Movie, GeminiMovieRecommendation, AppSettings, MovieFeedback as AppMovieFeedbackType, RecommendationType, ItemTitleSuggestion as AppItemTitleSuggestion, StableUserPreferences, TasteCheckGeminiResponse, TasteCheckGeminiResponseItem, TasteCheckServiceResponse } from '../types';
 import { MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, CINE_SUGGEST_MOVIE_FEEDBACK_KEY, CINE_SUGGEST_APP_SETTINGS_KEY, COUNTRIES } from '../constants';
 
-// Cache for API responses to prevent duplicate calls
-const responseCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const CACHE_PREFIX = 'cine_suggest_cache_';
 
-// Use environment variable for API key
-const API_KEY = process.env.GEMINI_API_KEY;
+// Model fallback configuration
+const MODELS = [
+  'gemini-2.0-flash-exp',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-pro'
+] as const;
 
-// Cache TTL in milliseconds (10 minutes)
-const CACHE_TTL = 10 * 60 * 1000;
-
-// Available models with fallback order
-const AVAILABLE_MODELS = [
-  "gemini-2.0-flash",
-  "gemini-1.5-flash", 
-  "gemini-1.5-pro",
-  "gemini-1.0-pro"
-];
-
-// Track current model index
-let currentModelIndex = 0;
-
-// Get current model
-function getCurrentModel(): string {
-  return AVAILABLE_MODELS[currentModelIndex];
-}
-
-// Switch to next available model
-function switchToNextModel(): string {
-  currentModelIndex = (currentModelIndex + 1) % AVAILABLE_MODELS.length;
-  const newModel = getCurrentModel();
-  console.log(`🔄 Switched to model: ${newModel}`);
-  return newModel;
-}
-
-// Reset to first model (internal function)
-
-// Cache management functions
-export const clearCache = () => {
-  responseCache.clear();
-  console.log("API response cache cleared");
+type CacheEntry = {
+  data: any;
+  timestamp: number;
+  model: string;
 };
 
-export const getCacheStats = () => {
-  const validEntries = Array.from(responseCache.values()).filter(entry => isCacheValid(entry));
-  const expiredEntries = Array.from(responseCache.values()).filter(entry => !isCacheValid(entry));
-  
-  // Clean up expired entries
-  for (const [key, entry] of responseCache.entries()) {
-    if (!isCacheValid(entry)) {
-      responseCache.delete(key);
-    }
-  }
-  
-  return {
-    totalEntries: responseCache.size,
-    validEntries: validEntries.length,
-    expiredEntries: expiredEntries.length
-  };
-};
+type CacheKey = string;
 
-// Model management functions
-export const getCurrentModelInfo = () => {
-  return {
-    currentModel: getCurrentModel(),
-    currentIndex: currentModelIndex,
-    totalModels: AVAILABLE_MODELS.length,
-    availableModels: [...AVAILABLE_MODELS]
-  };
-};
-
-export const manuallySwitchModel = (modelIndex: number) => {
-  if (modelIndex >= 0 && modelIndex < AVAILABLE_MODELS.length) {
-    currentModelIndex = modelIndex;
-    console.log(`🔄 Manually switched to model: ${getCurrentModel()}`);
-    return getCurrentModel();
-  } else {
-    console.error(`Invalid model index: ${modelIndex}. Available: 0-${AVAILABLE_MODELS.length - 1}`);
-    return null;
-  }
-};
-
-export const resetToFirstModel = () => {
-  currentModelIndex = 0;
-  console.log(`🔄 Reset to first model: ${getCurrentModel()}`);
-};
+const API_KEY = 'AIzaSyBJqkrD1MteQ9FV6v3Dtdo39dhLUf4BRB4';
 
 if (!API_KEY) {
-  console.error("GEMINI_API_KEY is not set in environment variables. Movie recommendations will not work.");
-  console.error("Please create a .env file in your project root with: GEMINI_API_KEY=your_api_key_here");
-} else {
-  console.log("API Key loaded successfully:", API_KEY.substring(0, 10) + "...");
+  console.error("API_KEY is not set in environment variables. Movie recommendations will not work.");
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY! });
 
-// Helper function to generate cache key
-function generateCacheKey(prompt: string, config: any): string {
-  return btoa(prompt + JSON.stringify(config));
+// Cache management functions
+function generateCacheKey(prompt: string, model: string): CacheKey {
+  const hash = btoa(prompt).slice(0, 50); // Simple hash for cache key
+  return `${CACHE_PREFIX}${model}_${hash}`;
 }
 
-// Helper function to check if cache entry is valid
-function isCacheValid(cacheEntry: { data: any; timestamp: number; ttl: number }): boolean {
-  return Date.now() - cacheEntry.timestamp < cacheEntry.ttl;
+function getFromCache(cacheKey: CacheKey): any | null {
+  if (typeof localStorage === 'undefined') return null;
+  
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (!cached) return null;
+    
+    const entry: CacheEntry = JSON.parse(cached);
+    const now = Date.now();
+    
+    if (now - entry.timestamp > CACHE_DURATION) {
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+    
+    return entry.data;
+  } catch (error) {
+    console.warn('Cache read error:', error);
+    return null;
+  }
 }
 
-// Helper function to call Gemini API with caching and automatic model fallback
-async function callGeminiAPIWithCache(prompt: string, config: any = {}): Promise<any> {
-  const cacheKey = generateCacheKey(prompt, config);
+function setCache(cacheKey: CacheKey, data: any, model: string): void {
+  if (typeof localStorage === 'undefined') return;
+  
+  try {
+    const entry: CacheEntry = {
+      data,
+      timestamp: Date.now(),
+      model
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(entry));
+  } catch (error) {
+    console.warn('Cache write error:', error);
+  }
+}
+
+function clearExpiredCache(): void {
+  if (typeof localStorage === 'undefined') return;
+  
+  try {
+    const keys = Object.keys(localStorage);
+    const now = Date.now();
+    
+    keys.forEach(key => {
+      if (key.startsWith(CACHE_PREFIX)) {
+        try {
+          const entry: CacheEntry = JSON.parse(localStorage.getItem(key)!);
+          if (now - entry.timestamp > CACHE_DURATION) {
+            localStorage.removeItem(key);
+          }
+        } catch (error) {
+          localStorage.removeItem(key);
+        }
+      }
+    });
+  } catch (error) {
+    console.warn('Cache cleanup error:', error);
+  }
+}
+
+// Initialize cache cleanup
+if (typeof window !== 'undefined') {
+  clearExpiredCache();
+  // Clean up cache every hour
+  setInterval(clearExpiredCache, 60 * 60 * 1000);
+}
+
+// Generic API call function with model fallback and caching
+async function callGeminiWithFallback(prompt: string, operation: string): Promise<string> {
+  const cacheKey = generateCacheKey(prompt, MODELS[0]);
   
   // Check cache first
-  const cachedResponse = responseCache.get(cacheKey);
-  if (cachedResponse && isCacheValid(cachedResponse)) {
-    console.log("Using cached response for:", cacheKey.substring(0, 50) + "...");
-    return cachedResponse.data;
+  const cached = getFromCache(cacheKey);
+  if (cached) {
+    console.log(`Cache hit for ${operation}`);
+    return cached;
   }
-
-  // Try with current model and fallback to others if needed
-  const maxRetries = AVAILABLE_MODELS.length;
-  let lastError: any = null;
-
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    const currentModel = getCurrentModel();
-    
+  
+  // Try each model in order
+  for (const model of MODELS) {
     try {
-      console.log(`🚀 Attempting API call with model: ${currentModel} (attempt ${attempt + 1}/${maxRetries})`);
+      console.log(`Trying model: ${model} for ${operation}`);
       
       const response = await ai.models.generateContent({
-        model: currentModel,
+        model: model,
         contents: prompt,
         config: {
-          responseMimeType: "application/json",
-          ...config
+          // Low latency for autosuggest operations
+          thinkingConfig: operation.includes('suggest') ? { thinkingBudget: 0 } : undefined
         }
       });
       
-      // Cache the response
-      responseCache.set(cacheKey, {
-        data: response,
-        timestamp: Date.now(),
-        ttl: CACHE_TTL
-      });
-
-      console.log(`✅ API call successful with ${currentModel}, cached for 10 minutes`);
-      return response;
-      
-    } catch (error) {
-      lastError = error;
-      console.warn(`❌ Failed with ${currentModel}:`, error instanceof Error ? error.message : String(error));
-      
-      // Check if it's a quota/resource error
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const isQuotaError = errorMessage.includes('429') || 
-                          errorMessage.includes('RESOURCE_EXHAUSTED') || 
-                          errorMessage.includes('Quota exceeded') ||
-                          errorMessage.includes('rate limit');
-      
-      if (isQuotaError && attempt < maxRetries - 1) {
-        // Switch to next model for quota issues
-        switchToNextModel();
-        console.log(`🔄 Retrying with next model due to quota issue...`);
-      } else if (attempt < maxRetries - 1) {
-        // For other errors, also try next model
-        switchToNextModel();
-        console.log(`🔄 Retrying with next model due to error...`);
+      const result = response.text;
+      if (result && result.trim()) {
+        // Cache the successful result
+        setCache(cacheKey, result, model);
+        console.log(`Success with model: ${model} for ${operation}`);
+        return result;
       }
+    } catch (error: any) {
+      console.warn(`Model ${model} failed for ${operation}:`, error.message);
+      
+      // If it's a quota/safety error, don't try other models
+      if (error.message?.toLowerCase().includes('quota') || 
+          error.message?.toLowerCase().includes('safety') ||
+          error.message?.toLowerCase().includes('billing')) {
+        throw error;
+      }
+      
+      // Continue to next model
+      continue;
     }
   }
-
-  // All models failed
-  console.error("❌ All models failed. Last error:", lastError);
-  throw lastError;
+  
+  throw new Error(`All models failed for ${operation}. Please try again later.`);
 } 
 
 function getStoredFeedback(): AppMovieFeedbackType[] {
@@ -222,6 +204,7 @@ Based on the following user preferences, suggest ${numberOfRecommendations} uniq
 Aim to provide compelling and generally well-regarded suggestions that fit the user's criteria, using your knowledge of the ${itemType} landscape.
 
 Quality Control Guidance:
+- High Audience Score Boost: Give a significant ranking and relevance boost to movies/series that are known to have a high audience score from Google users (e.g., "liked this film" percentage), typically above 70%. These are strong indicators of general audience enjoyment and should be prioritized when they match other criteria. If you identify a movie with such a score, you can include it in the 'socialProofTag', for example: "85% Liked on Google".
 `;
 
   if (feedbackHistory.length < 5) {
@@ -341,8 +324,13 @@ User Preferences:`;
 
   prompt += `
 
-For each ${itemType}, provide the following details. Include a 'matchScore' (an integer from 0 to 100) indicating how well this ${itemType} aligns with ALL provided user preferences and feedback history. A higher score means a better match based on the user's overall profile.
-For series, 'durationMinutes' can represent the average episode length; if not applicable or varies wildly, it can be omitted or set to null by you.
+For each ${itemType}, provide the following details.
+- Include a 'similarTo' (string, optional) with one or more highly relevant ${pluralItemType} that this item is similar to, to help the user understand its vibe. Separate multiple titles with a comma. Keep it concise enough to fit on one line. Example: "Blade Runner, Dark City".
+- Include a 'matchScore' (an integer from 0 to 100) indicating how well this ${itemType} aligns with ALL provided user preferences and feedback history. A higher score means a better match based on the user's overall profile.
+- Include a 'justification' (a VERY SHORT and compelling, personalized, one-sentence reason (MAX 1-2 lines, approx. 15-20 words) why the user will LOVE this ${itemType}, connecting it to their known tastes. Frame it enthusiastically. Example: "You'll love the mind-bending plot because you enjoy complex sci-fi epics."). This is a CRITICAL field.
+- For series, 'durationMinutes' can represent the average episode length; if not applicable or varies wildly, it can be omitted or set to null by you.
+- Include an optional 'socialProofTag' (string, max 5-6 words) with a compelling, verifiable fact like 'Winner of 3 Oscars', 'Record-Breaking Box Office Hit', or '98% on Rotten Tomatoes'. If no significant tag exists, omit this field or set to null.
+- Include an optional 'youtubeTrailerId' (string) with the YouTube video ID for the official trailer.
 
 Return ONLY a VALID JSON array of objects.
 Each object in the array MUST represent a ${itemType} and ADHERE STRICTLY to this example format (using actual data, not descriptions):
@@ -351,12 +339,15 @@ Each object in the array MUST represent a ${itemType} and ADHERE STRICTLY to thi
   "year": ${recommendationType === 'series' ? 2016 : 1999},
   "summary": "${recommendationType === 'series' ? 'Follows the political rivalries and romance of Queen Elizabeth IIs reign and the events that shaped the second half of the twentieth century.' : 'A computer hacker learns about the true nature of his reality and his role in the war against its controllers. This film is a mind-bending sci-fi action classic.'}",
   "genres": ["${recommendationType === 'series' ? 'Drama' : 'History'}", "${recommendationType === 'series' ? 'History' : 'Sci-Fi'}"],
-  "similarTo": "${recommendationType === 'series' ? 'Victoria' : 'Blade Runner'}",
+  "similarTo": "${recommendationType === 'series' ? 'Victoria, The Tudors' : 'Blade Runner, Dark City'}",
   "tmdbId": "${recommendationType === 'series' ? '63247' : '603'}",
   "availabilityNote": "Likely on Netflix",
   "posterUrl": "https://image.tmdb.org/t/p/w500/${recommendationType === 'series' ? '1MPK1s6Q5S1eO3WsoKk2tBsVTo.jpg' : 'f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg'}",
   "durationMinutes": ${recommendationType === 'series' ? 58 : 136},
-  "matchScore": 92 
+  "matchScore": 92,
+  "justification": "You'll love its mind-bending plot, a perfect fit for your taste in complex sci-fi.",
+  "socialProofTag": "${recommendationType === 'series' ? 'Winner of 2 Golden Globes' : 'Winner of 4 Oscars'}",
+  "youtubeTrailerId": "${recommendationType === 'series' ? 'jwjCY_2a_yU' : 'vKQi3bBA1y8'}"
 }
 
 EXTREMELY IMPORTANT INSTRUCTIONS FOR JSON OUTPUT (Failure to comply will make the output unusable):
@@ -403,681 +394,359 @@ const parseAndTransformItems = (jsonStr: string): Movie[] => {
     const matchScore = typeof item.matchScore === 'number' && item.matchScore >= 0 && item.matchScore <= 100 ? item.matchScore : undefined;
     
     return {
-      id: `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}${year}`,
-      title: title,
-      year: year,
-      summary: summary,
-      genres: genres,
-      similarTo: (typeof item.similarTo === 'string' && item.similarTo.trim()) ? item.similarTo.trim() : undefined,
-      tmdbId: (typeof item.tmdbId === 'string' && item.tmdbId.trim()) ? item.tmdbId.trim() : undefined,
-      availabilityNote: (typeof item.availabilityNote === 'string' && item.availabilityNote.trim()) ? item.availabilityNote.trim() : undefined,
-      posterUrl: (typeof item.posterUrl === 'string' && item.posterUrl.trim()) ? item.posterUrl.trim() : undefined,
-      durationMinutes: durationMinutes,
-      matchScore: matchScore,
+      id: `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}-${year}`,
+      title,
+      year,
+      summary,
+      genres,
+      similarTo: item.similarTo,
+      tmdbId: item.tmdbId,
+      availabilityNote: item.availabilityNote,
+      posterUrl: item.posterUrl,
+      durationMinutes,
+      matchScore,
+      justification: item.justification,
+      youtubeTrailerId: item.youtubeTrailerId,
+      socialProofTag: item.socialProofTag,
     };
-  }).filter(movie => movie.title !== "Unknown Title" || movie.year !== 0 || movie.summary !== "No summary available." );
+  }).filter(movie => movie.title !== "Unknown Title" && movie.year > 0);
 };
 
 
-export const getMovieRecommendations = async (preferences: UserPreferences, recommendationType: RecommendationType, sessionExcludedItems: Movie[] = []): Promise<Movie[]> => {
+export const getMovieRecommendations = async (preferences: UserPreferences, recommendationType: RecommendationType, excludedMovies: Movie[] = []): Promise<Movie[]> => {
   if (!API_KEY) {
-    throw new Error("Gemini API Key is not configured. Please set the API_KEY environment variable.");
+    throw new Error("API Key is missing. Please configure your environment variables.");
   }
   
-  const numToDisplay = getNumberOfRecommendationsSetting();
-  const numToFetch = numToDisplay + 3; // Fetch extras for the buffer
-  const prompt = constructPrompt(preferences, recommendationType, sessionExcludedItems, numToFetch);
+  const totalItemsToFetch = 8; // Fetch a larger batch for buffering
+  const prompt = constructPrompt(preferences, recommendationType, excludedMovies, totalItemsToFetch);
 
   try {
-    const response = await callGeminiAPIWithCache(prompt, {
-      temperature: 0.5, 
-      topP: 0.95,
-      topK: 40,
-    });
-    
-    if (typeof response.text !== 'string') {
-      console.warn("Gemini response for recommendations did not have a valid 'text' property:", JSON.stringify(response, null, 2));
-      throw new Error("AI response was malformed (no text).");
-    }
-    
-    const initialItems = parseAndTransformItems(response.text);
-      
-    const allFeedback = getStoredFeedback();
-    const ratedItemIds = new Set(
-      allFeedback.map(fb => `${fb.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${fb.year}`)
-    );
-
-    const filteredItems = initialItems.filter(item => {
-      return !ratedItemIds.has(item.id!); 
-    });
-    
-    return filteredItems;
-
-  } catch (error) {
-    console.error(`Error fetching ${recommendationType} recommendations from Gemini:`, error);
-    console.error("Full error details:", {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
-    });
-    
-    if (error instanceof Error) {
-        if (error.message.includes("API_KEY_INVALID")) {
-            throw new Error("Invalid Gemini API Key. Please check your API_KEY environment variable.");
-        }
-        if (error.message.includes("Candidate was blocked due to SAFETY")) {
-            throw new Error("The request was blocked due to safety concerns. Please try modifying your preferences.");
-        }
-        if (error.message.includes("The AI's response was not valid JSON")) {
-            throw error; 
-        }
-        if (error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('Quota exceeded')) {
-            throw new Error("API rate limit exceeded. Please try again in a few minutes.");
-        }
-    }
-    throw new Error(`Failed to get ${recommendationType} recommendations from AI. There might be an issue with the service, your query, or safety filters.`);
-  }
-};
-
-export const getSingleReplacementRecommendation = async (preferences: UserPreferences, recommendationType: RecommendationType, excludedItems: Movie[]): Promise<Movie | null> => {
-  if (!API_KEY) {
-    return null;
-  }
-
-  const prompt = constructPrompt(preferences, recommendationType, excludedItems, 1);
-  const itemTypeString = recommendationType === 'series' ? 'series' : 'movie';
-
-  try {
-    const response = await callGeminiAPIWithCache(prompt, {
-      temperature: 0.7,
-      topP: 0.95,
-      topK: 50,
-    });
-
-    if (typeof response.text !== 'string') {
-      console.warn(`Gemini response for single replacement did not have a valid 'text' property.`);
-      return null;
-    }
-    
-    const items = parseAndTransformItems(response.text);
-
-    if (items.length > 0) {
-      return items[0];
-    }
-    return null;
-
-  } catch (error) {
-    console.error(`Error fetching single replacement ${itemTypeString} from Gemini:`, error);
-    return null;
-  }
-};
-
-function constructSimilarItemPrompt(itemTitle: string, recommendationType: RecommendationType, userPreferences: StableUserPreferences): string {
-  const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
-  const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
-  const exampleTitle = recommendationType === 'series' ? 'Dark' : 'Equilibrium';
-  const exampleYear = recommendationType === 'series' ? 2017 : 2002;
-  const exampleSummary = recommendationType === 'series' 
-    ? "A family saga with a supernatural twist, set in a German town..."
-    : "In a dystopian future, a law enforcement officer questions his society's emotion-suppressing drug regimen.";
-  const exampleGenres = recommendationType === 'series' ? ["Mystery", "Drama", "Sci-Fi"] : ["Action", "Sci-Fi", "Thriller"];
-  const exampleTmdbId = recommendationType === 'series' ? '70523' : '7299';
-  const exampleAvailability = recommendationType === 'series' ? 'Available on Netflix' : 'Available for rent/purchase';
-  const examplePosterUrl = recommendationType === 'series' ? 'https://image.tmdb.org/t/p/w500/apbrbWs8M9lyOpJYU5AXCRnAEZL.jpg' : 'https://image.tmdb.org/t/p/w500/nothing.jpg';
-  const exampleDuration = recommendationType === 'series' ? 50 : 107;
-  const exampleMatchScore = 85;
-
-  let prompt = `You are a helpful ${itemType} database expert.
-The user is searching for a ${itemType} called "${itemTitle}".
-Your primary task is to suggest ONE DIFFERENT ${itemType} that is highly similar in genre, theme, or style to "${itemTitle}".
-CRITICALLY, the suggested ${itemType} MUST NOT BE "${itemTitle}" itself, even if "${itemTitle}" is a well-known ${itemType}. You are finding a close alternative or recommendation based on it.
-
-Consider the User's General Viewing Habits to refine the suggestion:
-- Watches ${pluralItemType}: "${userPreferences.movieFrequency}"
-- Prefers known actors/directors: "${userPreferences.actorDirectorPreference}"
-- Preferred Eras: ${userPreferences.era.join(', ')}
-- Preferred Languages: ${userPreferences.preferredLanguages.map(l => MOVIE_LANGUAGES.find(ml => ml.code === l)?.name || l).join(', ')}
-- User's Country: ${COUNTRIES.find(c => c.code === userPreferences.country)?.name || userPreferences.country}
-- Preferred OTT Platforms: ${userPreferences.ottPlatforms.length > 0 ? userPreferences.ottPlatforms.join(', ') : 'None specified'}
-
-Based on these habits, if the user is a frequent watcher (e.g., "Daily", "A few times a week") and "${itemTitle}" is mainstream, lean towards less common but still highly similar alternatives. If they prefer specific languages or eras, try to align the suggestion if possible while maintaining strong similarity to "${itemTitle}". If they specified OTT platforms, try to suggest something available on those.
-`;
-
-  const feedbackHistory = getStoredFeedback();
-  if (feedbackHistory.length > 0) {
-    prompt += `\nUser's Past Feedback (Avoid re-suggesting these and learn from patterns for the new suggestion):`;
-    feedbackHistory.forEach(fb => {
-      prompt += `\n- Title: "${fb.title}", Year: ${fb.year}, Feedback: "${fb.feedback}"`;
-    });
-    prompt += `\nCRITICALLY, DO NOT suggest any ${itemType} from this feedback history as your new suggestion.`;
-  }
-  
-  prompt += `
-
-If you can only think of "${itemTitle}" or cannot find a suitable *different but similar* ${itemType} that also considers the user's habits and feedback, you must return a JSON object with null values for all fields as specified below.
-
-Return ONLY a VALID JSON object (NOT an array) representing the single similar ${itemType} you found.
-The object MUST ADHERE STRICTLY to this example format (using actual data for the found ${itemType}):
-{
-  "title": "${exampleTitle}", 
-  "year": ${exampleYear},    
-  "summary": "${exampleSummary}",
-  "genres": ${JSON.stringify(exampleGenres)},
-  "similarTo": "${itemTitle}", 
-  "tmdbId": "${exampleTmdbId}",
-  "availabilityNote": "${exampleAvailability}",
-  "posterUrl": "${examplePosterUrl}",
-  "durationMinutes": ${exampleDuration},
-  "matchScore": ${exampleMatchScore}
-}
-
-The 'matchScore' field (0-100) should represent how *similar* the suggested ${itemType} is to the original query "${itemTitle}" AND how well it aligns with the provided User's General Viewing Habits and implicit preferences from feedback. If returning nulls because no suitable *different* ${itemType} is found, matchScore should also be null.
-
-EXTREMELY IMPORTANT INSTRUCTIONS FOR JSON OUTPUT:
-- Your ENTIRE response MUST be ONLY the JSON object. No text, comments, apologies, explanations, notes, or markdown (like \`\`\`json) BEFORE or AFTER the JSON object.
-- Ensure all string values are correctly escaped.
-- If you cannot confidently identify a single ${itemType} that is DIFFERENT from but SIMILAR to "${itemTitle}" (considering user habits), return a JSON object with null values for all fields (e.g., {"title": null, "year": null, ..., "similarTo": "${itemTitle}", ..., "matchScore": null}). Even in the null case, 'similarTo' should still be the original query. DO NOT return an error message or explanatory text.
-- The 'similarTo' field MUST be the original search query: "${itemTitle}". This is crucial.
-`;
-  return prompt;
-}
-
-export const findSimilarItemByName = async (itemTitle: string, recommendationType: RecommendationType, userPreferences: StableUserPreferences): Promise<Movie | null> => {
-  if (!API_KEY) {
-    throw new Error("Gemini API Key is not configured.");
-  }
-  if (!itemTitle.trim()) {
-    return null; 
-  }
-
-  const prompt = constructSimilarItemPrompt(itemTitle, recommendationType, userPreferences);
-  const itemTypeString = recommendationType === 'series' ? 'series' : 'movie';
-
-  try {
-    const response = await callGeminiAPIWithCache(prompt, {
-      temperature: 0.4, 
-      topP: 0.95,
-      topK: 40,
-    });
-
-    if (typeof response.text !== 'string') {
-      console.warn(`Gemini response for similar ${itemTypeString} did not have a valid 'text' property:`, JSON.stringify(response, null, 2));
-      throw new Error(`AI response for similar ${itemTypeString} was malformed (no text).`);
-    }
-
-    let jsonStr = response.text.trim();
-    const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-    const match = jsonStr.match(fenceRegex);
-    if (match && match[1]) {
-      jsonStr = match[1].trim();
-    }
-     if (!jsonStr) {
-        console.warn(`Gemini response text for similar ${itemTypeString} was empty after trimming. Original text (if any):`, response.text);
-        throw new Error(`AI response for similar ${itemTypeString} was empty after processing.`);
-    }
-
-    try {
-      const parsedData: GeminiMovieRecommendation = JSON.parse(jsonStr);
-
-      if (parsedData.title === null && parsedData.year === null) {
-        return null; 
-      }
-      
-      const title = parsedData.title || "Unknown Title";
-      const year = typeof parsedData.year === 'number' ? parsedData.year : 0;
-      const matchScore = typeof parsedData.matchScore === 'number' && parsedData.matchScore >= 0 && parsedData.matchScore <= 100 ? parsedData.matchScore : undefined;
-
-      // Check if the suggested item has already been rated by the user
-      const allFeedback = getStoredFeedback();
-      const suggestedItemId = `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}${year}`;
-      const isAlreadyRated = allFeedback.some(fb => fb.id === suggestedItemId);
-
-      if (isAlreadyRated) {
-        console.warn(`AI suggested an item ("${title}", ${year}) in findSimilarItemByName that the user has already rated. Returning null.`);
-        return null;
-      }
-
-      // Check if AI returned the same item as the query (it shouldn't based on prompt, but as a safeguard)
-      if (title.toLowerCase() === itemTitle.toLowerCase()) {
-          console.warn(`AI returned the same item ("${title}") as query in findSimilarItemByName. Attempting to treat as no distinct similar item found.`);
-          return null;
-      }
-
-      return {
-        id: suggestedItemId, 
-        title: title,
-        year: year,
-        summary: parsedData.summary || "No summary available.",
-        genres: Array.isArray(parsedData.genres) ? parsedData.genres.filter(g => typeof g === 'string') : ["Unknown Genre"],
-        similarTo: (typeof parsedData.similarTo === 'string' && parsedData.similarTo.trim()) ? parsedData.similarTo.trim() : undefined,
-        tmdbId: (typeof parsedData.tmdbId === 'string' && parsedData.tmdbId.trim()) ? parsedData.tmdbId.trim() : undefined,
-        availabilityNote: (typeof parsedData.availabilityNote === 'string' && parsedData.availabilityNote.trim()) ? parsedData.availabilityNote.trim() : undefined,
-        posterUrl: (typeof parsedData.posterUrl === 'string' && parsedData.posterUrl.trim()) ? parsedData.posterUrl.trim() : undefined,
-        durationMinutes: typeof parsedData.durationMinutes === 'number' ? parsedData.durationMinutes : undefined,
-        matchScore: matchScore,
-      };
-
-    } catch (parseError) {
-      console.error(`Failed to parse JSON for similar ${itemTypeString}:`, parseError);
-      console.error(`Received string for parsing (similar ${itemTypeString}):`, jsonStr);
-      throw new Error(`AI's response for similar ${itemTypeString} was not valid JSON.`);
-    }
-
-  } catch (error) {
-    console.error(`Error fetching similar ${itemTypeString} from Gemini:`, error);
-     if (error instanceof Error && error.message.includes("Candidate was blocked due to SAFETY")) {
-      throw new Error(`The request to find a similar ${itemTypeString} was blocked due to safety concerns.`);
-    }
-    throw new Error(`Failed to get similar ${itemTypeString} from AI.`);
-  }
-};
-
-export const getItemTitleSuggestions = async (query: string, recommendationType: RecommendationType): Promise<AppItemTitleSuggestion[]> => {
-  if (!API_KEY) {
-    return []; 
-  }
-  if (!query.trim()) {
-    return [];
-  }
-  const itemTypeString = recommendationType === 'series' ? 'TV series' : 'movie';
-  const exampleTitle1 = recommendationType === 'series' ? 'Game of Thrones' : 'Inception';
-  const exampleYear1 = recommendationType === 'series' ? 2011 : 2010;
-  const exampleTitle2 = recommendationType === 'series' ? 'Game of Thrones: The Last Watch' : 'Inception: The Cobol Job';
-  const exampleYear2 = recommendationType === 'series' ? 2019 : 2010;
-
-
-  const prompt = `You are an autocomplete suggestion service for ${itemTypeString} titles. Given the user's partial query: "${query}", provide up to 5 ${itemTypeString} title suggestions that closely match or complete this query. For each suggestion, include the ${itemTypeString} title and its release year.
-
-Return ONLY a VALID JSON array of objects.
-Each object in the array MUST represent a ${itemTypeString} suggestion and ADHERE STRICTLY to this example format:
-[
-  { "title": "${exampleTitle1}", "year": ${exampleYear1} },
-  { "title": "${exampleTitle2}", "year": ${exampleYear2} }
-]
-
-EXTREMELY IMPORTANT INSTRUCTIONS FOR JSON OUTPUT:
-- Your ENTIRE response MUST be ONLY the JSON array. Do not include ANY text, comments, apologies, explanations, notes, or markdown (like \`\`\`json) BEFORE or AFTER the JSON array.
-- Ensure all string values within the JSON are correctly escaped.
-- If no suggestions are found for "${query}", return an empty JSON array []. DO NOT return an error message or explanatory text.
-`;
-
-  try {
-    const genAIResponse = await callGeminiAPIWithCache(prompt, {
-      temperature: 0.2, 
-      topP: 0.8,
-      topK: 10,
-    });
-
-    if (typeof genAIResponse.text !== 'string') {
-      console.warn(`Gemini response for ${itemTypeString} title suggestions did not have a valid 'text' property. Full response object:`, JSON.stringify(genAIResponse, null, 2));
-      if (genAIResponse.candidates && genAIResponse.candidates.length > 0) {
-        const candidate = genAIResponse.candidates[0];
-        console.warn(`Suggestion Candidate details: Finish Reason: ${candidate.finishReason}, Safety Ratings: ${JSON.stringify(candidate.safetyRatings)}`);
-        if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
-           console.warn("Suggestion Candidate content or parts are missing.");
-        }
-      } else if (genAIResponse.promptFeedback) {
-        console.warn(`Suggestion Prompt Feedback: ${JSON.stringify(genAIResponse.promptFeedback)}`);
-      } else {
-        console.warn("No candidates or promptFeedback found in the suggestions response.");
-      }
-      return []; 
-    }
-
-    let jsonStr = genAIResponse.text.trim();
-    const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-    const match = jsonStr.match(fenceRegex);
-    if (match && match[1]) {
-      jsonStr = match[1].trim();
-    }
+    const jsonStr = await callGeminiWithFallback(prompt, `movie_recommendations_${recommendationType}`);
     
     if (!jsonStr) {
-        console.warn(`Gemini response text for ${itemTypeString} title suggestions was empty after trimming. Original text (if any):`, genAIResponse.text);
-        return [];
+        console.error("Gemini response was empty or did not contain text.");
+        throw new Error(`Failed to get a response from the AI. The response was empty.`);
     }
+    return parseAndTransformItems(jsonStr);
 
-    const parsedSuggestions: AppItemTitleSuggestion[] = JSON.parse(jsonStr);
-    if (!Array.isArray(parsedSuggestions)) {
-        console.error(`Gemini ${itemTypeString} title suggestions response is not an array:`, parsedSuggestions);
-        return [];
+  } catch (error: any) {
+    console.error(`Error fetching ${recommendationType} recommendations from Gemini:`, error);
+    let errorMessage = `Failed to fetch ${recommendationType} recommendations due to an unexpected error.`;
+    if (error.message) {
+        errorMessage = error.message;
     }
-    return parsedSuggestions.filter(
-        s => typeof s.title === 'string' && typeof s.year === 'number'
-    ).slice(0, 5); 
-
-  } catch (error) {
-    const baseErrorMessage = `Error fetching ${itemTypeString} title suggestions for query "${query}" from Gemini:`;
-
-    if (error instanceof Error && (error.message.includes('429') || error.message.toUpperCase().includes('RESOURCE_EXHAUSTED'))) {
-      console.warn(`${baseErrorMessage} API quota likely exceeded (429). Autosuggestions may be temporarily unavailable. Error: ${error.message}`);
-    } else {
-      console.error(baseErrorMessage, error);
+    // Check for specific safety/quota errors if they are exposed in the error object
+    if (error.toString().toLowerCase().includes("safety")) {
+        errorMessage = "Your request was blocked by safety filters. Please adjust your preferences and try again.";
+    } else if (error.toString().toLowerCase().includes("quota")) {
+        errorMessage = "API usage limit reached. Please check your billing status.";
     }
-    if (error instanceof Error) {
-        console.error("Full error details (suggestions): Name -", error.name, ", Message -", error.message); 
-    } else {
-        console.error("Non-Error object thrown during getItemTitleSuggestions:", error);
-    }
-    return [];
+    throw new Error(errorMessage);
   }
 };
 
 
-function constructMoreSimilarItemsPrompt(promptQueryTitle: string, promptQueryYear: number, recommendationType: RecommendationType, userPreferences: StableUserPreferences): string {
-  const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
-  const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
-  const exampleTitle = recommendationType === 'series' ? 'Dark' : 'Another Similar Movie Title';
-  const exampleYear = recommendationType === 'series' ? 2017 : 2005;
-  const exampleSummary = recommendationType === 'series' 
-    ? 'A family saga with a supernatural twist, set in a German town, where the disappearance of two young children exposes the relationships among four families.'
-    : 'A compelling summary for this similar movie, highlighting its connection or resemblance to the original.';
-  const exampleGenres = recommendationType === 'series' ? ["Mystery", "Drama", "Sci-Fi"] : ["Action", "Sci-Fi", "Thriller"];
-  const exampleTmdbId = recommendationType === 'series' ? '70523' : '789';
-  const examplePosterUrl = recommendationType === 'series' ? 'https://image.tmdb.org/t/p/w500/apbrbWs8M9lyOpJYU5AXCRnAEZL.jpg' : 'https://image.tmdb.org/t/p/w500/somePosterPath.jpg';
-  const exampleDuration = recommendationType === 'series' ? 60 : 120;
-  const exampleMatchScore = recommendationType === 'series' ? 90 : 88;
+export const getSingleReplacementRecommendation = async (preferences: UserPreferences, recommendationType: RecommendationType, allCurrentItems: Movie[]): Promise<Movie | null> => {
+    if (!API_KEY) {
+        throw new Error("API Key is missing.");
+    }
 
-  let prompt = `You are a helpful ${itemType} recommendation expert.
-The user has found a ${itemType} they like, which is identified as "${promptQueryTitle}" (released around ${promptQueryYear}), and they want to see more ${pluralItemType} like it.
-Suggest exactly 3 additional, unique ${pluralItemType} that are highly similar and relevant to "${promptQueryTitle}" (from around ${promptQueryYear}).
+    const prompt = constructPrompt(preferences, recommendationType, allCurrentItems, 1);
 
-CRITICAL AND ABSOLUTE REQUIREMENT: These suggestions MUST ABSOLUTELY be different from the ${itemType} "${promptQueryTitle}" (year ${promptQueryYear}) itself. DO NOT, under any circumstances, suggest "${promptQueryTitle}" (year ${promptQueryYear}) again as one of the 3 similar ${pluralItemType}. The user has already seen it or it was the basis of their search. Your list of 3 similar ${pluralItemType} MUST NOT contain "${promptQueryTitle}" (year ${promptQueryYear}). This is paramount.
+    try {
+        const jsonStr = await callGeminiWithFallback(prompt, `single_replacement_${recommendationType}`);
+        
+         if (!jsonStr) {
+            console.warn("Received no text from Gemini for a single replacement.");
+            return null;
+        }
 
-Consider the User's General Viewing Habits to refine these 3 suggestions:
-- Watches ${pluralItemType}: "${userPreferences.movieFrequency}"
-- Prefers known actors/directors: "${userPreferences.actorDirectorPreference}"
-- Preferred Eras: ${userPreferences.era.join(', ')}
-- Preferred Languages: ${userPreferences.preferredLanguages.map(l => MOVIE_LANGUAGES.find(ml => ml.code === l)?.name || l).join(', ')}
-- User's Country: ${COUNTRIES.find(c => c.code === userPreferences.country)?.name || userPreferences.country}
-- Preferred OTT Platforms: ${userPreferences.ottPlatforms.length > 0 ? userPreferences.ottPlatforms.join(', ') : 'None specified'}
+        const newItems = parseAndTransformItems(jsonStr);
+        return newItems.length > 0 ? newItems[0] : null;
 
-Based on these habits, if the user is a frequent watcher (e.g., "Daily", "A few times a week") and "${promptQueryTitle}" is mainstream, lean towards less common but still highly similar alternatives. If they prefer specific languages or eras, try to align the suggestions if possible. If they specified OTT platforms, try to suggest items available on those.
-`;
+    } catch (error) {
+        console.error(`Error fetching single replacement ${recommendationType}:`, error);
+        return null;
+    }
+};
 
-  const feedbackHistory = getStoredFeedback();
-  if (feedbackHistory.length > 0) {
-    prompt += `\nUser's Past Feedback (Avoid re-suggesting these and learn from patterns for the new suggestions):`;
-    feedbackHistory.forEach(fb => {
-      prompt += `\n- Title: "${fb.title}", Year: ${fb.year}, Feedback: "${fb.feedback}"`;
-    });
-    prompt += `\nCRITICALLY, DO NOT suggest any ${pluralItemType} from this feedback history as your new suggestions.`;
-  }
 
-  prompt += `
 
-Rank them by how closely they match the style, themes, genre, and overall feel of the original ${itemType} query ("${promptQueryTitle}"), while also considering the user's habits.
+export const findSimilarItemByName = async (itemTitle: string, recommendationType: RecommendationType, stablePreferences: StableUserPreferences): Promise<Movie> => {
+    if (!API_KEY) {
+        throw new Error("API Key is missing.");
+    }
+    const itemType = itemTypeStringUpperSingular(recommendationType);
+    const itemTypeLower = itemType.toLowerCase();
 
-For each of these 3 ${pluralItemType}, provide the following details. Include a 'matchScore' (an integer from 0 to 100) indicating how well this new ${itemType} suggestion aligns with the *original ${itemType} query* ("${promptQueryTitle}") AND the user's general viewing habits. A higher score means a better similarity and relevance.
+    const prompt = `You are a ${itemTypeLower} database expert. A user is searching for a ${itemTypeLower} titled "${itemTitle}". 
+Your primary goal is to identify the most likely ${itemTypeLower} the user is referring to.
+If you find a clear match, provide its details. 
+If the title is ambiguous (e.g., "The Office"), use your knowledge to pick the most popular and culturally significant version (e.g., the US version of The Office).
+If the title is a very common phrase, try to find a well-known ${itemTypeLower} that matches it.
 
-Return ONLY a VALID JSON array of objects.
-Each object in the array MUST represent a ${itemType} and ADHERE STRICTLY to this example format (using actual data, not descriptions):
+Based on the user's stable preferences below, calculate a 'matchScore' (0-100) that estimates how much they would like this SPECIFIC ${itemTypeLower} you've found.
+- Viewing Frequency: ${stablePreferences.movieFrequency}
+- Era Preferences: ${stablePreferences.era.join(', ') || 'Any'}
+- Actor/Director Preference: ${stablePreferences.actorDirectorPreference}
+- Preferred Languages: ${stablePreferences.preferredLanguages.join(', ') || 'Any'}
+- Available in Country: ${stablePreferences.country || 'Any'}
+- Preferred on Platforms: ${stablePreferences.ottPlatforms.join(', ') || 'None'}
+
+Return ONLY a VALID JSON object (NOT an array) with the details of the found ${itemTypeLower}. The JSON object MUST STRICTLY adhere to this format:
 {
-  "title": "${exampleTitle}",
-  "year": ${exampleYear},
-  "summary": "${exampleSummary}",
-  "genres": ${JSON.stringify(exampleGenres)},
-  "similarTo": "${promptQueryTitle}",
-  "tmdbId": "${exampleTmdbId}",
-  "availabilityNote": "Check for rental or purchase",
-  "posterUrl": "${examplePosterUrl}",
-  "durationMinutes": ${exampleDuration},
-  "matchScore": ${exampleMatchScore}
+  "title": "The Found ${itemType}",
+  "year": 2005,
+  "summary": "A brief, engaging summary of the ${itemTypeLower}.",
+  "genres": ["Genre1", "Genre2"],
+  "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
+  "durationMinutes": ${recommendationType === 'series' ? 22 : 120},
+  "matchScore": 78,
+  "youtubeTrailerId": "trailerId123",
+  "socialProofTag": "Winner of 5 Emmys"
 }
 
-EXTREMELY IMPORTANT INSTRUCTIONS FOR JSON OUTPUT (Failure to comply will make the output unusable):
-- Your ENTIRE response MUST be ONLY the JSON array. Do not include ANY text, comments, apologies, explanations, notes, or markdown (like \`\`\`json) BEFORE or AFTER the JSON array.
-- Within each JSON object, after any property's value (e.g., after \`88\` in \`"matchScore": 88\`), there MUST be either a comma \`,\` (if more properties follow) or a closing curly brace \`}\` (if it's the last property).
-- Ensure all string values are correctly escaped.
-- Provide exactly 3 ${itemType} recommendations, unless fewer than 3 distinct similar ${pluralItemType} (that are NOT "${promptQueryTitle}") can be found.
-- The 'matchScore' MUST reflect similarity to "${promptQueryTitle}" and relevance based on user habits.
-- If you cannot find 3 suitable similar ${pluralItemType} (that are distinct from "${promptQueryTitle}"), provide fewer, but ensure the output is still a valid JSON array. If no additional distinct similar ${pluralItemType} can be found, return an empty array [].
-`;
-  return prompt;
-}
+IMPORTANT: If you cannot find a reasonably close match for "${itemTitle}", return a JSON object with all fields set to null, like this: {"title": null, "year": null, "summary": null, "genres": null, "posterUrl": null, "durationMinutes": null, "matchScore": null, "youtubeTrailerId": null, "socialProofTag": null}.
+Under NO circumstances should you add ANY text or markdown before or after the single JSON object. Your entire response must be ONLY the JSON object.`;
+
+    try {
+        const jsonStr = await callGeminiWithFallback(prompt, `find_similar_${itemTypeLower}_${itemTitle}`);
+        
+        if (!jsonStr) {
+            throw new Error(`The AI returned an empty response while searching for "${itemTitle}".`);
+        }
+        
+        const parsedItem = JSON.parse(jsonStr.trim()) as GeminiMovieRecommendation;
+
+        if (!parsedItem || !parsedItem.title || !parsedItem.year) {
+            throw new Error(`Could not find a distinct ${itemTypeLower} matching "${itemTitle}". Please try a different title or check for typos.`);
+        }
+        
+        return {
+            id: `${parsedItem.title.toLowerCase().replace(/[^a-z0-9]/g, '')}-${parsedItem.year}`,
+            title: parsedItem.title,
+            year: parsedItem.year,
+            summary: parsedItem.summary || "No summary available.",
+            genres: parsedItem.genres || [],
+            posterUrl: parsedItem.posterUrl,
+            durationMinutes: parsedItem.durationMinutes,
+            matchScore: parsedItem.matchScore,
+            youtubeTrailerId: parsedItem.youtubeTrailerId,
+            socialProofTag: parsedItem.socialProofTag,
+        };
+
+    } catch (error: any) {
+        console.error(`Error finding similar ${itemTypeLower} for "${itemTitle}":`, error);
+        if (error instanceof SyntaxError) {
+             throw new Error(`The AI returned an invalid response for "${itemTitle}". Please try again.`);
+        }
+        throw error;
+    }
+};
 
 export const getMoreSimilarItems = async (
-  promptQueryTitle: string, 
-  promptQueryYear: number, 
-  recommendationType: RecommendationType,
-  idToFilterOut: string | undefined,
-  userPreferences: StableUserPreferences
+    originalItemTitle: string, 
+    originalItemYear: number, 
+    recommendationType: RecommendationType, 
+    originalItemId: string | undefined,
+    stablePreferences: StableUserPreferences
 ): Promise<Movie[]> => {
-  if (!API_KEY) {
-    throw new Error("Gemini API Key is not configured.");
-  }
-
-  const prompt = constructMoreSimilarItemsPrompt(promptQueryTitle, promptQueryYear, recommendationType, userPreferences);
-  const itemTypeString = recommendationType === 'series' ? 'series' : 'movie';
-
-
-  try {
-    const response = await callGeminiAPIWithCache(prompt, {
-      temperature: 0.6, 
-      topP: 0.95,
-      topK: 40,
-    });
-
-    if (typeof response.text !== 'string') {
-      console.warn(`Gemini response for more similar ${itemTypeString}s did not have a valid 'text' property:`, JSON.stringify(response, null, 2));
-      throw new Error(`AI response for more similar ${itemTypeString}s was malformed (no text).`);
+    if (!API_KEY) {
+        throw new Error("API Key is missing.");
     }
-    
-    let items = parseAndTransformItems(response.text);
-    
-    // Filter out the initial item that was the basis for this "more similar" search, if its ID was passed
-    if (idToFilterOut) {
-      items = items.filter(item => item.id !== idToFilterOut);
+
+    const itemType = itemTypeStringUpperSingular(recommendationType);
+    const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
+
+    let exclusionList = [{ title: originalItemTitle, year: originalItemYear }];
+
+    const prompt = `A user wants to find ${pluralItemType} that are very similar to "${originalItemTitle}" (${originalItemYear}).
+Please suggest 5 unique ${pluralItemType} that share a similar tone, theme, genre, or style.
+For each suggestion, consider the user's stable preferences to calculate a 'matchScore' (0-100) indicating how well the suggestion aligns with their general taste.
+
+User's Stable Preferences:
+- Viewing Frequency: ${stablePreferences.movieFrequency}
+- Era Preferences: ${stablePreferences.era.join(', ') || 'Any'}
+- Actor/Director Preference: ${stablePreferences.actorDirectorPreference}
+- Preferred Languages: ${stablePreferences.preferredLanguages.join(', ') || 'Any'}
+- Available in Country: ${stablePreferences.country || 'Any'}
+- Preferred on Platforms: ${stablePreferences.ottPlatforms.join(', ') || 'None'}
+
+CRITICAL: Do NOT suggest "${originalItemTitle}" (${originalItemYear}) itself.
+
+Return ONLY a VALID JSON array of 5 objects. Each object must strictly follow this format:
+{
+  "title": "Similar ${itemType} Title",
+  "year": 2010,
+  "summary": "A brief summary explaining why it's a good alternative.",
+  "genres": ["Genre1", "Genre2"],
+  "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
+  "durationMinutes": ${recommendationType === 'series' ? 45 : 150},
+  "matchScore": 85,
+  "justification": "Because you liked the complex narrative of the original, you'll enjoy this.",
+  "youtubeTrailerId": "trailerId456",
+  "socialProofTag": "Critically Acclaimed"
+}
+
+IMPORTANT: Your entire response must be ONLY the JSON array. Do not include any text, comments, or markdown before or after the JSON array.`;
+
+    try {
+        const jsonStr = await callGeminiWithFallback(prompt, `more_similar_${pluralItemType}_${originalItemTitle}`);
+        
+         if (!jsonStr) {
+            throw new Error("The AI returned an empty response.");
+        }
+        return parseAndTransformItems(jsonStr);
+
+    } catch (error: any) {
+        console.error(`Error fetching more similar ${pluralItemType}:`, error);
+        throw new Error(`Failed to fetch more similar ${pluralItemType}.`);
     }
-    // Also, ensure the original query title/year is not in the results
-    items = items.filter(item => 
-        !(item.title.toLowerCase() === promptQueryTitle.toLowerCase() && item.year === promptQueryYear)
-    );
-
-    // Filter out any items the user has provided feedback for
-    const feedbackHistory = getStoredFeedback();
-    const ratedItemIds = new Set(
-      feedbackHistory.map(fb => `${fb.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${fb.year}`)
-    );
-     items = items.filter(item => !ratedItemIds.has(item.id!));
-    
-
-    return items;
-
-  } catch (error) {
-    console.error(`Error fetching more similar ${itemTypeString}s from Gemini:`, error);
-     if (error instanceof Error) {
-        if (error.message.includes("API_KEY_INVALID")) {
-            throw new Error("Invalid Gemini API Key.");
-        }
-        if (error.message.includes("Candidate was blocked due to SAFETY")) {
-            throw new Error(`The request for more similar ${itemTypeString}s was blocked due to safety concerns.`);
-        }
-         if (error.message.includes("The AI's response was not valid JSON")) {
-            throw error; 
-        }
-    }
-    throw new Error(`Failed to get more similar ${itemTypeString}s from AI.`);
-  }
 };
 
 
-function constructTasteCheckPrompt(itemTitle: string, recommendationType: RecommendationType, userPreferences: StableUserPreferences): string {
-  const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
-  const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
+export const getItemTitleSuggestions = async (query: string, recommendationType: RecommendationType): Promise<AppItemTitleSuggestion[]> => {
+    if (!API_KEY || query.length < 2) {
+        return [];
+    }
 
-  let prompt = `You are a helpful ${itemType} taste analysis expert.
-The user wants to know if they will like a specific ${itemType} titled "${itemTitle}".
+    const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
+    const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
 
-Your tasks are:
-1.  Identify the ${itemType}: Find the specific ${itemType} named "${itemTitle}". If you cannot uniquely identify it, or if it doesn't seem to exist, indicate this clearly.
-2.  If found, analyze it against the User's General Viewing Habits and Feedback History (provided below).
-3.  Determine a "matchScore" (0-100) representing how well this specific ${itemType} ("${itemTitle}") aligns with the user's taste profile. A higher score means a better potential match for the user.
-4.  Provide a concise "justification" explaining the matchScore, highlighting aspects of "${itemTitle}" that align (or clash) with the user's preferences.
+    const prompt = `Based on the user's search query "${query}", suggest up to 5 well-known ${pluralItemType} titles that are likely matches. 
+Prioritize popular and critically acclaimed titles.
+Return ONLY a VALID JSON array of objects. Each object must have a "title" (string) and "year" (number).
+Example format: [{"title": "The Matrix", "year": 1999}, {"title": "The Matrix Reloaded", "year": 2003}]
+If no good matches are found, return an empty array [].
+Your entire response must be ONLY the JSON array. No other text or markdown is allowed.`;
 
-User's General Viewing Habits:
-- Watches ${pluralItemType}: "${userPreferences.movieFrequency}"
-- Prefers known actors/directors: "${userPreferences.actorDirectorPreference}"
-- Preferred Eras: ${userPreferences.era.join(', ')}
-- Preferred Languages: ${userPreferences.preferredLanguages.map(l => MOVIE_LANGUAGES.find(ml => ml.code === l)?.name || l).join(', ')} (Consider if "${itemTitle}" fits this)
-- User's Country: ${COUNTRIES.find(c => c.code === userPreferences.country)?.name || userPreferences.country}
-- Preferred OTT Platforms: ${userPreferences.ottPlatforms.length > 0 ? userPreferences.ottPlatforms.join(', ') : 'None specified'} (Note if "${itemTitle}" is likely on these)
-- Preferred Movie Duration: ${userPreferences.movieDuration.join(', ')} (if ${itemType} is a movie)
-- Preferred Series Seasons: ${userPreferences.preferredNumberOfSeasons.join(', ')} (if ${itemType} is a series)
-`;
+    try {
+        const jsonStr = await callGeminiWithFallback(prompt, `title_suggestions_${query}`);
+        
+        if (!jsonStr) return [];
 
-  const feedbackHistory = getStoredFeedback();
-  if (feedbackHistory.length > 0) {
-    prompt += `\nUser's Past ${itemTypeStringUpperSingular(recommendationType)} Feedback History (CRUCIAL for taste analysis):`;
-    feedbackHistory.forEach(fb => {
-      prompt += `\n- Title: "${fb.title}", Year: ${fb.year}, Feedback: "${fb.feedback}" (Use this to understand their likes/dislikes patterns)`;
-    });
-  }
+        let cleanedJsonStr = jsonStr.trim().replace(/^```json\s*|```$/g, '');
+        const suggestions = JSON.parse(cleanedJsonStr) as AppItemTitleSuggestion[];
+        
+        if (Array.isArray(suggestions) && suggestions.every(s => typeof s.title === 'string' && typeof s.year === 'number')) {
+            return suggestions;
+        }
+        return [];
 
-  prompt += `
+    } catch (error) {
+        console.error("Error fetching title suggestions:", error);
+        return []; // Return empty array on error to avoid breaking UI
+    }
+};
 
-Return ONLY a VALID JSON object (NOT an array).
-The JSON object MUST ADHERE STRICTLY to this example format.
+export const checkTasteMatch = async (itemTitle: string, recommendationType: RecommendationType, stablePreferences: StableUserPreferences): Promise<TasteCheckServiceResponse> => {
+    if (!API_KEY) {
+        return { itemFound: false, movie: null, justification: null, error: "API Key is missing." };
+    }
 
-If the ${itemType} "${itemTitle}" is found and analyzed:
+    const itemType = itemTypeStringUpperSingular(recommendationType);
+    const itemTypeLower = itemType.toLowerCase();
+
+    const prompt = `You are a ${itemTypeLower} taste analysis expert. The user wants to know if they will like a ${itemTypeLower} titled "${itemTitle}", based on their stable preferences.
+
+First, identify the most likely ${itemTypeLower} the user is referring to.
+Then, analyze this ${itemTypeLower}'s characteristics (genre, tone, themes, critical reception, etc.) against the user's preferences provided below.
+
+User's Stable Preferences:
+- Viewing Frequency: "${stablePreferences.movieFrequency}"
+- Era Preferences: "${stablePreferences.era.join(', ')}"
+- Actor/Director Preference: "${stablePreferences.actorDirectorPreference}"
+- Preferred Languages: "${stablePreferences.preferredLanguages.map(code => MOVIE_LANGUAGES.find(l => l.code === code)?.name || code).join(', ')}"
+- User's Country: "${COUNTRIES.find(c => c.code === stablePreferences.country)?.name || stablePreferences.country}"
+- Preferred Streaming Platforms: "${stablePreferences.ottPlatforms.join(', ')}"
+- Their previous feedback history (use this to infer deeper taste patterns): ${JSON.stringify(getStoredFeedback())}
+
+Your task is to generate a JSON object with two main components:
+1. 'identifiedItem': An object containing the details of the ${itemTypeLower} you found. This includes a 'matchScore' (an integer from 0-100) representing your calculated taste match.
+2. 'justification': A concise, insightful, and personalized paragraph (max 3-4 sentences) explaining WHY the user might like or dislike this ${itemTypeLower}. Address both positive and negative points if applicable. For example, "Given your love for fast-paced action, you'll likely enjoy the thrilling sequences. However, as someone who prefers modern films, you might find the 1980s special effects a bit dated." This justification is the MOST IMPORTANT part of your response.
+
+Return a single, valid JSON object ONLY. Your entire response must strictly adhere to this format:
 {
   "itemFound": true,
   "identifiedItem": {
-    "title": "Actual Title of Found Item",
-    "year": 2020,
-    "summary": "A brief, engaging summary of the found item.",
+    "title": "The Found ${itemType}",
+    "year": 2010,
+    "summary": "A brief summary of the plot.",
     "genres": ["Genre1", "Genre2"],
-    "posterUrl": "https://image.tmdb.org/t/p/w500/optionalPoster.jpg", // Optional
-    "durationMinutes": 123, // Optional, average episode length for series
-    "matchScore": 88 // Integer 0-100, user's taste match for this item
+    "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
+    "durationMinutes": ${recommendationType === 'series' ? 50 : 148},
+    "matchScore": 88,
+    "youtubeTrailerId": "trailerId123",
+    "socialProofTag": "Iconic Sci-Fi Film"
   },
-  "justification": "You'll likely enjoy this because it shares themes with [Loved Movie X] and fits your preferred [Genre Y]. However, its length might be a slight concern given your preference for shorter content."
+  "justification": "Based on your preference for mind-bending sci-fi and classic 2000s films, this is a strong match. You'll appreciate its complex narrative. However, given you prefer shorter movies, its nearly 2.5-hour runtime is something to consider."
 }
 
-If the ${itemType} "${itemTitle}" CANNOT be confidently identified or found:
+CRITICAL: If you absolutely cannot identify the ${itemTypeLower} from the title "${itemTitle}", return this specific JSON object:
 {
   "itemFound": false,
   "identifiedItem": null,
-  "justification": "Could not find a distinct ${itemType} named '${itemTitle}'. Please check the spelling or try a more specific title."
+  "justification": "Could not identify a well-known ${itemTypeLower} with that exact title. Please check the spelling or try another title."
 }
+Do not add any text, comments, or markdown before or after the JSON object.`;
 
-EXTREMELY IMPORTANT INSTRUCTIONS FOR JSON OUTPUT:
-- Your ENTIRE response MUST be ONLY the JSON object. No text, comments, apologies, explanations, notes, or markdown (like \`\`\`json) BEFORE or AFTER the JSON object.
-- The 'matchScore' in 'identifiedItem' MUST be an integer between 0 and 100, representing the user's taste match for THIS specific item.
-- If 'itemFound' is false, 'identifiedItem' MUST be null, and 'justification' should explain why it wasn't found.
-- Ensure all string values are correctly escaped.
-`;
-  return prompt;
-}
+    try {
+        const jsonStr = await callGeminiWithFallback(prompt, `taste_check_${itemTitle}`);
+        
+         if (!jsonStr) {
+            throw new Error(`The AI returned an empty response for taste check on "${itemTitle}".`);
+        }
 
-const transformTasteCheckItemToMovie = (item: TasteCheckGeminiResponseItem | null): Movie | null => {
-  if (!item) return null;
+        // Clean the response to extract JSON from markdown if present
+        let cleanJsonStr = jsonStr.trim();
+        
+        // Remove markdown code blocks if present
+        if (cleanJsonStr.startsWith('```json')) {
+            cleanJsonStr = cleanJsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        } else if (cleanJsonStr.startsWith('```')) {
+            cleanJsonStr = cleanJsonStr.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+        
+        // Remove any leading/trailing whitespace and newlines
+        cleanJsonStr = cleanJsonStr.trim();
 
-  const title = item.title || "Unknown Title";
-  const year = typeof item.year === 'number' ? item.year : 0;
-  const summary = item.summary || "No summary available.";
-  const genres = Array.isArray(item.genres) ? item.genres.filter(g => typeof g === 'string') : ["Unknown Genre"];
-  const posterUrl = (typeof item.posterUrl === 'string' && item.posterUrl.trim()) ? item.posterUrl.trim() : undefined;
-  const durationMinutes = typeof item.durationMinutes === 'number' ? item.durationMinutes : undefined;
-  const matchScore = typeof item.matchScore === 'number' && item.matchScore >= 0 && item.matchScore <= 100 ? item.matchScore : undefined;
-  
-  if (title === "Unknown Title" && year === 0 && summary === "No summary available.") {
-    return null; // Don't return a completely empty movie object
-  }
+        const parsedResponse = JSON.parse(cleanJsonStr) as TasteCheckGeminiResponse;
 
-  return {
-    id: `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}${year}`,
-    title,
-    year,
-    summary,
-    genres,
-    posterUrl,
-    durationMinutes,
-    matchScore,
-    // Other Movie fields like similarTo, tmdbId, availabilityNote are not directly part of TasteCheckGeminiResponseItem
-    // and would typically be undefined here unless the prompt/response for taste check is expanded.
-  };
-};
+        if (!parsedResponse.itemFound || !parsedResponse.identifiedItem) {
+            return {
+                itemFound: false,
+                movie: null,
+                justification: parsedResponse.justification || `Could not find "${itemTitle}".`,
+                error: parsedResponse.justification
+            };
+        }
 
-export const checkTasteMatch = async (itemTitle: string, recommendationType: RecommendationType, userPreferences: StableUserPreferences): Promise<TasteCheckServiceResponse> => {
-  if (!API_KEY) {
-    throw new Error("Gemini API Key is not configured.");
-  }
-  if (!itemTitle.trim()) {
-    return { itemFound: false, movie: null, justification: "Please enter a title to check.", error: "Empty title." };
-  }
+        const item = parsedResponse.identifiedItem;
+        const movie: Movie = {
+            id: `${item.title?.toLowerCase().replace(/[^a-z0-9]/g, '')}-${item.year}`,
+            title: item.title || 'Unknown Title',
+            year: item.year || 0,
+            summary: item.summary || 'No summary available.',
+            genres: item.genres || [],
+            posterUrl: item.posterUrl || undefined,
+            durationMinutes: item.durationMinutes || undefined,
+            matchScore: item.matchScore || undefined,
+            youtubeTrailerId: item.youtubeTrailerId || undefined,
+            socialProofTag: item.socialProofTag || undefined,
+        };
 
-  const prompt = constructTasteCheckPrompt(itemTitle, recommendationType, userPreferences);
+        return {
+            itemFound: true,
+            movie: movie,
+            justification: parsedResponse.justification,
+        };
 
-  try {
-    const response = await callGeminiAPIWithCache(prompt, {
-      temperature: 0.3, 
-      topP: 0.9,
-      topK: 30,
-    });
-
-    if (typeof response.text !== 'string') {
-       console.warn(`Gemini response for taste check on "${itemTitle}" did not have a valid 'text' property:`, JSON.stringify(response, null, 2));
-      return { itemFound: false, movie: null, justification: `AI response was malformed for "${itemTitle}".`, error: "AI response malformed (no text)." };
+    } catch (error: any) {
+        console.error(`Error performing taste check for "${itemTitle}":`, error);
+         if (error instanceof SyntaxError) {
+            return { itemFound: false, movie: null, justification: null, error: `The AI returned an invalid response for "${itemTitle}". Please try again.` };
+        }
+        return { itemFound: false, movie: null, justification: null, error: error.message || "An unknown error occurred during the taste check." };
     }
-    
-    let jsonStr = response.text.trim();
-    const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-    const matchJson = jsonStr.match(fenceRegex);
-    if (matchJson && matchJson[1]) {
-      jsonStr = matchJson[1].trim();
-    }
-
-    if (!jsonStr) {
-        console.warn(`Gemini response text for taste check on "${itemTitle}" was empty after trimming. Original text:`, response.text);
-        return { itemFound: false, movie: null, justification: `AI response was empty for "${itemTitle}".`, error: "AI response empty." };
-    }
-    
-    const parsedData: TasteCheckGeminiResponse = JSON.parse(jsonStr);
-
-    if (!parsedData.itemFound || !parsedData.identifiedItem) {
-      return {
-        itemFound: false,
-        movie: null,
-        justification: parsedData.justification || `Could not find or analyze "${itemTitle}".`,
-      };
-    }
-
-    const movie = transformTasteCheckItemToMovie(parsedData.identifiedItem);
-    
-    if (!movie) { // If transform returns null (e.g., all fields were null from Gemini)
-      return {
-        itemFound: false, 
-        movie: null,
-        justification: parsedData.justification || `Could not sufficiently identify details for "${itemTitle}".`,
-        error: `Identified item for "${itemTitle}" lacked necessary details.`
-      };
-    }
-
-    return {
-      itemFound: true,
-      movie: movie,
-      justification: parsedData.justification,
-    };
-
-  } catch (error) {
-    console.error(`Error during taste check for "${itemTitle}":`, error);
-    let errorMessage = `Failed to perform taste check for "${itemTitle}".`;
-    if (error instanceof Error) {
-      if (error.message.includes("API_KEY_INVALID")) {
-        errorMessage = "Invalid Gemini API Key.";
-      } else if (error.message.includes("Candidate was blocked due to SAFETY")) {
-        errorMessage = `The taste check request for "${itemTitle}" was blocked due to safety concerns.`;
-      } else if (error.message.toLowerCase().includes("json")) {
-        errorMessage = `AI's response for taste check on "${itemTitle}" was not valid JSON.`;
-      } else {
-        errorMessage = error.message;
-      }
-    }
-    return {
-      itemFound: false,
-      movie: null,
-      justification: null,
-      error: errorMessage,
-    };
-  }
 };

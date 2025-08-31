@@ -1,15 +1,17 @@
 import React from 'react';
 import type { Movie, MovieFeedback } from '../types';
 import { MovieCard } from './MovieCard';
+import { ShareButtons } from './ShareButtons';
 
 interface MovieListProps {
   movies: Movie[];
   titleRef?: React.RefObject<HTMLHeadingElement>;
   titleText?: string;
   onCardFeedback?: (movieId: string, feedbackType: MovieFeedback['feedback']) => void;
+  onViewTrailer?: (movie: Movie) => void;
 }
 
-export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleText, onCardFeedback }) => {
+export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleText, onCardFeedback, onViewTrailer }) => {
   if (movies.length === 0) {
     return null;
   }
@@ -24,14 +26,16 @@ export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleTex
         className="text-3xl font-bold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500"
         tabIndex={-1} 
       >
-        {displayTitle}
+        {displayTitle} 
       </h2>
+      <ShareButtons />
       {movies.length === 1 ? (
         <div className="flex justify-center px-2"> {/* Added padding for small screens */}
           <div className="w-full max-w-sm"> {/* Container to constrain the single MovieCard */}
             <MovieCard 
               movie={movies[0]}
               onFeedback={onCardFeedback && movies[0].id ? (feedbackType) => onCardFeedback(movies[0].id!, feedbackType) : undefined}
+              onViewTrailer={onViewTrailer}
             />
           </div>
         </div>
@@ -48,6 +52,7 @@ export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleTex
               key={movie.id || `${movie.title}-${movie.year}`} 
               movie={movie}
               onFeedback={onCardFeedback && movie.id ? (feedbackType) => onCardFeedback(movie.id!, feedbackType) : undefined}
+              onViewTrailer={onViewTrailer}
             />
           ))}
         </div>

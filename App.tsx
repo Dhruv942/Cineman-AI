@@ -5,7 +5,7 @@ import { MovieList } from './components/MovieList';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Footer } from './components/Footer';
 import { getMovieRecommendations, findSimilarItemByName, getMoreSimilarItems, checkTasteMatch, getSingleReplacementRecommendation } from './services/geminiService';
-import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab,  RecommendationType, MovieFeedback } from './types';
+import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab, RecommendationType, MovieFeedback, GrowthPromptState } from './types';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { SimilarMovieSearch } from './components/SimilarMovieSearch';
 import { MovieCard } from './components/MovieCard';
@@ -15,7 +15,11 @@ import { MyAccountPage } from './components/MyAccountPage';
 import { OtherSettingsPage } from './components/OtherSettingsPage';
 import { WatchPartyView } from './components/WatchPartyView';
 import { LandingPage } from './components/LandingPage';
-import { CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, CINE_SUGGEST_STABLE_PREFERENCES_KEY, MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, COUNTRIES, CINE_SUGGEST_APP_SETTINGS_KEY } from './constants';
+import { CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, CINE_SUGGEST_STABLE_PREFERENCES_KEY, MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, COUNTRIES, CINE_SUGGEST_APP_SETTINGS_KEY, CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY, CINE_SUGGEST_SESSION_COUNT_KEY, CINE_SUGGEST_STORE_REVIEW_URL, CINE_SUGGEST_SHARE_URL } from './constants';
+import { TrailerModal } from './components/TrailerModal';
+import { ReviewPrompt } from './components/ReviewPrompt';
+import { ReferralPrompt } from './components/ReferralPrompt';
+import { trackEvent } from './services/analyticsService';
 
 type AppView = 'loading' | 'landing' | 'onboarding' | 'main' | 'onboardingEdit' | 'myAccount' | 'otherSettings';
 
@@ -62,12 +66,17 @@ const App: React.FC = () => {
   const [tasteCheckJustification, setTasteCheckJustification] = useState<string | null>(null);
   const [originalQueryForTasteCheck, setOriginalQueryForTasteCheck] = useState<string | null>(null);
 
+  const [trailerId, setTrailerId] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('recommendations');
   const [stablePreferences, setStablePreferences] = useState<StableUserPreferences | null>(null);
   const [recommendationType, setRecommendationType] = useState<RecommendationType>('movie');
 
   const [view, setView] = useState<AppView>('loading');
+
+  const [promptToShow, setPromptToShow] = useState<'review' | 'referral' | null>(null);
+  const [promptTriggeredThisSession, setPromptTriggeredThisSession] = useState<boolean>(false);
+  const sessionCountRef = useRef<number>(0);
 
 
   const recommendationsTitleRef = useRef<HTMLHeadingElement>(null);
@@ -108,6 +117,12 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
+    const storedSessionCount = parseInt(localStorage.getItem(CINE_SUGGEST_SESSION_COUNT_KEY) || '0', 10);
+    const newSessionCount = storedSessionCount + 1;
+    localStorage.setItem(CINE_SUGGEST_SESSION_COUNT_KEY, newSessionCount.toString());
+    sessionCountRef.current = newSessionCount;
+    trackEvent('app_session_start', { session_count: newSessionCount });
+
     const onboardingComplete = localStorage.getItem(CINE_SUGGEST_ONBOARDING_COMPLETE_KEY);
     if (!onboardingComplete) {
       setView('landing');
@@ -142,8 +157,8 @@ const App: React.FC = () => {
     }
   }, [additionalSimilarItems, isLoadingAdditionalSimilar, hasAttemptedViewMore, activeTab, view]);
 
-
-   const handleStartOnboarding = () => {
+  const handleStartOnboarding = () => {
+    trackEvent('onboarding_start', {});
     setView('onboarding');
   };
   
@@ -166,6 +181,52 @@ const App: React.FC = () => {
 
   const handleBackToMain = () => {
     setView('main');
+  };
+
+  const handleViewTrailer = (movie: Movie) => {
+    if (movie.youtubeTrailerId) {
+      trackEvent('view_trailer', { title: movie.title, year: movie.year });
+      setTrailerId(movie.youtubeTrailerId);
+    }
+  };
+  
+  const handleCloseTrailer = () => {
+    setTrailerId(null);
+  };
+
+  const updateGrowthState = (updates: Partial<GrowthPromptState>) => {
+    const growthStateString = localStorage.getItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY);
+    const currentState: GrowthPromptState = growthStateString 
+      ? JSON.parse(growthStateString) 
+      : { lastPromptSession: 0, hasRated: false, hasShared: false };
+    
+    const newState = { ...currentState, ...updates };
+    localStorage.setItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY, JSON.stringify(newState));
+  };
+
+  const handleRateApp = () => {
+    updateGrowthState({ hasRated: true, lastPromptSession: sessionCountRef.current });
+    setPromptToShow(null);
+    trackEvent('review_prompt_action', { action: 'rate' });
+    window.open(CINE_SUGGEST_STORE_REVIEW_URL, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDismissReviewPrompt = () => {
+    updateGrowthState({ lastPromptSession: sessionCountRef.current });
+    setPromptToShow(null);
+    trackEvent('review_prompt_action', { action: 'dismiss' });
+  };
+
+  const handleShareApp = () => {
+    updateGrowthState({ hasShared: true, lastPromptSession: sessionCountRef.current });
+    setPromptToShow(null);
+    trackEvent('referral_prompt_action', { action: 'share' });
+  };
+  
+  const handleDismissReferralPrompt = () => {
+    updateGrowthState({ lastPromptSession: sessionCountRef.current });
+    setPromptToShow(null);
+    trackEvent('referral_prompt_action', { action: 'dismiss' });
   };
 
 
@@ -196,6 +257,7 @@ const App: React.FC = () => {
   const handleTabChange = (newTab: ActiveTab) => {
     if (activeTab !== newTab) { 
         clearAllTabData();
+        trackEvent('tab_view', { tab_name: newTab });
     }
     setActiveTab(newTab);
   };
@@ -204,6 +266,7 @@ const App: React.FC = () => {
     if (recommendationType !== newType) {
         setRecommendationType(newType);
         clearAllTabData(); 
+        trackEvent('content_type_change', { content_type: newType });
     }
   };
 
@@ -214,6 +277,14 @@ const App: React.FC = () => {
     setHasSearchedRecommendations(true);
     setLastSessionPreferences(sessionPreferences);
     
+    trackEvent('recommendation_search', {
+      type: recommendationType,
+      genres: sessionPreferences.genres,
+      excluded_genres: sessionPreferences.excludedGenres,
+      mood: sessionPreferences.mood,
+      keywords: sessionPreferences.keywords,
+    });
+
     const combinedExclusions = [...sessionExcludedRecommendations, ...recommendations, ...prefetchedRecommendations];
     setSessionExcludedRecommendations(combinedExclusions);
 
@@ -238,6 +309,36 @@ const App: React.FC = () => {
       const numToDisplay = 3; // Or get from settings
       setRecommendations(items.slice(0, numToDisplay));
       setPrefetchedRecommendations(items.slice(numToDisplay));
+
+      if (!promptTriggeredThisSession && items.length > 0) {
+        const growthStateString = localStorage.getItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY);
+        const growthState: GrowthPromptState = growthStateString 
+          ? JSON.parse(growthStateString) 
+          : { lastPromptSession: 0, hasRated: false, hasShared: false };
+          
+        const currentSession = sessionCountRef.current;
+        
+        const canShowAnyPrompt = currentSession > 3 && 
+                                 currentSession >= (growthState.lastPromptSession || 0) + 3;
+      
+        if (canShowAnyPrompt) {
+          let promptType: 'review' | 'referral' | null = null;
+          
+          if (!growthState.hasRated) {
+            promptType = 'review';
+          } else if (!growthState.hasShared) {
+            promptType = 'referral';
+          }
+          
+          if (promptType) {
+            setTimeout(() => {
+              setPromptToShow(promptType);
+              trackEvent(`${promptType}_prompt_view`, {});
+            }, 4000); 
+            setPromptTriggeredThisSession(true);
+          }
+        }
+      }
     } catch (err) {
       if (err instanceof Error) {
         setRecommendationError(err.message || `Failed to fetch ${recommendationType === 'series' ? 'series' : 'movie'} recommendations. Please check your API key and try again.`);
@@ -245,10 +346,11 @@ const App: React.FC = () => {
         setRecommendationError(`An unknown error occurred while fetching ${recommendationType === 'series' ? 'series' : 'movie'} recommendations.`);
       }
       setRecommendations([]);
+      trackEvent('recommendation_search_error', { error: err instanceof Error ? err.message : String(err) });
     } finally {
       setIsLoadingRecommendations(false);
     }
-  }, [getEnsuredStablePreferences, recommendationType, recommendations, sessionExcludedRecommendations, prefetchedRecommendations]);
+  }, [getEnsuredStablePreferences, recommendationType, recommendations, sessionExcludedRecommendations, prefetchedRecommendations, promptTriggeredThisSession]);
 
   const fetchAndAddToBuffer = useCallback(async () => {
     if (!lastSessionPreferences) return;
@@ -276,6 +378,8 @@ const App: React.FC = () => {
     const movieToReplace = recommendations.find(m => m.id === movieId);
     if (!movieToReplace) return;
 
+    trackEvent('recommendation_feedback', { title: movieToReplace.title, year: movieToReplace.year, feedback: feedbackType });
+
     setSessionExcludedRecommendations(prev => [...prev, movieToReplace]);
 
     if (prefetchedRecommendations.length > 0) {
@@ -297,6 +401,8 @@ const App: React.FC = () => {
     setSimilarItemResult(null);
     setOriginalQueryTextForSimilarSearch(itemTitleFromInput);
 
+    trackEvent('similar_search', { type: recommendationType, query: itemTitleFromInput });
+
     setAdditionalSimilarItems([]);
     setAdditionalSimilarError(null);
     setIsLoadingAdditionalSimilar(false); 
@@ -314,6 +420,7 @@ const App: React.FC = () => {
         setSimilarItemError(`An unknown error occurred while finding similar ${recommendationType}.`);
       }
       setSimilarItemResult(null);
+      trackEvent('similar_search_error', { query: itemTitleFromInput, error: err instanceof Error ? err.message : String(err) });
     } finally {
       setIsLoadingSimilarItem(false);
     }
@@ -329,6 +436,8 @@ const App: React.FC = () => {
     setAdditionalSimilarItems([]);
     setHasAttemptedViewMore(true);
     
+    trackEvent('similar_search_view_more', { type: recommendationType, query: queryTextForPrompt });
+
     const currentStablePrefs = getEnsuredStablePreferences();
 
     try {
@@ -354,6 +463,8 @@ const App: React.FC = () => {
     setTasteCheckJustification(null);
     setOriginalQueryForTasteCheck(itemTitle);
 
+    trackEvent('taste_check_search', { type: recommendationType, query: itemTitle });
+
     const currentStablePrefs = getEnsuredStablePreferences();
 
     try {
@@ -378,6 +489,7 @@ const App: React.FC = () => {
       }
       setTasteCheckResult(null);
       setTasteCheckJustification(null);
+      trackEvent('taste_check_error', { query: itemTitle, error: err instanceof Error ? err.message : String(err) });
     } finally {
       setIsLoadingTasteCheck(false);
     }
@@ -387,9 +499,9 @@ const App: React.FC = () => {
   const TabButton: React.FC<{tabName: ActiveTab; currentTab: ActiveTab; onClick: () => void; children: React.ReactNode, icon?: string}> =
     ({ tabName, currentTab, onClick, children, icon }) => (
     <button
-    id={`tab-${tabName}`}
+      id={`tab-${tabName}`}
       onClick={onClick}
-      className={`flex items-center justify-center px-2.5 sm:px-4 py-3 text-xs sm:text-sm font-medium rounded-t-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400
+      className={`flex-1 flex items-center justify-center px-1.5 sm:px-3 py-2.5 text-xs sm:text-sm font-medium rounded-t-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 whitespace-nowrap
                   ${currentTab === tabName
                     ? 'bg-slate-800 text-purple-300 border-b-2 border-purple-400'
                     : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-slate-200'}`}
@@ -397,7 +509,7 @@ const App: React.FC = () => {
       aria-selected={currentTab === tabName}
       aria-controls={`tabpanel-${tabName}`}
     >
-      {icon && <span dangerouslySetInnerHTML={{ __html: icon }} className="mr-1 sm:mr-1.5 w-3.5 h-3.5 sm:w-4 sm:h-4 inline-block" />}
+      {icon && <span dangerouslySetInnerHTML={{ __html: icon }} className="mr-1 sm:mr-1.5 w-3.5 h-3.5 sm:w-4 sm:h-4 inline-block flex-shrink-0" />}
       {children}
     </button>
   );
@@ -439,44 +551,47 @@ const App: React.FC = () => {
       case 'otherSettings':
         return <OtherSettingsPage onBackToMain={handleBackToMain} />;
       case 'main':
-  return (
-    <div style={appStyle} className="flex-grow flex flex-col text-slate-100">
-      <Header
-        onEditPreferences={handleEditPreferences}
-        onShowMyAccount={handleShowMyAccount}
-        onShowOtherSettings={handleShowOtherSettings}
-      />
-      <main className="flex-grow container mx-auto px-2 sm:px-4 py-8 flex flex-col items-center">
+        return (
+           <div style={appStyle} className="flex-grow flex flex-col text-slate-100">
+              {trailerId && <TrailerModal trailerId={trailerId} onClose={handleCloseTrailer} />}
+              {promptToShow === 'review' && <ReviewPrompt onRate={handleRateApp} onDismiss={handleDismissReviewPrompt} />}
+              {promptToShow === 'referral' && <ReferralPrompt onShare={handleShareApp} onDismiss={handleDismissReferralPrompt} />}
+              <Header
+                onEditPreferences={handleEditPreferences}
+                onShowMyAccount={handleShowMyAccount}
+                onShowOtherSettings={handleShowOtherSettings}
+              />
+              <main className="flex-grow container mx-auto px-2 sm:px-4 py-4 sm:py-8 flex flex-col items-center">
 
-        <div className="mb-6 bg-slate-700/60 p-1 rounded-xl shadow-md w-full max-w-xs sm:max-w-sm mx-auto flex">
-            <button
-                onClick={() => handleRecommendationTypeChange('movie')}
-                className={`flex-1 flex items-center justify-center px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-700/60 ${
-                recommendationType === 'movie'
-                    ? 'bg-purple-600 text-white shadow-lg'
-                    : 'text-slate-300 hover:bg-slate-600/70 hover:text-slate-100'
-                }`}
-                aria-pressed={recommendationType === 'movie'}
-            >
-                <span dangerouslySetInnerHTML={{ __html: ICONS.movie_toggle_icon }} className="w-5 h-5 mr-2" />
-                Movies
-            </button>
-            <button
-                onClick={() => handleRecommendationTypeChange('series')}
-                className={`flex-1 flex items-center justify-center px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-700/60 ${
-                recommendationType === 'series'
-                    ? 'bg-purple-600 text-white shadow-lg'
-                    : 'text-slate-300 hover:bg-slate-600/70 hover:text-slate-100'
-                }`}
-                aria-pressed={recommendationType === 'series'}
-            >
-                <span dangerouslySetInnerHTML={{ __html: ICONS.series_toggle_icon }} className="w-5 h-5 mr-2 " />
-                Series
-            </button>
-        </div>
+                <div className="mb-6 bg-slate-700/60 p-1 rounded-xl shadow-md w-full max-w-xs sm:max-w-sm mx-auto flex">
+                    <button
+                        onClick={() => handleRecommendationTypeChange('movie')}
+                        className={`flex-1 flex items-center justify-center px-3 py-2.5 text-sm sm:text-base rounded-lg font-medium transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-700/60 ${
+                        recommendationType === 'movie'
+                            ? 'bg-purple-600 text-white shadow-lg'
+                            : 'text-slate-300 hover:bg-slate-600/70 hover:text-slate-100'
+                        }`}
+                        aria-pressed={recommendationType === 'movie'}
+                    >
+                        <span dangerouslySetInnerHTML={{ __html: ICONS.movie_toggle_icon }} className="w-5 h-5 mr-2" />
+                        Movies
+                    </button>
+                    <button
+                        onClick={() => handleRecommendationTypeChange('series')}
+                        className={`flex-1 flex items-center justify-center px-3 py-2.5 text-sm sm:text-base rounded-lg font-medium transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-700/60 ${
+                        recommendationType === 'series'
+                            ? 'bg-purple-600 text-white shadow-lg'
+                            : 'text-slate-300 hover:bg-slate-600/70 hover:text-slate-100'
+                        }`}
+                        aria-pressed={recommendationType === 'series'}
+                    >
+                        <span dangerouslySetInnerHTML={{ __html: ICONS.series_toggle_icon }} className="w-5 h-5 mr-2" />
+                        Series
+                    </button>
+                </div>
 
-        <nav className="mb-8 flex justify-center space-x-0.5 sm:space-x-1 border-b border-slate-700 w-full max-w-5xl" role="tablist">
-          <TabButton tabName="recommendations" currentTab={activeTab} onClick={() => handleTabChange('recommendations')} icon={ICONS.recommendations_tab_icon}>
+                <nav className="mb-6 sm:mb-8 flex justify-center space-x-0.5 sm:space-x-1 border-b border-slate-700 w-full max-w-5xl" role="tablist">
+                  <TabButton tabName="recommendations" currentTab={activeTab} onClick={() => handleTabChange('recommendations')} icon={ICONS.recommendations_tab_icon}>
                     <span className="hidden sm:inline">Recommendations</span>
                     <span className="inline sm:hidden">Recs</span>
                   </TabButton>
@@ -496,10 +611,10 @@ const App: React.FC = () => {
                     <span className="hidden sm:inline">Watch Party</span>
                     <span className="inline sm:hidden">Party</span>
                   </TabButton>
-        </nav>
+                </nav>
 
-        <div className="w-full max-w-7xl relative flex flex-col flex-grow min-h-0">
-        <section
+                <div className="w-full max-w-7xl relative flex flex-col flex-grow min-h-0">
+                  <section
                     id="tabpanel-recommendations"
                     role="tabpanel"
                     aria-labelledby="tab-recommendations"
@@ -509,66 +624,99 @@ const App: React.FC = () => {
                         : 'opacity-0 pointer-events-none absolute inset-0'
                       }`}
                   >
-            <div className="max-w-3xl mx-auto">
-              <PreferenceForm 
-                onSubmit={handleGetRecommendations} 
-                isLoading={isLoadingRecommendations}
-                recommendationType={recommendationType} 
-              />
-            </div>
+                    <div className="max-w-3xl mx-auto w-full">
+                      <PreferenceForm 
+                        onSubmit={handleGetRecommendations} 
+                        isLoading={isLoadingRecommendations}
+                        recommendationType={recommendationType} 
+                      />
+                    </div>
 
-            {isLoadingRecommendations && (
-              <div ref={loadingIndicatorRef} className="mt-12 flex justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
+                    {isLoadingRecommendations && (
+                      <div ref={loadingIndicatorRef} className="mt-12 flex justify-center">
+                        <LoadingSpinner />
+                      </div>
+                    )}
 
-            {recommendationError && (
-              <div className="mt-12 w-full max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-6 rounded-lg shadow-xl">
-                <div className="flex items-center justify-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-red-400">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                  </svg>
-                  <h2 className="text-2xl font-semibold">Oops! Something went wrong.</h2>
-                </div>
-                <p className="text-red-300">{recommendationError}</p>
-                <p className="mt-4 text-sm text-slate-400">
-                  Please ensure your Gemini API key is correctly configured and try adjusting your preferences.
-                </p>
-              </div>
-            )}
+                    {recommendationError && (() => {
+                        let title = "Oops! Something went wrong.";
+                        let primaryMessage = "We couldn't get recommendations at this time.";
+                        let secondaryAdvice = "There might be an issue with the AI service or your query. Please try again.";
+                        
+                        const lowerCaseError = recommendationError.toLowerCase();
 
-            {!isLoadingRecommendations && !recommendationError && hasSearchedRecommendations && recommendations.length === 0 && (
-              <div className="mt-12 w-full max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-6 rounded-lg shadow-xl">
-                <div className="flex items-center justify-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-sky-400">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                  </svg>
-                  <h2 className="text-2xl font-semibold text-slate-300">No {recommendationType === 'series' ? 'Series' : 'Movies'} Found</h2>
-                </div>
-                <p>We couldn't find any {recommendationType === 'series' ? 'series' : 'movies'} matching your criteria. Try adjusting your preferences for a wider search!</p>
-              </div>
-            )}
+                        if (lowerCaseError.includes("api key invalid")) {
+                            title = "API Key Error";
+                            primaryMessage = "Your Gemini API key appears to be invalid or is not configured correctly.";
+                            secondaryAdvice = "Please verify your API key in the project's environment settings. It is provided via an environment variable and is essential for the app to function.";
+                        } else if (lowerCaseError.includes("usage limit") || lowerCaseError.includes("quota") || lowerCaseError.includes("billing")) {
+                            title = "Usage Limit Reached";
+                            primaryMessage = "It looks like you've exceeded the free usage limits for the Gemini API.";
+                            secondaryAdvice = "To continue using the app, please visit your Google Cloud Console, select the project associated with your API key, and ensure that billing is enabled.";
+                        } else if (lowerCaseError.includes("safety filter")) {
+                            title = "Request Blocked for Safety";
+                            primaryMessage = "Your request was blocked by the AI's safety filters. This can happen with certain keywords or combinations of preferences.";
+                            secondaryAdvice = "Please try adjusting your mood, keywords, or genre selections and search again.";
+                        } else if (lowerCaseError.includes("service unavailable")) {
+                            title = "AI Service Unavailable";
+                            primaryMessage = "We're having trouble connecting to the AI recommendation service at the moment.";
+                            secondaryAdvice = "This is likely a temporary issue. Please wait a few moments and try your search again.";
+                        } else if (lowerCaseError.includes("invalid request") || lowerCaseError.includes("malformed")) {
+                            title = "Invalid Request";
+                            primaryMessage = "The request sent to the AI was invalid, which can sometimes be caused by unusual keywords or preferences.";
+                            secondaryAdvice = "Please try simplifying your search terms and try again.";
+                        } else {
+                            primaryMessage = recommendationError;
+                        }
 
-            {!isLoadingRecommendations && !recommendationError && recommendations.length > 0 && (
-              <div className="w-full mt-12">
-                <MovieList 
-                    movies={recommendations} 
-                    titleRef={recommendationsTitleRef} 
-                    titleText={recommendationType === 'series' ? "Your Personalised Series Recommendations" : "Your Personalised Movie Recommendations"}
-                    onCardFeedback={handleRecommendationFeedback}
-                />
-              </div>
-            )}
+                        return (
+                            <div className="mt-12 w-full max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-4 sm:p-6 rounded-lg shadow-xl border border-red-800/50">
+                                <div className="flex items-center justify-center mb-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-3 text-red-400">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                    </svg>
+                                    <h2 className="text-xl sm:text-2xl font-semibold">{title}</h2>
+                                </div>
+                                <p className="text-red-300 text-sm sm:text-base mb-4">{primaryMessage}</p>
+                                <p className="text-xs sm:text-sm text-slate-400 bg-slate-800/40 p-3 rounded-md">
+                                    {secondaryAdvice}
+                                </p>
+                            </div>
+                        );
+                    })()}
 
-            {!hasSearchedRecommendations && !isLoadingRecommendations && !recommendationError && (
-              <div className="max-w-3xl mx-auto">
-                <WelcomeMessage itemType={recommendationType} />
-              </div>
-            )}
-          </section>
+                    {!isLoadingRecommendations && !recommendationError && hasSearchedRecommendations && recommendations.length === 0 && (
+                      <div className="mt-12 w-full max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-6 rounded-lg shadow-xl">
+                        <div className="flex items-center justify-center mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-sky-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                          </svg>
+                          <h2 className="text-xl sm:text-2xl font-semibold text-slate-300">No {recommendationType === 'series' ? 'Series' : 'Movies'} Found</h2>
+                        </div>
+                        <p className="text-sm sm:text-base">We couldn't find any {recommendationType === 'series' ? 'series' : 'movies'} matching your criteria. Try adjusting your preferences for a wider search!</p>
+                      </div>
+                    )}
 
-          <section
+                    {!isLoadingRecommendations && !recommendationError && recommendations.length > 0 && (
+                      <div className="w-full mt-12">
+                        <MovieList 
+                            movies={recommendations} 
+                            titleRef={recommendationsTitleRef} 
+                            titleText={recommendationType === 'series' ? "Your Personalised Series Recommendations" : "Your Personalised Movie Recommendations"}
+                            onCardFeedback={handleRecommendationFeedback}
+                            onViewTrailer={handleViewTrailer}
+                        />
+                      </div>
+                    )}
+
+                    {!hasSearchedRecommendations && !isLoadingRecommendations && !recommendationError && (
+                      <div className="max-w-3xl mx-auto w-full">
+                        <WelcomeMessage itemType={recommendationType} />
+                      </div>
+                    )}
+                  </section>
+
+                  <section
                     id="tabpanel-similarSearch"
                     role="tabpanel"
                     aria-labelledby="tab-similarSearch"
@@ -578,85 +726,112 @@ const App: React.FC = () => {
                         : 'opacity-0 pointer-events-none absolute inset-0'
                       }`}
                   >
-            <div className="max-w-3xl mx-auto">
-              <SimilarMovieSearch
-                onSearch={handleFindSimilarItem}
-                isLoading={isLoadingSimilarItem}
-                isActive={activeTab === 'similarSearch'}
-                recommendationType={recommendationType}
-                searchContext="similar"
-              />
-            </div>
-            {isLoadingSimilarItem && (
-              <div className="mt-8 flex justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
-            {similarItemError && (
-              <div className="mt-8 max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-4 rounded-lg shadow-xl">
-                <p>{similarItemError}</p>
-              </div>
-            )}
-            {hasSearchedSimilarItem && !isLoadingSimilarItem && !similarItemError && similarItemResult && originalQueryTextForSimilarSearch && (
-              <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-teal-300">
-                  Similar to "{originalQueryTextForSimilarSearch}":
-                </h2>
-                <div className="max-w-sm mx-auto">
-                  <MovieCard movie={similarItemResult} isSearchResult={true} />
-                </div>
-                <div className="mt-8 text-center max-w-3xl mx-auto">
-                  {!isLoadingAdditionalSimilar && (
-                    <button
-                      onClick={() => {
-                        if (similarItemResult) { 
-                           handleViewMoreSimilarItems(similarItemResult.title, similarItemResult.year, similarItemResult.id);
-                        }
-                      }}
-                      className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150"
-                      aria-label={`View more ${recommendationType}s similar to ${similarItemResult.title}`}
-                    >
-                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2 inline">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5h3m-3 0V7.5m0 3V13.5" />
-                      </svg>
-                      View More Like This
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-            {isLoadingAdditionalSimilar && (
-              <div className="mt-8 flex justify-center">
-                <LoadingSpinner /> 
-              </div>
-            )}
-            {additionalSimilarError && (
-              <div className="mt-8 max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-4 rounded-lg shadow-xl">
-                <p>{additionalSimilarError}</p>
-              </div>
-            )}
-            {!isLoadingAdditionalSimilar && !additionalSimilarError && hasAttemptedViewMore && additionalSimilarItems.length === 0 && originalQueryTextForSimilarSearch && (
-               <div className="mt-8 max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-4 rounded-lg shadow-xl">
-                <p>No more similar {recommendationType}s found for "{originalQueryTextForSimilarSearch}".</p>
-              </div>
-            )}
-            {!isLoadingAdditionalSimilar && !additionalSimilarError && additionalSimilarItems.length > 0 && originalQueryTextForSimilarSearch && (
-              <div className="w-full mt-12">
-                 <MovieList 
-                    movies={additionalSimilarItems} 
-                    titleRef={additionalSimilarTitleRef} 
-                    titleText={`More ${recommendationType === 'series' ? 'Series' : 'Movies'} Like "${similarItemResult?.title || originalQueryTextForSimilarSearch}"`}
-                  />
-              </div>
-            )}
-            {hasSearchedSimilarItem && !isLoadingSimilarItem && !similarItemError && !similarItemResult && originalQueryTextForSimilarSearch && (
-              <div className="mt-8 max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-4 rounded-lg shadow-xl">
-                <p>Could not find a distinct {recommendationType === 'series' ? 'series' : 'movie'} similar to "{originalQueryTextForSimilarSearch}". Try a different title or check for typos.</p>
-              </div>
-            )}
-          </section>
+                    <div className="max-w-3xl mx-auto w-full">
+                      <SimilarMovieSearch
+                        onSearch={handleFindSimilarItem}
+                        isLoading={isLoadingSimilarItem}
+                        isActive={activeTab === 'similarSearch'}
+                        recommendationType={recommendationType}
+                        searchContext="similar"
+                      />
+                    </div>
+                    {isLoadingSimilarItem && (
+                      <div className="mt-8 flex justify-center">
+                        <LoadingSpinner />
+                      </div>
+                    )}
+                    {similarItemError && (() => {
+                        let title = "Search Failed";
+                        let primaryMessage = "Could not complete the search.";
+                        let secondaryAdvice = "Please try again later or adjust your search term.";
 
-          <section
+                        const lowerCaseError = similarItemError.toLowerCase();
+                        
+                        if (lowerCaseError.includes("api key invalid")) {
+                            title = "API Key Error";
+                            primaryMessage = "Cannot search without a valid API key.";
+                            secondaryAdvice = "Please check your project's environment settings.";
+                        } else if (lowerCaseError.includes("usage limit") || lowerCaseError.includes("quota") || lowerCaseError.includes("billing")) {
+                            title = "Usage Limit Reached";
+                            primaryMessage = "The API usage limit has been reached.";
+                            secondaryAdvice = "Please check your Google Cloud project's billing status.";
+                        } else if (lowerCaseError.includes("safety filter")) {
+                            title = "Request Blocked";
+                            primaryMessage = "The search query was blocked for safety reasons.";
+                            secondaryAdvice = "Please try a different search term.";
+                        } else {
+                            primaryMessage = similarItemError;
+                        }
+
+                        return (
+                            <div className="mt-8 max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-4 rounded-lg shadow-xl">
+                                <h3 className="text-lg font-semibold mb-2">{title}</h3>
+                                <p className="text-red-300 text-sm mb-3">{primaryMessage}</p>
+                                <p className="text-xs text-slate-400">{secondaryAdvice}</p>
+                            </div>
+                        );
+                    })()}
+                    {hasSearchedSimilarItem && !isLoadingSimilarItem && !similarItemError && similarItemResult && originalQueryTextForSimilarSearch && (
+                      <div className="mt-8">
+                        <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-teal-300">
+                          Similar to "{originalQueryTextForSimilarSearch}":
+                        </h2>
+                        <div className="max-w-sm mx-auto">
+                          <MovieCard movie={similarItemResult} isSearchResult={true} onViewTrailer={handleViewTrailer} />
+                        </div>
+                        <div className="mt-8 text-center max-w-3xl mx-auto">
+                          {!isLoadingAdditionalSimilar && (
+                            <button
+                              onClick={() => {
+                                if (similarItemResult) { 
+                                  handleViewMoreSimilarItems(similarItemResult.title, similarItemResult.year, similarItemResult.id);
+                                }
+                              }}
+                              className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150"
+                              aria-label={`View more ${recommendationType}s similar to ${similarItemResult.title}`}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2 inline">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5h3m-3 0V7.5m0 3V13.5" />
+                              </svg>
+                              View More Like This
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {isLoadingAdditionalSimilar && (
+                      <div className="mt-8 flex justify-center">
+                        <LoadingSpinner /> 
+                      </div>
+                    )}
+                    {additionalSimilarError && (
+                      <div className="mt-8 max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-4 rounded-lg shadow-xl">
+                        <p>{additionalSimilarError}</p>
+                      </div>
+                    )}
+                    {!isLoadingAdditionalSimilar && !additionalSimilarError && hasAttemptedViewMore && additionalSimilarItems.length === 0 && originalQueryTextForSimilarSearch && (
+                      <div className="mt-8 max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-4 rounded-lg shadow-xl">
+                        <p>No more similar {recommendationType}s found for "{originalQueryTextForSimilarSearch}".</p>
+                      </div>
+                    )}
+                    {!isLoadingAdditionalSimilar && !additionalSimilarError && additionalSimilarItems.length > 0 && originalQueryTextForSimilarSearch && (
+                      <div className="w-full mt-12">
+                        <MovieList 
+                            movies={additionalSimilarItems} 
+                            titleRef={additionalSimilarTitleRef} 
+                            titleText={`More ${recommendationType === 'series' ? 'Series' : 'Movies'} Like "${similarItemResult?.title || originalQueryTextForSimilarSearch}"`}
+                            onViewTrailer={handleViewTrailer}
+                          />
+                      </div>
+                    )}
+                    {hasSearchedSimilarItem && !isLoadingSimilarItem && !similarItemError && !similarItemResult && originalQueryTextForSimilarSearch && (
+                      <div className="mt-8 max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-4 rounded-lg shadow-xl">
+                        <p>Could not find a distinct {recommendationType === 'series' ? 'series' : 'movie'} similar to "{originalQueryTextForSimilarSearch}". Try a different title or check for typos.</p>
+                      </div>
+                    )}
+                  </section>
+
+                  <section
                     id="tabpanel-tasteCheck"
                     role="tabpanel"
                     aria-labelledby="tab-tasteCheck"
@@ -666,66 +841,91 @@ const App: React.FC = () => {
                         : 'opacity-0 pointer-events-none absolute inset-0'
                       }`}
                   >
-            <div className="max-w-3xl mx-auto">
-              <SimilarMovieSearch
-                onSearch={handleCheckTasteMatch}
-                isLoading={isLoadingTasteCheck}
-                isActive={activeTab === 'tasteCheck'}
-                recommendationType={recommendationType}
-                searchContext="tasteCheck"
-              />
-            </div>
-            {isLoadingTasteCheck && (
-              <div className="mt-8 flex justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
-            {tasteCheckError && (
-              <div className="mt-8 max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-6 rounded-lg shadow-xl">
-                 <div className="flex items-center justify-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-red-400">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                  </svg>
-                  <h2 className="text-xl font-semibold">Analysis Failed</h2>
-                </div>
-                <p className="text-red-300">{tasteCheckError}</p>
-              </div>
-            )}
-            {hasSearchedTasteCheck && !isLoadingTasteCheck && !tasteCheckError && tasteCheckResult && (
-              <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-                  Taste Analysis for "{originalQueryForTasteCheck}"
-                </h2>
-                <div className="max-w-sm mx-auto">
-                  <MovieCard movie={{...tasteCheckResult, matchScore: tasteCheckResult.matchScore}} isSearchResult={false} />
-                </div>
-                {tasteCheckJustification && (
-                  <div className="mt-6 p-4 sm:p-6 bg-slate-700/60 backdrop-blur-sm rounded-lg shadow-lg max-w-xl mx-auto">
-                    <h4 className="text-lg sm:text-xl font-semibold text-purple-300 mb-2 flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mr-2 text-purple-300">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.354a15.055 15.055 0 0 1-4.5 0m4.5 0 3.06-3.06m-3.06 3.06a2.25 2.25 0 0 1 3.06 0M12 6.75a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5Zm0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z" />
-                      </svg>
-                      Why you might (or might not) like it:
-                    </h4>
-                    <p className="text-slate-200 whitespace-pre-line text-sm sm:text-base">{tasteCheckJustification}</p>
-                  </div>
-                )}
-              </div>
-            )}
-             {hasSearchedTasteCheck && !isLoadingTasteCheck && !tasteCheckError && !tasteCheckResult && (
-              <div className="mt-8 max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-6 rounded-lg shadow-xl">
-                 <div className="flex items-center justify-center mb-2">
-                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-sky-400">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                  </svg>
-                  <h2 className="text-2xl font-semibold text-slate-300">Analysis Inconclusive</h2>
-                </div>
-                <p>We couldn't provide a taste analysis for "{originalQueryForTasteCheck}". This might be because the {recommendationType} wasn't found, or there was an issue with the analysis.</p>
-              </div>
-            )}
-          </section>
+                    <div className="max-w-3xl mx-auto w-full">
+                      <SimilarMovieSearch
+                        onSearch={handleCheckTasteMatch}
+                        isLoading={isLoadingTasteCheck}
+                        isActive={activeTab === 'tasteCheck'}
+                        recommendationType={recommendationType}
+                        searchContext="tasteCheck"
+                      />
+                    </div>
+                    {isLoadingTasteCheck && (
+                      <div className="mt-8 flex justify-center">
+                        <LoadingSpinner />
+                      </div>
+                    )}
+                    {tasteCheckError && (() => {
+                        let title = "Analysis Failed";
+                        let primaryMessage = "Could not complete the taste analysis.";
+                        let secondaryAdvice = "Please try again later or with a different title.";
 
-          <section
+                        const lowerCaseError = tasteCheckError.toLowerCase();
+                        
+                        if (lowerCaseError.includes("api key invalid")) {
+                            title = "API Key Error";
+                            primaryMessage = "Cannot perform analysis without a valid API key.";
+                            secondaryAdvice = "Please check your project's environment settings.";
+                        } else if (lowerCaseError.includes("usage limit") || lowerCaseError.includes("quota") || lowerCaseError.includes("billing")) {
+                            title = "Usage Limit Reached";
+                            primaryMessage = "The API usage limit has been reached.";
+                            secondaryAdvice = "Please check your Google Cloud project's billing status.";
+                        } else if (lowerCaseError.includes("safety filter")) {
+                            title = "Request Blocked";
+                            primaryMessage = "The title was blocked for safety reasons.";
+                            secondaryAdvice = "Please try a different title.";
+                        } else {
+                            primaryMessage = tasteCheckError;
+                        }
+
+                        return (
+                            <div className="mt-8 max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-6 rounded-lg shadow-xl">
+                                <div className="flex items-center justify-center mb-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-red-400">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                    </svg>
+                                    <h2 className="text-xl font-semibold">{title}</h2>
+                                </div>
+                                <p className="text-red-300 mb-3">{primaryMessage}</p>
+                                <p className="text-xs text-slate-400">{secondaryAdvice}</p>
+                            </div>
+                        );
+                    })()}
+                    {hasSearchedTasteCheck && !isLoadingTasteCheck && !tasteCheckError && tasteCheckResult && (
+                      <div className="mt-8">
+                        <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
+                          Taste Analysis for "{originalQueryForTasteCheck}"
+                        </h2>
+                        <div className="max-w-sm mx-auto">
+                          <MovieCard movie={{...tasteCheckResult, matchScore: tasteCheckResult.matchScore}} isSearchResult={false} onViewTrailer={handleViewTrailer} />
+                        </div>
+                        {tasteCheckJustification && (
+                          <div className="mt-6 p-4 sm:p-6 bg-slate-700/60 backdrop-blur-sm rounded-lg shadow-lg max-w-xl mx-auto">
+                            <h4 className="text-lg sm:text-xl font-semibold text-purple-300 mb-2 flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mr-2 text-purple-300">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.354a15.055 15.055 0 0 1-4.5 0m4.5 0 3.06-3.06m-3.06 3.06a2.25 2.25 0 0 1 3.06 0M12 6.75a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5Zm0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z" />
+                              </svg>
+                              Why you might (or might not) like it:
+                            </h4>
+                            <p className="text-slate-200 whitespace-pre-line text-sm sm:text-base">{tasteCheckJustification}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {hasSearchedTasteCheck && !isLoadingTasteCheck && !tasteCheckError && !tasteCheckResult && (
+                      <div className="mt-8 max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-6 rounded-lg shadow-xl">
+                        <div className="flex items-center justify-center mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-sky-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                          </svg>
+                          <h2 className="text-xl sm:text-2xl font-semibold text-slate-300">Analysis Inconclusive</h2>
+                        </div>
+                        <p>We couldn't provide a taste analysis for "{originalQueryForTasteCheck}". This might be because the {recommendationType} wasn't found, or there was an issue with the analysis.</p>
+                      </div>
+                    )}
+                  </section>
+
+                  <section
                     id="tabpanel-discovery"
                     role="tabpanel"
                     aria-labelledby="tab-discovery"
@@ -735,10 +935,10 @@ const App: React.FC = () => {
                         : 'opacity-0 pointer-events-none absolute inset-0'
                       }`}
                   >
-            <DiscoveryView isActive={activeTab === 'discovery'} recommendationType={recommendationType} />
-          </section>
+                    <DiscoveryView isActive={activeTab === 'discovery'} recommendationType={recommendationType} />
+                  </section>
 
-          <section
+                  <section
                     id="tabpanel-watchParty"
                     role="tabpanel"
                     aria-labelledby="tab-watchParty"
@@ -751,12 +951,12 @@ const App: React.FC = () => {
                     <WatchPartyView isActive={activeTab === 'watchParty'} recommendationType={recommendationType} />
                   </section>
 
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
-  default:
+                </div>
+              </main>
+              <Footer />
+            </div>
+        );
+       default:
         return null; // Should not happen
     }
   };

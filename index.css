@@ -1,0 +1,292 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Kumbh Sans', sans-serif;
+  background: linear-gradient(to bottom right, #0f172a, #4c1d95, #0f172a);
+  min-height: 100vh;
+}
+
+#root {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4c1d95;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5b21b6;
+}
+
+/* Custom utilities */
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mobile-first responsive utilities */
+@layer utilities {
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl;
+  }
+
+  .text-responsive-2xl {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  .text-responsive-3xl {
+    @apply text-3xl sm:text-4xl;
+  }
+
+  .p-responsive {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+
+  .px-responsive {
+    @apply px-3 sm:px-4 lg:px-6;
+  }
+
+  .py-responsive {
+    @apply py-2 sm:py-3 lg:py-4;
+  }
+
+  .gap-responsive {
+    @apply gap-2 sm:gap-3 lg:gap-4;
+  }
+
+  .w-responsive {
+    @apply w-16 h-16 sm:w-20 sm:h-20;
+  }
+}
+
+/* Discovery View Card Stack Styles */
+.discovery-card-stack {
+  position: relative;
+  width: 90vw;
+  max-width: 360px;
+  height: 75vh;
+  max-height: 560px;
+  margin: auto;
+}
+
+.discovery-card {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #1e293b;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  will-change: transform, opacity;
+}
+
+.discovery-card .card-poster-container {
+  width: 100%;
+  height: 65%;
+  overflow: hidden;
+  position: relative;
+}
+
+.discovery-card .card-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.discovery-card .card-info {
+  padding: 0.75rem;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.discovery-card .card-title {
+  font-size: 1.1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+  color: #c084fc;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.discovery-card .card-year {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
+
+.discovery-card .card-actions {
+  padding: 0.5rem 0.75rem 0.75rem;
+  border-top: 1px solid #334155;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.discovery-card .action-button {
+  padding: 0.5rem 0.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.8rem;
+  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+.discovery-card .action-button:hover {
+  transform: translateY(-1px);
+}
+
+.discovery-card .action-button:active {
+  transform: translateY(0px);
+}
+
+@media (min-width: 640px) {
+  .discovery-card .card-info {
+    padding: 1rem;
+  }
+  .discovery-card .card-title {
+    font-size: 1.25rem;
+  }
+  .discovery-card .card-year {
+    font-size: 0.875rem;
+  }
+  .discovery-card .card-actions {
+    padding: 0.75rem 1rem 1rem;
+  }
+  .discovery-card .action-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    min-height: 40px;
+  }
+}
+
+/* Card stacking visual effect */
+.discovery-card.is-next {
+  transform: translateY(15px) scale(0.95);
+  opacity: 0.7;
+  z-index: -1;
+}
+
+.discovery-card.is-second-next {
+  transform: translateY(30px) scale(0.90);
+  opacity: 0.4;
+  z-index: -2;
+}
+
+.discovery-card.is-hidden {
+  transform: translateY(45px) scale(0.85);
+  opacity: 0;
+  z-index: -3;
+}
+
+/* Animation states */
+.discovery-card.animating-out-left {
+  animation: swipe-out-left 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+.discovery-card.animating-out-right {
+  animation: swipe-out-right 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+.discovery-card.animating-out-up {
+  animation: swipe-out-up 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+.discovery-card.animating-in {
+   animation: card-enter 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes swipe-out-left {
+  to {
+    transform: translateX(-150%) rotate(-15deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes swipe-out-right {
+  to {
+    transform: translateX(150%) rotate(15deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes swipe-out-up {
+  to {
+    transform: translateY(-150%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes card-enter {
+  from {
+    transform: translateY(15px) scale(0.95);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes movie-card-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.movie-card-enter {
+  animation: movie-card-fade-in 0.4s ease-out forwards;
+}
+
+@keyframes fade-in-hero {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
