@@ -24,7 +24,7 @@ type CacheEntry = {
 
 type CacheKey = string;
 
-const API_KEY = 'AIzaSyBJqkrD1MteQ9FV6v3Dtdo39dhLUf4BRB4';
+const API_KEY = process.env.GEMINI_API_KEY; 
 
 if (!API_KEY) {
   console.error("API_KEY is not set in environment variables. Movie recommendations will not work.");
