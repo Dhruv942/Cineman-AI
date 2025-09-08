@@ -1,13 +1,44 @@
-
+declare const chrome: any;
 import { CINE_SUGGEST_MOVIE_FEEDBACK_KEY } from '../constants';
 import type { MovieFeedback } from '../types';
 
-export const saveMovieFeedback = (
+// Helper to get all feedback from chrome.storage.local
+const getAllFeedbackFromStorage = (): Promise<MovieFeedback[]> => {
+  return new Promise((resolve) => {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get([CINE_SUGGEST_MOVIE_FEEDBACK_KEY], (result: any) => {
+        const feedback = result[CINE_SUGGEST_MOVIE_FEEDBACK_KEY];
+        if (Array.isArray(feedback)) {
+          resolve(feedback);
+        } else {
+          resolve([]);
+        }
+      });
+    } else {
+      // Fallback for non-extension environment
+      try {
+        const storedFeedbackString = localStorage.getItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY);
+        if (storedFeedbackString) {
+          const feedback = JSON.parse(storedFeedbackString);
+          if (Array.isArray(feedback)) {
+            resolve(feedback);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Fallback to localStorage failed", e);
+      }
+      resolve([]);
+    }
+  });
+};
+
+export const saveMovieFeedback = async (
   title: string, 
   year: number, 
   feedbackType: 'Loved it!' | 'Liked it' | 'Not my vibe',
-  source: string = 'in-app' // Default source for feedback given within the app
-): void => {
+  source: string = 'in-app'
+): Promise<void> => {
   const movieFeedbackId = `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}${year}`;
   const newFeedbackItem: MovieFeedback = {
     id: movieFeedbackId,
@@ -17,88 +48,62 @@ export const saveMovieFeedback = (
     source,
   };
 
-  let allFeedback: MovieFeedback[] = [];
-  const storedFeedbackString = localStorage.getItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY);
-  if (storedFeedbackString) {
-    try {
-      allFeedback = JSON.parse(storedFeedbackString);
-      if (!Array.isArray(allFeedback)) { 
-        allFeedback = [];
-      }
-    } catch (e) {
-      console.error("Failed to parse existing movie feedback for saving, resetting.", e);
-      allFeedback = [];
-    }
-  }
+  const allFeedback = await getAllFeedbackFromStorage();
 
   const existingIndex = allFeedback.findIndex(f => f.id === movieFeedbackId);
   if (existingIndex > -1) {
-    allFeedback[existingIndex] = newFeedbackItem; // Overwrite with new feedback
+    allFeedback[existingIndex] = newFeedbackItem;
   } else {
     allFeedback.push(newFeedbackItem);
   }
-  
 
-  try {
-    localStorage.setItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY, JSON.stringify(allFeedback));
-  } catch (e) {
-    console.error("Failed to save movie feedback to localStorage", e);
-  }
+  return new Promise((resolve) => {
+     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ [CINE_SUGGEST_MOVIE_FEEDBACK_KEY]: allFeedback }, () => {
+            resolve();
+        });
+     } else {
+        localStorage.setItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY, JSON.stringify(allFeedback));
+        resolve();
+     }
+  });
 };
 
-export const getMovieFeedback = (title: string, year: number): MovieFeedback | undefined => {
+export const getMovieFeedback = async (title: string, year: number): Promise<MovieFeedback | undefined> => {
   const movieFeedbackId = `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}${year}`;
-  const storedFeedbackString = localStorage.getItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY);
-  if (storedFeedbackString) {
-    try {
-      const allFeedback: MovieFeedback[] = JSON.parse(storedFeedbackString);
-      if (!Array.isArray(allFeedback)) {
-        return undefined;
-      }
-      return allFeedback.find(f => f.id === movieFeedbackId);
-    } catch (e) {
-      console.error("Failed to parse movie feedback from localStorage", e);
-    }
-  }
-  return undefined;
+  const allFeedback = await getAllFeedbackFromStorage();
+  return allFeedback.find(f => f.id === movieFeedbackId);
 };
 
-export const getAllFeedback = (): MovieFeedback[] => {
-  const storedFeedbackString = localStorage.getItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY);
-  if (storedFeedbackString) {
-    try {
-      const allFeedback = JSON.parse(storedFeedbackString);
-       if (!Array.isArray(allFeedback)) {
-        console.warn("Feedback in localStorage was not an array, returning empty.");
-        return [];
-      }
-      return allFeedback as MovieFeedback[];
-    } catch (e) {
-      console.error("Failed to parse all movie feedback from localStorage, returning empty.", e);
-      return []; 
-    }
-  }
-  return []; 
+export const getAllFeedback = async (): Promise<MovieFeedback[]> => {
+  return getAllFeedbackFromStorage();
 };
 
-// Conceptual function to add feedback from external sources
-export const addExternallySourcedFeedback = (
-  externalFeedbacks: Array<{ title: string; year: number; feedbackType: 'Loved it!' | 'Liked it' | 'Not my vibe'; source: string }>
-): void => {
+export const importExternalFeedback = async (
+  externalFeedbacks: MovieFeedback[]
+): Promise<void> => {
   if (externalFeedbacks.length === 0) return;
 
-  console.log(`Attempting to add ${externalFeedbacks.length} externally sourced feedback items.`);
-  externalFeedbacks.forEach(extFb => {
-    // Use the existing saveMovieFeedback function which handles updating/adding correctly.
-    // Pass the source from the external feedback item.
-    saveMovieFeedback(extFb.title, extFb.year, extFb.feedbackType, extFb.source);
-  });
-  console.log(`Finished processing ${externalFeedbacks.length} externally sourced feedback items.`);
-  // Note: To make this truly effective, you would need content scripts or other mechanisms
-  // to gather data from sites like Netflix, Amazon Prime, etc., and then call this function.
-  // For example:
-  // addExternallySourcedFeedback([
-  //   { title: "Some Movie from Netflix", year: 2023, feedbackType: "Loved it!", source: "netflix-history-scraper" },
-  //   { title: "Another Show from Prime", year: 2022, feedbackType: "Liked it", source: "prime-ratings-importer" }
-  // ]);
+  const allFeedback = await getAllFeedbackFromStorage();
+  const existingIds = new Set(allFeedback.map(f => f.id));
+
+  const newFeedbacks = externalFeedbacks.filter(extFb => !existingIds.has(extFb.id));
+
+  if (newFeedbacks.length > 0) {
+    const combinedFeedback = [...allFeedback, ...newFeedbacks];
+     return new Promise((resolve) => {
+       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.set({ [CINE_SUGGEST_MOVIE_FEEDBACK_KEY]: combinedFeedback }, () => {
+              console.log(`Successfully imported ${newFeedbacks.length} new feedback items.`);
+              resolve();
+          });
+       } else {
+          localStorage.setItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY, JSON.stringify(combinedFeedback));
+          resolve();
+       }
+    });
+  } else {
+    console.log("No new feedback items to import.");
+    return Promise.resolve();
+  }
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { POPULAR_MOVIES_FOR_SUGGESTION, POPULAR_SERIES_FOR_SUGGESTION } from '../constants';
 import { getItemTitleSuggestions } from '../services/geminiService'; 
 import type { ItemTitleSuggestion, RecommendationType, PopularItemEntry } from '../types';
+import { useLanguage } from '../hooks/useLanguage';
 
 
 interface SimilarMovieSearchProps {
@@ -9,7 +10,9 @@ interface SimilarMovieSearchProps {
   isLoading: boolean;
   isActive: boolean;
   recommendationType: RecommendationType;
-  searchContext?: 'similar' | 'tasteCheck'; // New prop
+  searchContext?: 'similar' | 'tasteCheck';
+  initialQuery?: string | null;
+  onSearchComplete?: () => void;
 }
 
 const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
@@ -29,8 +32,11 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({
   isLoading, 
   isActive, 
   recommendationType, 
-  searchContext = 'similar' 
+  searchContext = 'similar',
+  initialQuery,
+  onSearchComplete,
 }) => {
+  const { t } = useLanguage();
   const [query, setQuery] = useState('');
   const [popularPicks, setPopularPicks] = useState<PopularItemEntry[]>([]);
   const [autosuggestResults, setAutosuggestResults] = useState<ItemTitleSuggestion[]>([]);
@@ -39,17 +45,17 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const itemTypeString = recommendationType === 'series' ? 'Series' : 'Movie';
-  const itemTypeStringLower = recommendationType === 'series' ? 'series' : 'movie';
+  const itemTypeString = recommendationType === 'series' ? t('series', 'Series') : t('movies', 'Movie');
+  const itemTypeStringLower = recommendationType === 'series' ? t('series', 'series') : t('movies', 'movie');
   const popularItemsSource = recommendationType === 'series' ? POPULAR_SERIES_FOR_SUGGESTION : POPULAR_MOVIES_FOR_SUGGESTION;
 
   const mainTitleText = searchContext === 'tasteCheck' 
-    ? `Will I Like This ${itemTypeString}?` 
-    : `Find a ${itemTypeString} Like...`;
+    ? t('tab_taste_check')
+    : t('tab_find_similar');
   
   const buttonText = searchContext === 'tasteCheck' 
-    ? `Check Taste Match` 
-    : `Find Similar ${itemTypeString}`;
+    ? t('tab_taste_check')
+    : t('tab_find_similar');
 
   const placeholderText = searchContext === 'tasteCheck'
     ? `Enter a ${itemTypeStringLower} title to check your taste match`
@@ -62,8 +68,10 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({
 
   useEffect(() => {
     if (isActive) {
-      const shuffled = [...popularItemsSource].sort(() => 0.5 - Math.random());
-      setPopularPicks(shuffled.slice(0, 4)); 
+      if (!initialQuery) {
+        const shuffled = [...popularItemsSource].sort(() => 0.5 - Math.random());
+        setPopularPicks(shuffled.slice(0, 4)); 
+      }
       inputRef.current?.focus(); 
     } else {
       setQuery(''); 
@@ -71,7 +79,19 @@ export const SimilarMovieSearch: React.FC<SimilarMovieSearchProps> = ({
       setShowAutosuggest(false);
       setIsAutosuggestLoading(false);
     }
-  }, [isActive, recommendationType, popularItemsSource]);
+  }, [isActive, recommendationType, popularItemsSource, initialQuery]);
+
+  useEffect(() => {
+    if (initialQuery && isActive) {
+      setQuery(initialQuery);
+      onSearch(initialQuery);
+      if (onSearchComplete) {
+        onSearchComplete();
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery, isActive]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

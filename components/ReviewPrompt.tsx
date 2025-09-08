@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface ReviewPromptProps {
   onRate: () => void;
@@ -6,6 +7,7 @@ interface ReviewPromptProps {
 }
 
 export const ReviewPrompt: React.FC<ReviewPromptProps> = ({ onRate, onDismiss }) => {
+  const { t } = useLanguage();
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,23 +45,23 @@ export const ReviewPrompt: React.FC<ReviewPromptProps> = ({ onRate, onDismiss })
             </svg>
         </div>
         <h2 id="review-prompt-title" className="text-2xl font-bold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-400">
-          Enjoying CineMan AI?
+          {t('review_title', 'Enjoying CineMan AI?')}
         </h2>
         <p className="text-slate-300 mb-8">
-          Please rate it to help us grow the community and keep improving the app!
+          {t('review_desc', 'Please rate it to help us grow the community and keep improving the app!')}
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={onDismiss}
             className="w-full sm:w-1/2 px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg shadow-md transition-all duration-150"
           >
-            Maybe Later
+            {t('review_cta_later', 'Maybe Later')}
           </button>
           <button
             onClick={onRate}
             className="w-full sm:w-1/2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-150"
           >
-            Rate Now
+            {t('review_cta_rate', 'Rate Now')}
           </button>
         </div>
       </div>

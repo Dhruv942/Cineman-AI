@@ -1,0 +1,299 @@
+:root {
+  --cineman-purple: #9333ea;
+  --cineman-text: #e5e7eb;
+  --cineman-text-muted: #9ca3af;
+  --cineman-bg-panel: #202020;
+  --cineman-bg-hover: #303030;
+  --cineman-border: #404040;
+  --cineman-score-high: #22c55e;
+  --cineman-score-medium: #facc15;
+  --cineman-score-low: #ef4444;
+}
+
+/* --- Main Injected Panel (Netflix) --- */
+#cineman-ai-panel {
+  width: 100%;
+  margin-bottom: 1.5em;
+  background-color: var(--cineman-bg-panel);
+  border: 1px solid var(--cineman-border);
+  border-radius: 6px;
+  overflow: hidden;
+  font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: var(--cineman-text);
+}
+
+.cineman-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--cineman-border);
+}
+
+.cineman-header svg {
+  width: 20px;
+  height: 20px;
+  color: var(--cineman-purple);
+}
+
+.cineman-header span {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.cineman-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 4px;
+}
+
+.cineman-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--cineman-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.cineman-button:hover:not(:disabled) {
+  background-color: var(--cineman-bg-hover);
+  color: var(--cineman-text);
+}
+
+.cineman-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cineman-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* --- Spinner for Loading State --- */
+.cineman-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--cineman-purple);
+  border-radius: 50%;
+  animation: cineman-spin 0.8s linear infinite;
+}
+
+@keyframes cineman-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* --- Result Modal (Netflix) --- */
+#cineman-ai-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.cineman-modal-backdrop {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.cineman-modal-content {
+  position: relative;
+  background-color: var(--cineman-bg-panel);
+  border: 1px solid var(--cineman-border);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 450px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  animation: cineman-modal-fade-in 0.3s ease-out;
+}
+
+@keyframes cineman-modal-fade-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.cineman-modal-close-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  background: rgba(0,0,0,0.5);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.cineman-modal-close-button:hover {
+  background: rgba(0,0,0,0.8);
+}
+
+.cineman-modal-header {
+  display: flex;
+  padding: 20px;
+  gap: 16px;
+  background: rgba(0,0,0,0.1);
+}
+
+.cineman-modal-poster {
+  width: 80px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.cineman-modal-title-area {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.cineman-modal-title-area h3 {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.cineman-modal-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cineman-modal-score.high span { color: var(--cineman-score-high); }
+.cineman-modal-score.medium span { color: var(--cineman-score-medium); }
+.cineman-modal-score.low span { color: var(--cineman-score-low); }
+
+
+.cineman-modal-score span {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.cineman-modal-score small {
+  font-size: 12px;
+  color: var(--cineman-text-muted);
+}
+
+.cineman-modal-body {
+  padding: 0 20px 20px 20px;
+}
+
+.cineman-modal-body h4 {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--cineman-purple);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cineman-modal-body p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cineman-text);
+  margin: 0;
+}
+
+.cineman-modal-error {
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.cineman-modal-error h3 {
+  color: var(--cineman-score-low);
+  font-size: 18px;
+  margin: 0 0 10px 0;
+}
+
+.cineman-modal-error p {
+  color: var(--cineman-text);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* --- Injected Button (Google Search) --- */
+.cineman-google-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 8px 16px;
+  border-radius: 18px;
+  background-color: #311b92; /* Deep purple */
+  color: #fff;
+  font-family: 'Google Sans', 'Roboto', 'Arial', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.cineman-google-add-button:hover {
+  background-color: #4527a0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.cineman-google-add-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cineman-google-add-button.cineman-added {
+  background-color: #1e8e3e; /* Green */
+  cursor: default;
+}
+
+.cineman-google-add-button.cineman-added:hover {
+  background-color: #1e8e3e;
+  box-shadow: none;
+}
+
+.cineman-google-add-button.cineman-exists {
+  background-color: #5f6368; /* Grey */
+  cursor: default;
+}
+.cineman-google-add-button.cineman-exists:hover {
+    background-color: #5f6368;
+    box-shadow: none;
+}

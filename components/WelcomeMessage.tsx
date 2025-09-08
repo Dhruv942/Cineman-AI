@@ -1,13 +1,15 @@
 import React from 'react';
 import type { RecommendationType } from '../types';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface WelcomeMessageProps {
   itemType: RecommendationType;
 }
 
 export const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ itemType }) => {
-  const currentItemTypeString = itemType === 'series' ? 'series' : 'movie';
-  const otherItemTypeString = itemType === 'series' ? 'movie' : 'series';
+  const { t } = useLanguage();
+  const currentItemTypeString = itemType === 'series' ? t('series', 'series') : t('movies', 'movie');
+  const otherItemTypeString = itemType === 'series' ? t('movies', 'movie') : t('series', 'series');
   return (
     <div className="mt-12 text-center bg-slate-800 p-8 rounded-xl shadow-2xl">
       <div className="flex items-center justify-center mb-4">
@@ -16,16 +18,15 @@ export const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ itemType }) => {
         </svg>
       </div>
       <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-        Welcome to CineMan AI!
+        {t('welcome_title', 'Welcome to CineMan AI!')}
       </h2>
       <p className="text-lg text-slate-300 mb-2">
-        Ready to discover your next favorite {currentItemTypeString}?
+        {t('welcome_subtitle', "Ready to discover your next favorite {itemType}?", { itemType: currentItemTypeString })}
       </p>
       <p className="text-slate-400 max-w-xl mx-auto">
-        Tell us your preferences below – select genres, describe your mood, add keywords, or pick an era – and let our AI find personalized {currentItemTypeString} recommendations just for you.
+        {t('welcome_description', "Tell us your preferences below – select genres, describe your mood, add keywords, or pick an era – and let our AI find personalized {itemType} recommendations just for you.", { itemType: currentItemTypeString })}
       </p>
-       <p className="text-slate-400 max-w-xl mx-auto mt-3">
-        Or, try our <span className="font-semibold text-sky-400">Find Similar</span> tab to find something like a {currentItemTypeString} you already love! You can also switch to finding {otherItemTypeString}s using the selector above the tabs.
+       <p className="text-slate-400 max-w-xl mx-auto mt-3" dangerouslySetInnerHTML={{ __html: t('welcome_tip', 'Or, try our <span class="font-semibold text-sky-400">Find Similar</span> tab to find something like a {itemType} you already love! You can also switch to finding {otherItemType}s using the selector above the tabs.', { itemType: currentItemTypeString, otherItemType: otherItemTypeString }) }}>
       </p>
     </div>
   );

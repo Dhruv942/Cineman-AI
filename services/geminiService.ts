@@ -1,11 +1,12 @@
 
-
+declare const chrome: any;
 import { GoogleGenAI } from "@google/genai";
 import type { UserPreferences, Movie, GeminiMovieRecommendation, AppSettings, MovieFeedback as AppMovieFeedbackType, RecommendationType, ItemTitleSuggestion as AppItemTitleSuggestion, StableUserPreferences, TasteCheckGeminiResponse, TasteCheckGeminiResponseItem, TasteCheckServiceResponse } from '../types';
-import { MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, CINE_SUGGEST_MOVIE_FEEDBACK_KEY, CINE_SUGGEST_APP_SETTINGS_KEY, COUNTRIES } from '../constants';
+import { MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, CINE_SUGGEST_APP_SETTINGS_KEY, COUNTRIES, CINE_SUGGEST_STABLE_PREFERENCES_KEY, CINE_SUGGEST_MOVIE_FEEDBACK_KEY, CINE_SUGGEST_USER_LANGUAGE_KEY, SUPPORTED_TRANSLATION_LANGUAGES } from '../constants';
+import { getAllFeedback } from './feedbackService';
 
 
-const API_KEY = process.env.GEMINI_API_KEY; 
+const API_KEY = 'AIzaSyBJqkrD1MteQ9FV6v3Dtdo39dhLUf4BRB4';
 
 if (!API_KEY) {
   console.error("API_KEY is not set in environment variables. Movie recommendations will not work.");
@@ -13,623 +14,554 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY! }); 
 
-function getStoredFeedback(): AppMovieFeedbackType[] {
-  if (typeof localStorage !== 'undefined') {
-    const storedFeedbackString = localStorage.getItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY);
-    if (storedFeedbackString) {
-      try {
-        const feedback = JSON.parse(storedFeedbackString) as AppMovieFeedbackType[];
-        if (Array.isArray(feedback)) {
-          return feedback;
+const getCurrentLanguageInfo = (): { code: string, name: string } => {
+    const langCode = localStorage.getItem(CINE_SUGGEST_USER_LANGUAGE_KEY) || 'en';
+    const lang = SUPPORTED_TRANSLATION_LANGUAGES.find(l => l.code === langCode);
+    return {
+        code: langCode,
+        name: lang ? lang.name.split(' ')[0] : 'English'
+    };
+};
+
+export const getStablePreferencesAndFeedback = async (): Promise<{ stablePreferences: StableUserPreferences, feedbackHistory: AppMovieFeedbackType[] }> => {
+    return new Promise((resolve) => {
+        const keys = [CINE_SUGGEST_STABLE_PREFERENCES_KEY, CINE_SUGGEST_MOVIE_FEEDBACK_KEY];
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get(keys, (result: any) => {
+                const stablePreferences = result[CINE_SUGGEST_STABLE_PREFERENCES_KEY] || {};
+                const feedbackHistory = result[CINE_SUGGEST_MOVIE_FEEDBACK_KEY] || [];
+                resolve({ stablePreferences, feedbackHistory });
+            });
+        } else {
+            // Fallback for non-extension environment
+            const stablePreferences = JSON.parse(localStorage.getItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY) || '{}');
+            const feedbackHistory = JSON.parse(localStorage.getItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY) || '[]');
+            resolve({ stablePreferences, feedbackHistory });
         }
-        console.warn("Stored feedback was not an array, returning empty.");
-        return [];
-      } catch (e) {
-        console.error("Failed to parse movie feedback from localStorage for prompt", e);
-        return [];
-      }
-    }
-  }
-  return [];
-}
+    });
+};
 
-function getNumberOfRecommendationsSetting(): number {
-  if (typeof localStorage !== 'undefined') {
-    const settingsString = localStorage.getItem(CINE_SUGGEST_APP_SETTINGS_KEY);
-    if (settingsString) {
-      try {
-        const settings = JSON.parse(settingsString) as AppSettings;
-        if (settings && typeof settings.numberOfRecommendations === 'number' && settings.numberOfRecommendations >= 1 && settings.numberOfRecommendations <= 4) {
-          return settings.numberOfRecommendations;
+
+export const getNumberOfRecommendationsSetting = async (): Promise<number> => {
+    return new Promise((resolve) => {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get([CINE_SUGGEST_APP_SETTINGS_KEY], (result: any) => {
+                const settings = result[CINE_SUGGEST_APP_SETTINGS_KEY];
+                if (settings && typeof settings.numberOfRecommendations === 'number' && settings.numberOfRecommendations >= 1 && settings.numberOfRecommendations <= 10) {
+                    resolve(settings.numberOfRecommendations);
+                } else {
+                    resolve(6);
+                }
+            });
+        } else {
+            const settingsString = localStorage.getItem(CINE_SUGGEST_APP_SETTINGS_KEY);
+            if (settingsString) {
+                try {
+                    const settings = JSON.parse(settingsString) as AppSettings;
+                    if (settings && typeof settings.numberOfRecommendations === 'number') {
+                        resolve(settings.numberOfRecommendations);
+                        return;
+                    }
+                } catch {}
+            }
+            resolve(6);
         }
-      } catch (e) {
-        console.error("Failed to parse app settings from localStorage", e);
-      }
-    }
-  }
-  return 3; 
-}
+    });
+};
+
+export const getNumberOfSimilarItemsSetting = async (): Promise<number> => {
+    return new Promise((resolve) => {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get([CINE_SUGGEST_APP_SETTINGS_KEY], (result: any) => {
+                const settings = result[CINE_SUGGEST_APP_SETTINGS_KEY];
+                if (settings && typeof settings.numberOfSimilarItems === 'number' && settings.numberOfSimilarItems >= 1 && settings.numberOfSimilarItems <= 6) {
+                    resolve(settings.numberOfSimilarItems);
+                } else {
+                    resolve(3);
+                }
+            });
+        } else {
+            const settingsString = localStorage.getItem(CINE_SUGGEST_APP_SETTINGS_KEY);
+            if (settingsString) {
+                try {
+                    const settings = JSON.parse(settingsString) as AppSettings;
+                    if (settings && typeof settings.numberOfSimilarItems === 'number') {
+                        resolve(settings.numberOfSimilarItems);
+                        return;
+                    }
+                } catch {}
+            }
+            resolve(3);
+        }
+    });
+};
 
 
-function constructPrompt(preferences: UserPreferences, recommendationType: RecommendationType, sessionExcludedItems: Movie[] = [], numberOfRecommendations: number): string {
+function constructPrompt(preferences: UserPreferences, recommendationType: RecommendationType, feedbackHistory: AppMovieFeedbackType[], sessionExcludedItems: Movie[] = [], numberOfRecommendations: number): string {
   const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
   const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
-  const feedbackHistory = getStoredFeedback();
+  const importedHistory = feedbackHistory.filter(f => f.source?.includes('import'));
+  const languageInfo = getCurrentLanguageInfo();
 
-  let prompt = `You are a helpful and enthusiastic ${itemType} recommendation expert.
-Based on the following user preferences, suggest ${numberOfRecommendations} unique ${pluralItemType}.
-Aim to provide compelling and generally well-regarded suggestions that fit the user's criteria, using your knowledge of the ${itemType} landscape.
+  let prompt = `You are a world-class ${itemType} recommendation expert AI. Your primary goal is to provide high-quality, personalized recommendations that make users excited to come back for more.
+Based on the user's detailed taste profile and current request, suggest ${numberOfRecommendations} unique ${pluralItemType}.
 
-Quality Control Guidance:
-- High Audience Score Boost: Give a significant ranking and relevance boost to movies/series that are known to have a high audience score from Google users (e.g., "liked this film" percentage), typically above 70%. These are strong indicators of general audience enjoyment and should be prioritized when they match other criteria. If you identify a movie with such a score, you can include it in the 'socialProofTag', for example: "85% Liked on Google".
+---
+**Core Directives & Quality Mandates**
+
+1.  **Language for Response (CRITICAL):** The user's preferred language is **${languageInfo.name} (${languageInfo.code})**. All user-facing text fields in your JSON response (specifically 'summary', 'availabilityNote', 'socialProofTag', and 'justification' if applicable) MUST be in **${languageInfo.name}**.
+    -   **CRITICAL EXCEPTION:** Do NOT translate the actual movie/series titles in the 'title' and 'similarTo' fields. These must remain in their original language.
+
+2.  **Availability Accuracy (Highest Priority):** The user's primary concern is accurate streaming availability.
+    -   For the 'availabilityNote', be as specific as possible. Differentiate between 'Included with [Service]', 'Available to rent/buy on [Service]', or 'Available with the [Channel] channel on [Service]'. Also identify and report if a title is "Currently unavailable" on a service.
+    -   If a country is specified, your 'availabilityNote' MUST reflect known services in that country. Do not guess. If uncertain, state "May be available for rent or purchase." (in ${languageInfo.name}).
+    -   If OTT platforms are listed, prioritize finding titles on those platforms within the specified country.
+
+3.  **Prioritize 'Included' Content (User Experience Priority):** The user strongly prefers content that is included with a streaming subscription over content that requires a separate rental, purchase, or is "Currently unavailable".
+    -   When selecting recommendations, give significant preference to titles available on the user's specified OTT platforms (or widely available platforms if none are specified) as part of a subscription.
+    -   If a recommendation is primarily available only for rent/purchase, or is listed as "Currently unavailable", you should treat this as a strong negative factor. **Reflect this by assigning a significantly lower \`matchScore\`** compared to an equally good recommendation that is available for streaming. This "deboosts" unavailable content.
+
+4.  **Taste Profile Analysis (The Key to Retention):** Deeply analyze the user's feedback to understand their nuanced taste.
+    -   **"Loved" Items:** These are the strongest positive signals. Identify the underlying DNA (themes, directing style, narrative structure, specific actors/directors) and find titles that share it. These suggestions should be your top priority.
+    -   **"Liked" & Imported Items:** These form the user's broader taste profile. Use them to understand general genre and tonal preferences.
+    -   **"Disliked" Items:** These are strong negative signals. Actively avoid titles with similar characteristics (e.g., if they dislike slow-burn dramas, avoid them even if the genre matches).
+    -   **Infer Patterns:** Don't just list the feedback. Synthesize it. For example: "The user loves complex sci-fi like 'Blade Runner 2049' but dislikes generic action films. They seem to prefer narrative depth over spectacle."
+
+5.  **Creative Social Proof (CRITICAL):** The 'socialProofTag' is vital for user trust. Generate a short, exciting, Netflix-style highlight tag.
+    -   **GOOD Examples:** "Critically Acclaimed", "Award-Winning", "Mind-Bending", "Suspenseful", "Cult Classic", "Fan Favorite".
+    -   **BAD Examples:** "92% on Rotten Tomatoes", "8.8/10 IMDb". Do NOT use simple ratings. Be creative.
+    -   The tag must be in **${languageInfo.name}**.
+    -   **Avoid suggesting items with a Google User score below 80%** unless it's a perfect niche match.
+
+---
+**User Taste Profile**
 `;
 
-  if (feedbackHistory.length < 5) {
-    prompt += `- New User Priority: This user has provided little to no feedback. It is CRITICAL that you prioritize suggesting ${pluralItemType} that are generally well-regarded, critically acclaimed, or have a strong positive popular reception (e.g., high ratings on popular review sites). AVOID suggesting ${pluralItemType} that are known to be poorly reviewed or have a negative reputation, unless the user's keywords explicitly ask for something like "so bad it's good" or "cult films". The goal is to build trust with high-quality, relevant suggestions first.
-`;
+  if (feedbackHistory.length > 0) {
+    const lovedItems = feedbackHistory.filter(f => f.feedback === 'Loved it!').map(f => `"${f.title} (${f.year})"`).join(', ');
+    const likedItems = feedbackHistory.filter(f => f.feedback === 'Liked it').map(f => `"${f.title} (${f.year})"`).join(', ');
+    const dislikedItems = feedbackHistory.filter(f => f.feedback === 'Not my vibe').map(f => `"${f.title} (${f.year})"`).join(', ');
+
+    if (lovedItems) prompt += `\n- **LOVED (High Priority Signal):** ${lovedItems}`;
+    if (likedItems) prompt += `\n- **LIKED (General Taste):** ${likedItems}`;
+    if (importedHistory.length > 0) prompt += `\n- **WATCHED (Implicitly Liked):** ${importedHistory.map(f => `"${f.title} (${f.year})"`).join(', ')}`;
+    if (dislikedItems) prompt += `\n- **DISLIKED (Avoid Similar):** ${dislikedItems}`;
   } else {
-    prompt += `- Experienced User: This user has provided a good amount of feedback. You can rely more heavily on their specific taste patterns derived from their feedback history, even if it leads to more niche or less universally acclaimed suggestions that perfectly fit their unique profile.
-`;
+    prompt += `\n- **CRITICAL NEW USER:** This user has no feedback history. It is VITAL that these initial recommendations are high-quality, popular, and critically acclaimed to build trust. Prioritize "safe bets".`;
   }
 
-  prompt += `
-User Preferences:`;
-  if (preferences.genres.length > 0) {
-    prompt += `\n- Preferred Genres: ${preferences.genres.join(', ')}`;
-  }
-
-  if (preferences.excludedGenres && preferences.excludedGenres.length > 0) {
-    prompt += `\n- CRITICALLY EXCLUDE ${pluralItemType} that are PRIMARILY of the following genres: ${preferences.excludedGenres.join(', ')}. If a ${itemType} has multiple genres and one is on this exclusion list, but the ${itemType} strongly aligns with other specified preferences and non-excluded genres, it might still be acceptable in rare cases. However, generally avoid suggesting ${pluralItemType} whose main genre falls into this exclusion list. This is a strong negative preference.`;
-  }
-
-  if (preferences.mood) {
-    prompt += `\n- Mood/Vibe: "${preferences.mood}"`;
-  }
-
-  if (preferences.movieFrequency) {
-    prompt += `\n- How often they watch ${pluralItemType}: "${preferences.movieFrequency}"`;
-    if (preferences.movieFrequency === "Daily" || preferences.movieFrequency === "A few times a week") {
-      prompt += ` (This user watches ${pluralItemType} very frequently, so they may have already seen many mainstream hits. Prioritize lesser-known gems, critically acclaimed indie ${pluralItemType}, or very recent releases they might not have encountered yet. Also, ensure these suggestions align with their other stated preferences.)`;
-    } else if (preferences.movieFrequency === "A few times a month" || preferences.movieFrequency === "Rarely") {
-      prompt += ` (This user watches ${pluralItemType} less frequently, so well-known blockbusters or critically acclaimed popular ${pluralItemType} that match their other preferences are excellent suggestions. You can also include some hidden gems if they are a strong match.)`;
-    } else if (preferences.movieFrequency === "Once a week") {
-      prompt += ` (This user watches ${pluralItemType} regularly. Aim for a mix of popular choices and some interesting, perhaps slightly less mainstream, options that fit their profile.)`;
-    }
-  }
-  
-  if (recommendationType === 'series') {
-    if (preferences.preferredNumberOfSeasons && preferences.preferredNumberOfSeasons.length > 0) {
-        if (preferences.preferredNumberOfSeasons.includes(SERIES_SEASON_COUNTS[0]) || preferences.preferredNumberOfSeasons.length === 0) { // SERIES_SEASON_COUNTS[0] is "Any"
-            prompt += `\n- Preferred Number of Seasons (for series): Any number of seasons is fine.`;
-        } else {
-            prompt += `\n- Preferred Number of Seasons (for series): "${preferences.preferredNumberOfSeasons.join(', ')}". Interpret these as follows: "Short" is 1-3 seasons, "Medium" is 4-7 seasons, "Long" is 8+ seasons. Aim to match one of these preferences.`;
-        }
-    } else {
-        prompt += `\n- Preferred Number of Seasons (for series): Any number of seasons is fine.`;
-    }
-  } else { // recommendationType is 'movie'
-    if (preferences.movieDuration && preferences.movieDuration.length > 0) {
-        if (preferences.movieDuration.includes(MOVIE_DURATIONS[0]) || preferences.movieDuration.length === 0) { 
-           prompt += `\n- Preferred Movie Duration: Any duration is fine.`;
-        } else {
-          prompt += `\n- Preferred Movie Duration(s): "${preferences.movieDuration.join(', ')}". Interpret these as follows: "Short" means roughly under 90 minutes, "Medium" means 90-120 minutes, "Long" means over 120 minutes. Aim to match one of these duration preferences closely.`;
-        }
-      } else { 
-        prompt += `\n- Preferred Movie Duration: Any duration is fine.`;
-      }
-  }
-
-
-  if (preferences.actorDirectorPreference && preferences.actorDirectorPreference !== "No Preference") {
-    prompt += `\n- Preference for known actors/directors: "${preferences.actorDirectorPreference}"`;
-  }
-
-  if (preferences.preferredLanguages && preferences.preferredLanguages.length > 0 && !preferences.preferredLanguages.includes('any')) {
-     const languageNames = preferences.preferredLanguages.map(code => MOVIE_LANGUAGES.find(l => l.code === code)?.name || code);
-    prompt += `\n- Preferred ${itemType} language(s): "${languageNames.join(', ')}" (If a ${itemType} perfectly matches other criteria but is not in these languages, you can still suggest it but note the language clearly).`;
-  } else {
-    prompt += `\n- Preferred ${itemType} language(s): Any language is acceptable. Actively seek out highly-rated and relevant ${pluralItemType} from diverse global industries, including but not limited to English, Hindi, Spanish, Korean, Japanese, French cinema, etc., provided they strongly align with the user's other preferences (genres, mood, keywords, era, feedback history). Do not overly bias towards English-language ${pluralItemType} if compelling non-English options fit the user's profile.`;
-  }
-
-  if (preferences.country && preferences.country.toLowerCase() !== 'any') {
-    const countryName = COUNTRIES.find(c => c.code === preferences.country)?.name || preferences.country;
-    prompt += `\n- User's Country for Availability: "${countryName}". HIGH PRIORITY: Try to find ${pluralItemType} known to be available in this country. The 'availabilityNote' should reflect this (e.g., 'Available on Netflix in ${countryName}', or 'Likely available for rent in ${countryName}'). If global, mention it.`;
-  } else {
-    prompt += `\n- User's Country for Availability: Any/Global. Consider broad availability. The 'availabilityNote' should reflect general availability or major platforms if known.`;
-  }
-
-   if (preferences.ottPlatforms.length > 0) {
-    prompt += `\n- CRITICAL: Preferred Streaming Platforms: ${preferences.ottPlatforms.join(', ')}. It is EXTREMELY IMPORTANT to try and find ${pluralItemType} available on these platforms. The 'availabilityNote' field MUST clearly state this if a ${itemType} is found on one of these platforms (e.g., 'Available on Netflix', 'Check Disney+ or Amazon Prime Video'). If a perfect ${itemType} match isn't on these platforms, you can suggest it but clearly state it might be 'Available for rent/purchase' or 'Check other streaming services'. Prioritize accuracy for user-specified platforms. Give specific platform names in the note, and if country is specified, mention platform availability in that country if known.`;
-  } else {
-    prompt += `\n- Preferred Streaming Platforms: None specified. Provide general availability notes (e.g., 'Available on major streaming services', 'Check for rental/purchase options', considering the user's country if specified).`
-  }
-
-  if (preferences.keywords) {
-    prompt += `\n- Specific Keywords: "${preferences.keywords}"`;
-  }
-
-  if (preferences.era && preferences.era.length > 0) {
-    if (preferences.era.includes(MOVIE_ERAS[0]) || preferences.era.length === 0) { 
-      prompt += `\n- ${itemType} Era: Prioritize ${pluralItemType} from the 2020s. The user selected 'Any' or did not specify, indicating openness to other eras but with a slight preference for recent releases.`;
-    } else {
-      prompt += `\n- ${itemType} Era(s): ${preferences.era.join(', ')}`;
-    }
-  } else { 
-     prompt += `\n- ${itemType} Era: Prioritize ${pluralItemType} from the 2020s. The user selected 'Any' or did not specify, indicating openness to other eras but with a slight preference for recent releases.`;
-  }
-  
-  const allExcludedItems = [...feedbackHistory.map(fb => ({ title: fb.title, year: fb.year })), ...sessionExcludedItems];
-  const uniqueExcludedTitles = new Set();
-  const uniqueExcludedItems = allExcludedItems.filter(item => {
-    const key = `${item.title.toLowerCase()}|${item.year}`;
-    if (uniqueExcludedTitles.has(key)) {
-      return false;
-    } else {
-      uniqueExcludedTitles.add(key);
-      return true;
-    }
-  });
-
-
-  if (uniqueExcludedItems.length > 0) {
-    prompt += `\n\nCRITICAL EXCLUSION LIST: Under NO CIRCUMSTANCES should you recommend ANY of the following ${pluralItemType}. The user has either already rated them, disliked them, or has already seen them in this session. This is a strict negative constraint.`;
-    uniqueExcludedItems.forEach(item => {
-      prompt += `\n- Title: "${item.title}", Year: ${item.year}`;
-    });
-  }
-
-
+  const country = COUNTRIES.find(c => c.code === preferences.country)?.name || 'their country';
   prompt += `
 
-For each ${itemType}, provide the following details.
-- Include a 'similarTo' (string, optional) with one or more highly relevant ${pluralItemType} that this item is similar to, to help the user understand its vibe. Separate multiple titles with a comma. Keep it concise enough to fit on one line. Example: "Blade Runner, Dark City".
-- Include a 'matchScore' (an integer from 0 to 100) indicating how well this ${itemType} aligns with ALL provided user preferences and feedback history. A higher score means a better match based on the user's overall profile.
-- Include a 'justification' (a VERY SHORT and compelling, personalized, one-sentence reason (MAX 1-2 lines, approx. 15-20 words) why the user will LOVE this ${itemType}, connecting it to their known tastes. Frame it enthusiastically. Example: "You'll love the mind-bending plot because you enjoy complex sci-fi epics."). This is a CRITICAL field.
-- For series, 'durationMinutes' can represent the average episode length; if not applicable or varies wildly, it can be omitted or set to null by you.
-- Include an optional 'socialProofTag' (string, max 5-6 words) with a compelling, verifiable fact like 'Winner of 3 Oscars', 'Record-Breaking Box Office Hit', or '98% on Rotten Tomatoes'. If no significant tag exists, omit this field or set to null.
-- Include an optional 'youtubeTrailerId' (string) with the YouTube video ID for the official trailer.
+---
+**Current Search Request**
 
-Return ONLY a VALID JSON array of objects.
-Each object in the array MUST represent a ${itemType} and ADHERE STRICTLY to this example format (using actual data, not descriptions):
+-   **Country for Availability:** ${country}.
+-   **Genres (Include):** ${preferences.genres.length > 0 ? preferences.genres.join(', ') : 'Any'}.
+-   **Genres (Exclude):** ${preferences.excludedGenres && preferences.excludedGenres.length > 0 ? preferences.excludedGenres.join(', ') : 'None'}.
+-   **Mood/Vibe/Plot:** ${preferences.mood || 'Not specified'}.
+-   **Keywords:** ${preferences.keywords || 'Not specified'}.
+
+---
+**User's Stable Preferences**
+
+-   **Viewing Frequency:** ${preferences.movieFrequency}.
+-   **Actor/Director Preference:** ${preferences.actorDirectorPreference}.
+-   **Languages:** ${preferences.preferredLanguages.map(code => MOVIE_LANGUAGES.find(l => l.code === code)?.name || code).join(', ')}.
+-   **OTT Platforms:** ${preferences.ottPlatforms.length > 0 ? preferences.ottPlatforms.join(', ') : 'Not specified'}.
+-   **Era:** ${preferences.era.join(', ')}.
+-   **Movie Duration:** ${preferences.movieDuration.join(', ')}.
+-   **Series Length:** ${preferences.preferredNumberOfSeasons.join(', ')}.
+
+---
+**Exclusions & Formatting**
+
+-   **Do NOT suggest these titles:** ${sessionExcludedItems.map(m => `"${m.title} (${m.year})"`).join(', ')}.
+-   **Response Format:** Your response MUST be a single, valid JSON array. Each object represents one recommendation. Do not add any text, comments, or markdown before or after the JSON array.
+
+**JSON Schema per item (REMEMBER THE LANGUAGE & AVAILABILITY RULE):**
 {
-  "title": "${recommendationType === 'series' ? 'The Crown' : 'The Matrix'}", 
-  "year": ${recommendationType === 'series' ? 2016 : 1999},
-  "summary": "${recommendationType === 'series' ? 'Follows the political rivalries and romance of Queen Elizabeth IIs reign and the events that shaped the second half of the twentieth century.' : 'A computer hacker learns about the true nature of his reality and his role in the war against its controllers. This film is a mind-bending sci-fi action classic.'}",
-  "genres": ["${recommendationType === 'series' ? 'Drama' : 'History'}", "${recommendationType === 'series' ? 'History' : 'Sci-Fi'}"],
-  "similarTo": "${recommendationType === 'series' ? 'Victoria, The Tudors' : 'Blade Runner, Dark City'}",
-  "tmdbId": "${recommendationType === 'series' ? '63247' : '603'}",
-  "availabilityNote": "Likely on Netflix",
-  "posterUrl": "https://image.tmdb.org/t/p/w500/${recommendationType === 'series' ? '1MPK1s6Q5S1eO3WsoKk2tBsVTo.jpg' : 'f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg'}",
-  "durationMinutes": ${recommendationType === 'series' ? 58 : 136},
-  "matchScore": 92,
-  "justification": "You'll love its mind-bending plot, a perfect fit for your taste in complex sci-fi.",
-  "socialProofTag": "${recommendationType === 'series' ? 'Winner of 2 Golden Globes' : 'Winner of 4 Oscars'}",
-  "youtubeTrailerId": "${recommendationType === 'series' ? 'jwjCY_2a_yU' : 'vKQi3bBA1y8'}"
+  "title": "The ${itemType}'s Title (Original, NOT Translated)",
+  "year": 1999,
+  "summary": "A concise, engaging, spoiler-free summary in ${languageInfo.name}.",
+  "genres": ["Genre1", "Genre2"],
+  "similarTo": "A well-known ${itemType} it's similar to (Original Title, NOT Translated).",
+  "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
+  "youtubeTrailerId": "YouTube Video ID",
+  "durationMinutes": 136,
+  "availabilityNote": "SPECIFIC availability info in ${languageInfo.name}. E.g., 'Included with Prime Video'.",
+  "socialProofTag": "A creative, Netflix-style social proof tag in ${languageInfo.name} (e.g., 'Critically Acclaimed', 'Award-Winning', 'Mind-Bending Thriller'). Avoid simple ratings.",
+  "matchScore": 95
 }
-
-EXTREMELY IMPORTANT INSTRUCTIONS FOR JSON OUTPUT (Failure to comply will make the output unusable):
-- Your ENTIRE response MUST be ONLY the JSON array. Do not include ANY text, comments, apologies, explanations, notes, or markdown (like \`\`\`json) BEFORE or AFTER the JSON array.
-- Within each JSON object, after any property's value (e.g., after \`92\` in \`"matchScore": 92\`), there MUST be either a comma \`,\` (if more properties follow) or a closing curly brace \`}\` (if it's the last property). NO OTHER TEXT, WORDS, OR COMMENTS ARE ALLOWED IN THAT SPECIFIC POSITION.
-- Ensure all string values within the JSON are correctly escaped (e.g., quotes within summaries must be escaped like \\").
-- Do NOT insert any extraneous text, dialogue, or commentary between JSON objects, within any string values, or after any field. The JSON output must be absolutely pure and directly parsable.
-- Provide ${numberOfRecommendations} ${itemType} recommendations. The 'availabilityNote' is very important; if a user specified OTT platforms, try hard to list ${pluralItemType} available there and mention the platform name in the note. If a country is specified, tailor the availability note to that country if possible.
-- The 'matchScore' MUST be an integer between 0 and 100.
-- If you cannot find ${pluralItemType} for very specific or conflicting preferences, provide an empty array [] or fewer than ${numberOfRecommendations} recommendations, but still ensure the output is a valid JSON array with NO OTHER TEXT OR COMMENTS, whatsoever.
 `;
   return prompt;
 }
 
-const itemTypeStringUpperSingular = (recommendationType: RecommendationType) => recommendationType === 'series' ? 'Series' : 'Movie';
 
+function constructSimilarItemsPrompt(itemTitle: string, recommendationType: RecommendationType, stablePreferences: StableUserPreferences, feedbackHistory: AppMovieFeedbackType[], numberOfRecs: number): string {
+    const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
+    const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
+    const country = COUNTRIES.find(c => c.code === stablePreferences.country)?.name || 'their country';
+    const languageInfo = getCurrentLanguageInfo();
 
-const parseAndTransformItems = (jsonStr: string): Movie[] => {
-  let cleanedJsonStr = jsonStr.trim();
-  const fenceRegex = /^```(?:json)?\s*\n?(.*?)\n?\s*```$/s;
-  const match = cleanedJsonStr.match(fenceRegex);
-  if (match && match[1]) {
-    cleanedJsonStr = match[1].trim();
-  }
+    let prompt = `You are a ${itemType} recommendation expert. A user wants to find ${pluralItemType} similar to "${itemTitle}".
 
-  if (!cleanedJsonStr) {
-    console.warn("Received empty string for item JSON parsing.");
-    return [];
-  }
+Your task is to:
+1. Identify the most likely ${itemType} the user is referring to as "${itemTitle}".
+2. Find ${numberOfRecs} other compelling and unique ${pluralItemType} that are similar in theme, genre, tone, or style.
+3. Your suggestions MUST take into account the user's general taste profile to ensure it's a good fit for them personally.
+4. **CRITICAL:** The user's preferred language is **${languageInfo.name} (${languageInfo.code})**. All user-facing text fields in your JSON response ('summary', 'availabilityNote', 'socialProofTag') MUST be in **${languageInfo.name}**. Do NOT translate movie/series titles ('title', 'similarTo').
+5. **CRITICAL (Availability):** For the 'availabilityNote', be as specific as possible. Differentiate between 'Included with [Service]', 'Available to rent/buy on [Service]', or 'Available with the [Channel] channel on [Service]'. Also identify and report if a title is "Currently unavailable" on a service. Deboost titles that are unavailable or only for rent/purchase by giving them a lower \`matchScore\`.
+6. **Creative Social Proof (CRITICAL):** The 'socialProofTag' is vital. Generate a short, exciting, Netflix-style highlight tag in **${languageInfo.name}** (e.g., "Award-Winning", "Cult Classic"). Do NOT use simple ratings.
 
-  const parsedData: GeminiMovieRecommendation[] = JSON.parse(cleanedJsonStr);
-      
-  if (!Array.isArray(parsedData)) {
-    console.error("Gemini response is not an array:", parsedData);
-    throw new Error("AI response was not in the expected array format.");
-  }
+USER'S TASTE PROFILE:
+- This user generally watches ${stablePreferences.movieFrequency}.
+- They have a preference for ${stablePreferences.actorDirectorPreference} regarding known actors/directors.
+- They prefer ${itemType}s from these eras: ${stablePreferences.era.join(', ')}.
+- They subscribe to these streaming services: ${stablePreferences.ottPlatforms.join(', ')}. Prioritize suggestions on these platforms if possible.
+- Their preferred languages are: ${stablePreferences.preferredLanguages.map(code => MOVIE_LANGUAGES.find(l => l.code === code)?.name || code).join(', ')}.
+- Country for content availability: ${country}.
+- Their viewing history and feedback (strongest indicator of taste):
+  - Loved: ${feedbackHistory.filter(f => f.feedback === 'Loved it!').map(f => `"${f.title}"`).join(', ') || 'None'}
+  - Liked: ${feedbackHistory.filter(f => f.feedback === 'Liked it').map(f => `"${f.title}"`).join(', ') || 'None'}
+  - Disliked: ${feedbackHistory.filter(f => f.feedback === 'Not my vibe').map(f => `"${f.title}"`).join(', ') || 'None'}
 
-  return parsedData.map((item: GeminiMovieRecommendation): Movie => {
-    const title = item.title || "Unknown Title";
-    const year = typeof item.year === 'number' ? item.year : 0;
-    const summary = item.summary || "No summary available.";
-    const genres = Array.isArray(item.genres) ? item.genres.filter(g => typeof g === 'string') : ["Unknown Genre"];
-    const durationMinutes = typeof item.durationMinutes === 'number' ? item.durationMinutes : undefined;
-    const matchScore = typeof item.matchScore === 'number' && item.matchScore >= 0 && item.matchScore <= 100 ? item.matchScore : undefined;
+RESPONSE FORMAT:
+Your response must be a single, valid JSON array containing ${numberOfRecs} objects. Do not add any text before or after the JSON.
+The 'matchScore' should reflect how well the suggestion fits both the similarity to "${itemTitle}" AND the user's personal taste profile.
+
+Your JSON response MUST follow this exact schema per item (REMEMBER THE LANGUAGE & AVAILABILITY RULE):
+{
+  "title": "The Similar ${itemType}'s Title (NOT Translated)",
+  "year": 2005,
+  "summary": "A concise, engaging, spoiler-free summary in ${languageInfo.name}.",
+  "genres": ["Genre1", "Genre2"],
+  "similarTo": "${itemTitle} (NOT Translated)",
+  "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
+  "youtubeTrailerId": "YouTube Video ID",
+  "durationMinutes": 115,
+  "availabilityNote": "SPECIFIC availability info in ${languageInfo.name}.",
+  "socialProofTag": "A creative, Netflix-style social proof tag in ${languageInfo.name} (e.g., 'Critically Acclaimed', 'Award-Winning', 'Mind-Bending Thriller'). Avoid simple ratings.",
+  "matchScore": 88
+}
+`;
+    return prompt;
+}
+
+function constructTasteCheckPrompt(itemTitle: string, recommendationType: RecommendationType, stablePreferences: StableUserPreferences, feedbackHistory: AppMovieFeedbackType[]): string {
+    const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
+    const languageInfo = getCurrentLanguageInfo();
     
-    return {
-      id: `${title.toLowerCase().replace(/[^a-z0-9]/g, '')}-${year}`,
-      title,
-      year,
-      summary,
-      genres,
-      similarTo: item.similarTo,
-      tmdbId: item.tmdbId,
-      availabilityNote: item.availabilityNote,
-      posterUrl: item.posterUrl,
-      durationMinutes,
-      matchScore,
-      justification: item.justification,
-      youtubeTrailerId: item.youtubeTrailerId,
-      socialProofTag: item.socialProofTag,
-    };
-  }).filter(movie => movie.title !== "Unknown Title" && movie.year > 0);
+    return `You are a movie and series taste analysis expert. The user wants to know if they will like a ${itemType} titled "${itemTitle}", based on their taste profile.
+
+First, identify the most likely ${itemType} the user is referring to.
+Then, analyze this ${itemType}'s characteristics against the user's taste profile.
+
+**CRITICAL:** The user's preferred language is **${languageInfo.name} (${languageInfo.code})**. The 'justification' and 'summary' fields in your JSON response MUST be in **${languageInfo.name}**. Do NOT translate the movie/series 'title'.
+
+User's Taste Profile:
+- General Preferences: ${JSON.stringify(stablePreferences)}
+- Their previous feedback history: ${JSON.stringify(feedbackHistory)}
+
+Your task is to generate a JSON object with three main components:
+1. 'itemFound': A boolean indicating if you successfully identified the ${itemType}.
+2. 'identifiedItem': An object containing details of the found ${itemType}, including a 'matchScore' (0-100).
+3. 'justification': A concise, personalized paragraph (max 3-4 sentences, in **${languageInfo.name}**) explaining WHY the user might like or dislike this ${itemType}.
+
+Return a single, valid JSON object ONLY. Your entire response must strictly adhere to this format:
+{
+  "itemFound": true,
+  "identifiedItem": {
+    "title": "The Found ${itemType} (NOT Translated)",
+    "year": 2010,
+    "summary": "A brief summary of the plot in ${languageInfo.name}.",
+    "genres": ["Genre1", "Genre2"],
+    "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
+    "matchScore": 88
+  },
+  "justification": "The justification for the match score, in ${languageInfo.name}."
+}
+
+CRITICAL: If you cannot identify the ${itemType} from the title "${itemTitle}", return this specific JSON object:
+{
+  "itemFound": false,
+  "identifiedItem": null,
+  "justification": "Could not identify a well-known ${itemType} with that exact title (This message should be in ${languageInfo.name})."
+}
+Do not add any text, comments, or markdown before or after the JSON object.`;
+}
+
+function constructSingleReplacementPrompt(preferences: UserPreferences, recommendationType: RecommendationType, feedbackHistory: AppMovieFeedbackType[], allExcludedItems: Movie[]): string {
+  const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
+  const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
+  const languageInfo = getCurrentLanguageInfo();
+
+  let prompt = `You are a ${itemType} recommendation expert. Your task is to suggest just ONE ${itemType} based on the user's preferences.
+
+This suggestion must be unique and NOT be one of the ${pluralItemType} listed in the exclusion list.
+
+**CRITICAL:** The user's preferred language is **${languageInfo.name} (${languageInfo.code})**. All user-facing text fields in your JSON response ('summary', 'availabilityNote', 'socialProofTag') MUST be in **${languageInfo.name}**. Do NOT translate movie/series titles ('title', 'similarTo').
+**CRITICAL (Availability):** For the 'availabilityNote', be as specific as possible. Differentiate between 'Included with [Service]', 'Available to rent/buy on [Service]', or 'Available with the [Channel] channel on [Service]'. Also identify and report if a title is "Currently unavailable" on a service. Deboost titles that are unavailable or only for rent/purchase by giving them a lower \`matchScore\`.
+
+USER PREFERENCES: ${JSON.stringify(preferences)}
+USER FEEDBACK HISTORY: ${JSON.stringify(feedbackHistory)}
+EXCLUSION LIST (DO NOT SUGGEST THESE): ${allExcludedItems.map(m => `"${m.title} (${m.year})"`).join(', ')}
+
+RESPONSE FORMATTING:
+Your response must be a single, valid JSON object.
+The 'matchScore' is a calculated integer from 0-100 indicating how well the suggestion fits the user's profile.
+
+Your JSON response MUST follow this exact schema (REMEMBER THE LANGUAGE & AVAILABILITY RULE):
+{
+  "title": "The ${itemType}'s Title (NOT Translated)",
+  "year": 1999,
+  "summary": "A concise, engaging, spoiler-free summary in ${languageInfo.name}.",
+  "genres": ["Genre1", "Genre2"],
+  "similarTo": "A well-known ${itemType} it's similar to (Original Title, NOT Translated).",
+  "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
+  "youtubeTrailerId": "YouTube Video ID",
+  "durationMinutes": 136,
+  "availabilityNote": "SPECIFIC availability info in ${languageInfo.name}.",
+  "socialProofTag": "Social proof in ${languageInfo.name} like 'Critically Acclaimed' or 'Fan Favorite', not just ratings.",
+  "matchScore": 95
+}
+
+Do not add any text, comments, or markdown before or after the JSON object. Your entire response must be the JSON object itself.
+`;
+  return prompt;
+}
+
+function constructEnrichHistoryPrompt(titles: string[]): string {
+  const prompt = `You are a film and TV series data enrichment expert. Given a list of titles, your task is to identify the most likely movie or TV series for each and return its title and year of release.
+The user's list may contain extra information like "Season 1" or be slightly inaccurate. Use your knowledge to find the correct canonical title and original release year.
+
+User's List:
+${titles.join('\n')}
+
+Return a valid JSON array ONLY, with each object following this schema:
+[
+  { "title": "Corrected Title 1", "year": 2020 },
+  { "title": "Corrected Title 2", "year": 1999 }
+]
+Do not add any text before or after the JSON array.`;
+  return prompt;
+}
+
+
+const parseAndValidateResponse = <T>(responseText: string, isArray: boolean): T => {
+    try {
+        let sanitizedText = responseText.trim();
+        if (sanitizedText.startsWith('```json')) {
+            sanitizedText = sanitizedText.substring(7);
+        }
+        if (sanitizedText.endsWith('```')) {
+            sanitizedText = sanitizedText.substring(0, sanitizedText.length - 3);
+        }
+        
+        const parsed = JSON.parse(sanitizedText);
+        
+        if (isArray && !Array.isArray(parsed)) {
+            throw new Error('Expected a JSON array but received an object.');
+        }
+        if (!isArray && Array.isArray(parsed)) {
+            throw new Error('Expected a JSON object but received an array.');
+        }
+        
+        return parsed;
+
+    } catch (e) {
+        console.error("Failed to parse JSON response:", responseText);
+        if (e instanceof Error) {
+           throw new Error(`Invalid JSON response from API: ${e.message}`);
+        }
+        throw new Error("Received an unparsable JSON response from the API.");
+    }
 };
 
-
-export const getMovieRecommendations = async (preferences: UserPreferences, recommendationType: RecommendationType, excludedMovies: Movie[] = []): Promise<Movie[]> => {
-  if (!API_KEY) {
-    throw new Error("API Key is missing. Please configure your environment variables.");
-  }
+export const getMovieRecommendations = async (preferences: UserPreferences, recommendationType: RecommendationType, sessionExcludedItems: Movie[] = []): Promise<Movie[]> => {
+  if (!API_KEY) throw new Error("API_KEY is not configured.");
   
-  const totalItemsToFetch = 8; // Fetch a larger batch for buffering
-  const prompt = constructPrompt(preferences, recommendationType, excludedMovies, totalItemsToFetch);
+  const [feedbackHistory, numberOfRecommendations] = await Promise.all([
+    getAllFeedback(),
+    getNumberOfRecommendationsSetting()
+  ]);
+  
+  const prompt = constructPrompt(preferences, recommendationType, feedbackHistory, sessionExcludedItems, numberOfRecommendations + 3); // Fetch more to build a buffer
 
-  try {
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      thinkingConfig: { thinkingBudget: 0 }
+    }
+  });
+
+  const rawRecommendations: GeminiMovieRecommendation[] = parseAndValidateResponse(response.text, true);
+
+  return rawRecommendations.map(rec => ({
+    ...rec,
+    id: `${rec.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${rec.year}`
+  }));
+};
+
+export const findSimilarItems = async (itemTitle: string, recommendationType: RecommendationType, stablePreferences: StableUserPreferences): Promise<Movie[]> => {
+    if (!API_KEY) throw new Error("API_KEY is not configured.");
+    
+    const [feedbackHistory, numberOfRecs] = await Promise.all([
+        getAllFeedback(),
+        getNumberOfSimilarItemsSetting()
+    ]);
+
+    const prompt = constructSimilarItemsPrompt(itemTitle, recommendationType, stablePreferences, feedbackHistory, numberOfRecs);
+    
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 0 }
+      }
     });
-    
-    const jsonStr = response.text;
-    if (!jsonStr) {
-        console.error("Gemini response was empty or did not contain text.");
-        throw new Error(`Failed to get a response from the AI. The response was empty.`);
-    }
-    return parseAndTransformItems(jsonStr);
 
-  } catch (error: any) {
-    console.error(`Error fetching ${recommendationType} recommendations from Gemini:`, error);
-    let errorMessage = `Failed to fetch ${recommendationType} recommendations due to an unexpected error.`;
-    if (error.message) {
-        errorMessage = error.message;
-    }
-    // Check for specific safety/quota errors if they are exposed in the error object
-    if (error.toString().toLowerCase().includes("safety")) {
-        errorMessage = "Your request was blocked by safety filters. Please adjust your preferences and try again.";
-    } else if (error.toString().toLowerCase().includes("quota")) {
-        errorMessage = "API usage limit reached. Please check your billing status.";
-    }
-    throw new Error(errorMessage);
-  }
+    const rawRecommendations: GeminiMovieRecommendation[] = parseAndValidateResponse(response.text, true);
+
+    return rawRecommendations.map(rec => ({
+        ...rec,
+        id: `${rec.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${rec.year}`
+    }));
 };
 
+export const checkTasteMatch = async (itemTitle: string, recommendationType: RecommendationType, stablePreferences: StableUserPreferences): Promise<TasteCheckServiceResponse> => {
+    if (!API_KEY) throw new Error("API_KEY is not configured.");
+    const feedbackHistory = await getAllFeedback();
+    const prompt = constructTasteCheckPrompt(itemTitle, recommendationType, stablePreferences, feedbackHistory);
 
-export const getSingleReplacementRecommendation = async (preferences: UserPreferences, recommendationType: RecommendationType, allCurrentItems: Movie[]): Promise<Movie | null> => {
-    if (!API_KEY) {
-        throw new Error("API Key is missing.");
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 0 }
+      }
+    });
+
+    const result: TasteCheckGeminiResponse = parseAndValidateResponse(response.text, false);
+
+    if (!result.itemFound || !result.identifiedItem) {
+        return {
+            itemFound: false,
+            movie: null,
+            justification: null,
+            error: result.justification || "Item could not be identified."
+        };
     }
 
-    const prompt = constructPrompt(preferences, recommendationType, allCurrentItems, 1);
+    const movie: Movie = {
+        id: `${result.identifiedItem.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${result.identifiedItem.year}`,
+        title: result.identifiedItem.title,
+        year: result.identifiedItem.year,
+        summary: result.identifiedItem.summary,
+        genres: result.identifiedItem.genres,
+        posterUrl: result.identifiedItem.posterUrl,
+        matchScore: result.identifiedItem.matchScore,
+    };
+    
+    return {
+        itemFound: true,
+        movie: movie,
+        justification: result.justification
+    };
+};
+
+export const getSingleReplacementRecommendation = async (
+    preferences: UserPreferences,
+    recommendationType: RecommendationType,
+    allExcludedItems: Movie[]
+): Promise<Movie | null> => {
+    if (!API_KEY) {
+        console.error("API_KEY not configured, cannot fetch replacement.");
+        return null;
+    }
+    const feedbackHistory = await getAllFeedback();
+    const prompt = constructSingleReplacementPrompt(preferences, recommendationType, feedbackHistory, allExcludedItems);
 
     try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-        });
-
-        const jsonStr = response.text;
-         if (!jsonStr) {
-            console.warn("Received no text from Gemini for a single replacement.");
-            return null;
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          thinkingConfig: { thinkingBudget: 0 }
         }
-
-        const newItems = parseAndTransformItems(jsonStr);
-        return newItems.length > 0 ? newItems[0] : null;
-
+      });
+        const rawRecommendation: GeminiMovieRecommendation = parseAndValidateResponse(response.text, false);
+        return {
+            ...rawRecommendation,
+            id: `${rawRecommendation.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${rawRecommendation.year}`
+        };
     } catch (error) {
-        console.error(`Error fetching single replacement ${recommendationType}:`, error);
+        console.error("Failed to fetch single replacement recommendation:", error);
         return null;
     }
 };
 
-
-
-export const findSimilarItemByName = async (itemTitle: string, recommendationType: RecommendationType, stablePreferences: StableUserPreferences): Promise<Movie> => {
-    if (!API_KEY) {
-        throw new Error("API Key is missing.");
-    }
-    const itemType = itemTypeStringUpperSingular(recommendationType);
-    const itemTypeLower = itemType.toLowerCase();
-
-    const prompt = `You are a ${itemTypeLower} database expert. A user is searching for a ${itemTypeLower} titled "${itemTitle}". 
-Your primary goal is to identify the most likely ${itemTypeLower} the user is referring to.
-If you find a clear match, provide its details. 
-If the title is ambiguous (e.g., "The Office"), use your knowledge to pick the most popular and culturally significant version (e.g., the US version of The Office).
-If the title is a very common phrase, try to find a well-known ${itemTypeLower} that matches it.
-
-Based on the user's stable preferences below, calculate a 'matchScore' (0-100) that estimates how much they would like this SPECIFIC ${itemTypeLower} you've found.
-- Viewing Frequency: ${stablePreferences.movieFrequency}
-- Era Preferences: ${stablePreferences.era.join(', ') || 'Any'}
-- Actor/Director Preference: ${stablePreferences.actorDirectorPreference}
-- Preferred Languages: ${stablePreferences.preferredLanguages.join(', ') || 'Any'}
-- Available in Country: ${stablePreferences.country || 'Any'}
-- Preferred on Platforms: ${stablePreferences.ottPlatforms.join(', ') || 'None'}
-
-Return ONLY a VALID JSON object (NOT an array) with the details of the found ${itemTypeLower}. The JSON object MUST STRICTLY adhere to this format:
-{
-  "title": "The Found ${itemType}",
-  "year": 2005,
-  "summary": "A brief, engaging summary of the ${itemTypeLower}.",
-  "genres": ["Genre1", "Genre2"],
-  "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
-  "durationMinutes": ${recommendationType === 'series' ? 22 : 120},
-  "matchScore": 78,
-  "youtubeTrailerId": "trailerId123",
-  "socialProofTag": "Winner of 5 Emmys"
-}
-
-IMPORTANT: If you cannot find a reasonably close match for "${itemTitle}", return a JSON object with all fields set to null, like this: {"title": null, "year": null, "summary": null, "genres": null, "posterUrl": null, "durationMinutes": null, "matchScore": null, "youtubeTrailerId": null, "socialProofTag": null}.
-Under NO circumstances should you add ANY text or markdown before or after the single JSON object. Your entire response must be ONLY the JSON object.`;
-
-    try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-        });
-
-        const jsonStr = response.text;
-        if (!jsonStr) {
-            throw new Error(`The AI returned an empty response while searching for "${itemTitle}".`);
-        }
-        
-        const parsedItem = JSON.parse(jsonStr.trim()) as GeminiMovieRecommendation;
-
-        if (!parsedItem || !parsedItem.title || !parsedItem.year) {
-            throw new Error(`Could not find a distinct ${itemTypeLower} matching "${itemTitle}". Please try a different title or check for typos.`);
-        }
-        
-        return {
-            id: `${parsedItem.title.toLowerCase().replace(/[^a-z0-9]/g, '')}-${parsedItem.year}`,
-            title: parsedItem.title,
-            year: parsedItem.year,
-            summary: parsedItem.summary || "No summary available.",
-            genres: parsedItem.genres || [],
-            posterUrl: parsedItem.posterUrl,
-            durationMinutes: parsedItem.durationMinutes,
-            matchScore: parsedItem.matchScore,
-            youtubeTrailerId: parsedItem.youtubeTrailerId,
-            socialProofTag: parsedItem.socialProofTag,
-        };
-
-    } catch (error: any) {
-        console.error(`Error finding similar ${itemTypeLower} for "${itemTitle}":`, error);
-        if (error instanceof SyntaxError) {
-             throw new Error(`The AI returned an invalid response for "${itemTitle}". Please try again.`);
-        }
-        throw error;
-    }
-};
-
-export const getMoreSimilarItems = async (
-    originalItemTitle: string, 
-    originalItemYear: number, 
-    recommendationType: RecommendationType, 
-    originalItemId: string | undefined,
-    stablePreferences: StableUserPreferences
-): Promise<Movie[]> => {
-    if (!API_KEY) {
-        throw new Error("API Key is missing.");
-    }
-
-    const itemType = itemTypeStringUpperSingular(recommendationType);
-    const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
-
-    let exclusionList = [{ title: originalItemTitle, year: originalItemYear }];
-
-    const prompt = `A user wants to find ${pluralItemType} that are very similar to "${originalItemTitle}" (${originalItemYear}).
-Please suggest 5 unique ${pluralItemType} that share a similar tone, theme, genre, or style.
-For each suggestion, consider the user's stable preferences to calculate a 'matchScore' (0-100) indicating how well the suggestion aligns with their general taste.
-
-User's Stable Preferences:
-- Viewing Frequency: ${stablePreferences.movieFrequency}
-- Era Preferences: ${stablePreferences.era.join(', ') || 'Any'}
-- Actor/Director Preference: ${stablePreferences.actorDirectorPreference}
-- Preferred Languages: ${stablePreferences.preferredLanguages.join(', ') || 'Any'}
-- Available in Country: ${stablePreferences.country || 'Any'}
-- Preferred on Platforms: ${stablePreferences.ottPlatforms.join(', ') || 'None'}
-
-CRITICAL: Do NOT suggest "${originalItemTitle}" (${originalItemYear}) itself.
-
-Return ONLY a VALID JSON array of 5 objects. Each object must strictly follow this format:
-{
-  "title": "Similar ${itemType} Title",
-  "year": 2010,
-  "summary": "A brief summary explaining why it's a good alternative.",
-  "genres": ["Genre1", "Genre2"],
-  "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
-  "durationMinutes": ${recommendationType === 'series' ? 45 : 150},
-  "matchScore": 85,
-  "justification": "Because you liked the complex narrative of the original, you'll enjoy this.",
-  "youtubeTrailerId": "trailerId456",
-  "socialProofTag": "Critically Acclaimed"
-}
-
-IMPORTANT: Your entire response must be ONLY the JSON array. Do not include any text, comments, or markdown before or after the JSON array.`;
-
-    try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-        });
-
-        const jsonStr = response.text;
-         if (!jsonStr) {
-            throw new Error("The AI returned an empty response.");
-        }
-        return parseAndTransformItems(jsonStr);
-
-    } catch (error: any) {
-        console.error(`Error fetching more similar ${pluralItemType}:`, error);
-        throw new Error(`Failed to fetch more similar ${pluralItemType}.`);
-    }
-};
-
-
+const autosuggestCache = new Map<string, AppItemTitleSuggestion[]>();
 export const getItemTitleSuggestions = async (query: string, recommendationType: RecommendationType): Promise<AppItemTitleSuggestion[]> => {
-    if (!API_KEY || query.length < 2) {
-        return [];
+    if (!API_KEY || query.length < 2) return [];
+
+    const cacheKey = `${recommendationType}:${query}`;
+    if (autosuggestCache.has(cacheKey)) {
+        return autosuggestCache.get(cacheKey)!;
     }
 
     const itemType = recommendationType === 'series' ? 'TV series' : 'movie';
-    const pluralItemType = recommendationType === 'series' ? 'series' : 'movies';
+    const prompt = `You are a movie and TV series title auto-completer. A user is typing a ${itemType} title. Based on the query "${query}", suggest up to 5 popular and relevant ${itemType} titles.
 
-    const prompt = `Based on the user's search query "${query}", suggest up to 5 well-known ${pluralItemType} titles that are likely matches. 
-Prioritize popular and critically acclaimed titles.
-Return ONLY a VALID JSON array of objects. Each object must have a "title" (string) and "year" (number).
-Example format: [{"title": "The Matrix", "year": 1999}, {"title": "The Matrix Reloaded", "year": 2003}]
-If no good matches are found, return an empty array [].
-Your entire response must be ONLY the JSON array. No other text or markdown is allowed.`;
+Return a valid JSON array ONLY, with each object following this schema:
+[
+  { "title": "Suggested Title 1", "year": 2010 },
+  { "title": "Suggested Title 2", "year": 2018 }
+]
+Do not add any text before or after the JSON array. If you have no suggestions, return an empty array [].`;
 
     try {
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
           config: {
-              // Low latency is key for autosuggest
-              thinkingConfig: { thinkingBudget: 0 }
+            responseMimeType: "application/json",
+            thinkingConfig: { thinkingBudget: 0 }
           }
         });
-        const jsonStr = response.text;
-        if (!jsonStr) return [];
-
-        let cleanedJsonStr = jsonStr.trim().replace(/^```json\s*|```$/g, '');
-        const suggestions = JSON.parse(cleanedJsonStr) as AppItemTitleSuggestion[];
-        
-        if (Array.isArray(suggestions) && suggestions.every(s => typeof s.title === 'string' && typeof s.year === 'number')) {
-            return suggestions;
-        }
-        return [];
-
+        const suggestions: AppItemTitleSuggestion[] = parseAndValidateResponse(response.text, true);
+        autosuggestCache.set(cacheKey, suggestions); // Store in cache
+        return suggestions;
     } catch (error) {
         console.error("Error fetching title suggestions:", error);
-        return []; // Return empty array on error to avoid breaking UI
+        return [];
     }
 };
 
-export const checkTasteMatch = async (itemTitle: string, recommendationType: RecommendationType, stablePreferences: StableUserPreferences): Promise<TasteCheckServiceResponse> => {
-    if (!API_KEY) {
-        return { itemFound: false, movie: null, justification: null, error: "API Key is missing." };
-    }
+export const enrichViewingHistory = async (titles: string[]): Promise<{ title: string; year: number }[]> => {
+    if (!API_KEY || titles.length === 0) return titles.map(t => ({ title: t, year: new Date().getFullYear() }));
 
-    const itemType = itemTypeStringUpperSingular(recommendationType);
-    const itemTypeLower = itemType.toLowerCase();
-
-    const prompt = `You are a ${itemTypeLower} taste analysis expert. The user wants to know if they will like a ${itemTypeLower} titled "${itemTitle}", based on their stable preferences.
-
-First, identify the most likely ${itemTypeLower} the user is referring to.
-Then, analyze this ${itemTypeLower}'s characteristics (genre, tone, themes, critical reception, etc.) against the user's preferences provided below.
-
-User's Stable Preferences:
-- Viewing Frequency: "${stablePreferences.movieFrequency}"
-- Era Preferences: "${stablePreferences.era.join(', ')}"
-- Actor/Director Preference: "${stablePreferences.actorDirectorPreference}"
-- Preferred Languages: "${stablePreferences.preferredLanguages.map(code => MOVIE_LANGUAGES.find(l => l.code === code)?.name || code).join(', ')}"
-- User's Country: "${COUNTRIES.find(c => c.code === stablePreferences.country)?.name || stablePreferences.country}"
-- Preferred Streaming Platforms: "${stablePreferences.ottPlatforms.join(', ')}"
-- Their previous feedback history (use this to infer deeper taste patterns): ${JSON.stringify(getStoredFeedback())}
-
-Your task is to generate a JSON object with two main components:
-1. 'identifiedItem': An object containing the details of the ${itemTypeLower} you found. This includes a 'matchScore' (an integer from 0-100) representing your calculated taste match.
-2. 'justification': A concise, insightful, and personalized paragraph (max 3-4 sentences) explaining WHY the user might like or dislike this ${itemTypeLower}. Address both positive and negative points if applicable. For example, "Given your love for fast-paced action, you'll likely enjoy the thrilling sequences. However, as someone who prefers modern films, you might find the 1980s special effects a bit dated." This justification is the MOST IMPORTANT part of your response.
-
-Return a single, valid JSON object ONLY. Your entire response must strictly adhere to this format:
-{
-  "itemFound": true,
-  "identifiedItem": {
-    "title": "The Found ${itemType}",
-    "year": 2010,
-    "summary": "A brief summary of the plot.",
-    "genres": ["Genre1", "Genre2"],
-    "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
-    "durationMinutes": ${recommendationType === 'series' ? 50 : 148},
-    "matchScore": 88,
-    "youtubeTrailerId": "trailerId123",
-    "socialProofTag": "Iconic Sci-Fi Film"
-  },
-  "justification": "Based on your preference for mind-bending sci-fi and classic 2000s films, this is a strong match. You'll appreciate its complex narrative. However, given you prefer shorter movies, its nearly 2.5-hour runtime is something to consider."
-}
-
-CRITICAL: If you absolutely cannot identify the ${itemTypeLower} from the title "${itemTitle}", return this specific JSON object:
-{
-  "itemFound": false,
-  "identifiedItem": null,
-  "justification": "Could not identify a well-known ${itemTypeLower} with that exact title. Please check the spelling or try another title."
-}
-Do not add any text, comments, or markdown before or after the JSON object.`;
+    const prompt = constructEnrichHistoryPrompt(titles);
 
     try {
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            thinkingConfig: { thinkingBudget: 0 }
+          }
         });
-        const jsonStr = response.text;
-         if (!jsonStr) {
-            throw new Error(`The AI returned an empty response for taste check on "${itemTitle}".`);
-        }
-
-        // Clean the response to extract JSON from markdown if present
-        let cleanJsonStr = jsonStr.trim();
-        
-        // Remove markdown code blocks if present
-        if (cleanJsonStr.startsWith('```json')) {
-            cleanJsonStr = cleanJsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        } else if (cleanJsonStr.startsWith('```')) {
-            cleanJsonStr = cleanJsonStr.replace(/^```\s*/, '').replace(/\s*```$/, '');
-        }
-        
-        // Remove any leading/trailing whitespace and newlines
-        cleanJsonStr = cleanJsonStr.trim();
-
-        const parsedResponse = JSON.parse(cleanJsonStr) as TasteCheckGeminiResponse;
-
-        if (!parsedResponse.itemFound || !parsedResponse.identifiedItem) {
-            return {
-                itemFound: false,
-                movie: null,
-                justification: parsedResponse.justification || `Could not find "${itemTitle}".`,
-                error: parsedResponse.justification
-            };
-        }
-
-        const item = parsedResponse.identifiedItem;
-        const movie: Movie = {
-            id: `${item.title?.toLowerCase().replace(/[^a-z0-9]/g, '')}-${item.year}`,
-            title: item.title || 'Unknown Title',
-            year: item.year || 0,
-            summary: item.summary || 'No summary available.',
-            genres: item.genres || [],
-            posterUrl: item.posterUrl || undefined,
-            durationMinutes: item.durationMinutes || undefined,
-            matchScore: item.matchScore || undefined,
-            youtubeTrailerId: item.youtubeTrailerId || undefined,
-            socialProofTag: item.socialProofTag || undefined,
-        };
-
-        return {
-            itemFound: true,
-            movie: movie,
-            justification: parsedResponse.justification,
-        };
-
-    } catch (error: any) {
-        console.error(`Error performing taste check for "${itemTitle}":`, error);
-         if (error instanceof SyntaxError) {
-            return { itemFound: false, movie: null, justification: null, error: `The AI returned an invalid response for "${itemTitle}". Please try again.` };
-        }
-        return { itemFound: false, movie: null, justification: null, error: error.message || "An unknown error occurred during the taste check." };
+        const enrichedItems: { title: string; year: number }[] = parseAndValidateResponse(response.text, true);
+        return enrichedItems;
+    } catch (error) {
+        console.error("Error enriching viewing history:", error);
+        // Fallback to original titles if enrichment fails
+        return titles.map(t => ({ title: t, year: new Date().getFullYear() }));
     }
 };

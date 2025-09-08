@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CINE_SUGGEST_SHARE_URL } from '../constants';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface ReferralPromptProps {
   onShare: () => void;
@@ -7,9 +8,15 @@ interface ReferralPromptProps {
 }
 
 export const ReferralPrompt: React.FC<ReferralPromptProps> = ({ onShare, onDismiss }) => {
+  const { t } = useLanguage();
   const modalRef = useRef<HTMLDivElement>(null);
-  const [copyButtonText, setCopyButtonText] = useState('Share with Friends');
+  const [copyButtonText, setCopyButtonText] = useState(t('referral_cta_share', 'Share with Friends'));
   const isWebShareSupported = typeof navigator.share === 'function';
+
+  useEffect(() => {
+    // Reset button text if language changes while prompt is open
+    setCopyButtonText(t('referral_cta_share', 'Share with Friends'));
+  }, [t]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -42,14 +49,14 @@ export const ReferralPrompt: React.FC<ReferralPromptProps> = ({ onShare, onDismi
     } else {
       // Fallback to clipboard
       navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`).then(() => {
-        setCopyButtonText('Link Copied!');
+        setCopyButtonText(t('referral_cta_copied', 'Link Copied!'));
         setTimeout(() => {
           onShare(); // Close prompt after showing confirmation
         }, 1500);
       }).catch(err => {
         console.error('Failed to copy to clipboard:', err);
-        setCopyButtonText('Failed to Copy');
-        setTimeout(() => setCopyButtonText('Share with Friends'), 2000);
+        setCopyButtonText(t('referral_cta_failed', 'Failed to Copy'));
+        setTimeout(() => setCopyButtonText(t('referral_cta_share', 'Share with Friends')), 2000);
       });
     }
   };
@@ -77,17 +84,17 @@ export const ReferralPrompt: React.FC<ReferralPromptProps> = ({ onShare, onDismi
           </svg>
         </div>
         <h2 id="referral-prompt-title" className="text-2xl font-bold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-teal-400">
-          Share the Discovery!
+          {t('referral_title', 'Share the Discovery!')}
         </h2>
         <p className="text-slate-300 mb-8">
-          Help 3 of your friends end endless scrolling. Share CineMan AI and help them find their next favorite movie or series!
+          {t('referral_desc', 'Help 3 of your friends end endless scrolling. Share CineMan AI and help them find their next favorite movie or series!')}
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={onDismiss}
             className="w-full sm:w-1/2 px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-lg shadow-md transition-all duration-150"
           >
-            Maybe Later
+            {t('review_cta_later', 'Maybe Later')}
           </button>
           <button
             onClick={handleShareClick}

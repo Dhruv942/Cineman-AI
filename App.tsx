@@ -1,25 +1,29 @@
+
+declare const chrome: any;
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { PreferenceForm } from './components/PreferenceForm';
 import { MovieList } from './components/MovieList';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { Footer } from './components/Footer';
-import { getMovieRecommendations, findSimilarItemByName, getMoreSimilarItems, checkTasteMatch, getSingleReplacementRecommendation } from './services/geminiService';
+import { getMovieRecommendations, findSimilarItems, checkTasteMatch, getSingleReplacementRecommendation, enrichViewingHistory, getNumberOfRecommendationsSetting } from './services/geminiService';
 import type { UserPreferences, Movie, SessionPreferences, StableUserPreferences, ActiveTab, RecommendationType, MovieFeedback, GrowthPromptState } from './types';
 import { WelcomeMessage } from './components/WelcomeMessage';
 import { SimilarMovieSearch } from './components/SimilarMovieSearch';
-import { MovieCard } from './components/MovieCard';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { DiscoveryView } from './components/DiscoveryView';
 import { MyAccountPage } from './components/MyAccountPage';
 import { OtherSettingsPage } from './components/OtherSettingsPage';
-import { WatchPartyView } from './components/WatchPartyView';
+import { WatchlistView } from './components/WatchPartyView';
 import { LandingPage } from './components/LandingPage';
 import { CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, CINE_SUGGEST_STABLE_PREFERENCES_KEY, MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, COUNTRIES, CINE_SUGGEST_APP_SETTINGS_KEY, CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY, CINE_SUGGEST_SESSION_COUNT_KEY, CINE_SUGGEST_STORE_REVIEW_URL, CINE_SUGGEST_SHARE_URL } from './constants';
 import { TrailerModal } from './components/TrailerModal';
 import { ReviewPrompt } from './components/ReviewPrompt';
 import { ReferralPrompt } from './components/ReferralPrompt';
 import { trackEvent } from './services/analyticsService';
+import { importExternalFeedback } from './services/feedbackService';
+import { useLanguage } from './hooks/useLanguage';
+import { MovieCard } from './components/MovieCard';
 
 type AppView = 'loading' | 'landing' | 'onboarding' | 'main' | 'onboardingEdit' | 'myAccount' | 'otherSettings';
 
@@ -38,8 +42,8 @@ const getDefaultStablePreferences = (): StableUserPreferences => {
   };
 };
 
-
 const App: React.FC = () => {
+  const { isLoading: isLoadingTranslations, t, language } = useLanguage();
   const [recommendations, setRecommendations] = useState<Movie[]>([]);
   const [prefetchedRecommendations, setPrefetchedRecommendations] = useState<Movie[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState<boolean>(false);
@@ -48,16 +52,12 @@ const App: React.FC = () => {
   const [sessionExcludedRecommendations, setSessionExcludedRecommendations] = useState<Movie[]>([]);
   const [lastSessionPreferences, setLastSessionPreferences] = useState<SessionPreferences | null>(null);
 
-  const [similarItemResult, setSimilarItemResult] = useState<Movie | null>(null);
-  const [isLoadingSimilarItem, setIsLoadingSimilarItem] = useState<boolean>(false);
-  const [similarItemError, setSimilarItemError] = useState<string | null>(null);
-  const [hasSearchedSimilarItem, setHasSearchedSimilarItem] = useState<boolean>(false);
-  const [originalQueryTextForSimilarSearch, setOriginalQueryTextForSimilarSearch] = useState<string | null>(null);
-
-  const [additionalSimilarItems, setAdditionalSimilarItems] = useState<Movie[]>([]);
-  const [isLoadingAdditionalSimilar, setIsLoadingAdditionalSimilar] = useState<boolean>(false);
-  const [additionalSimilarError, setAdditionalSimilarError] = useState<string | null>(null);
-  const [hasAttemptedViewMore, setHasAttemptedViewMore] = useState<boolean>(false);
+  const [similarItems, setSimilarItems] = useState<Movie[]>([]);
+  const [isLoadingSimilarItems, setIsLoadingSimilarItems] = useState<boolean>(false);
+  const [similarItemsError, setSimilarItemsError] = useState<string | null>(null);
+  const [hasSearchedSimilarItems, setHasSearchedSimilarItems] = useState<boolean>(false);
+  const [originalQueryForSimilar, setOriginalQueryForSimilar] = useState<string | null>(null);
+  const [initialSimilarSearchQuery, setInitialSimilarSearchQuery] = useState<string | null>(null);
 
   const [tasteCheckResult, setTasteCheckResult] = useState<Movie | null>(null);
   const [isLoadingTasteCheck, setIsLoadingTasteCheck] = useState<boolean>(false);
@@ -80,60 +80,170 @@ const App: React.FC = () => {
 
 
   const recommendationsTitleRef = useRef<HTMLHeadingElement>(null);
-  const additionalSimilarTitleRef = useRef<HTMLHeadingElement>(null);
+  const similarItemsTitleRef = useRef<HTMLHeadingElement>(null);
   const loadingIndicatorRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.title = t('seo_title');
 
-  const getEnsuredStablePreferences = useCallback((): StableUserPreferences => {
+    // Create or update meta description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', t('seo_description'));
+
+  }, [language, t]);
+
+  const getEnsuredStablePreferences = useCallback(async (): Promise<StableUserPreferences> => {
     if (stablePreferences) {
       return stablePreferences;
     }
-    const storedPrefsString = localStorage.getItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY);
+  
     const defaultValues = getDefaultStablePreferences();
-    if (storedPrefsString) {
-      try {
-        const parsedPrefs = JSON.parse(storedPrefsString) as Partial<StableUserPreferences>;
-        const validatedPrefs: StableUserPreferences = {
-          ...defaultValues,
-          ...parsedPrefs,
-          era: Array.isArray(parsedPrefs.era) && parsedPrefs.era.length > 0 ? parsedPrefs.era : defaultValues.era,
-          movieDuration: Array.isArray(parsedPrefs.movieDuration) && parsedPrefs.movieDuration.length > 0 ? parsedPrefs.movieDuration : defaultValues.movieDuration,
-          preferredNumberOfSeasons: Array.isArray(parsedPrefs.preferredNumberOfSeasons) && parsedPrefs.preferredNumberOfSeasons.length > 0 ? parsedPrefs.preferredNumberOfSeasons : defaultValues.preferredNumberOfSeasons,
-          preferredLanguages: Array.isArray(parsedPrefs.preferredLanguages) && parsedPrefs.preferredLanguages.length > 0 ? parsedPrefs.preferredLanguages : defaultValues.preferredLanguages,
-          country: typeof parsedPrefs.country === 'string' && COUNTRIES.some(c => c.code === parsedPrefs.country) ? parsedPrefs.country : defaultValues.country,
-        };
-        setStablePreferences(validatedPrefs); // Update state as well
-        return validatedPrefs;
-      } catch (e) {
-        console.error("Failed to parse stable preferences during get, using defaults.", e);
-        setStablePreferences(defaultValues); // Update state
-        localStorage.setItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY, JSON.stringify(defaultValues));
-        return defaultValues;
+  
+    return new Promise((resolve) => {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get([CINE_SUGGEST_STABLE_PREFERENCES_KEY], (result: any) => {
+          const storedPrefs = result[CINE_SUGGEST_STABLE_PREFERENCES_KEY];
+          if (storedPrefs) {
+            const parsedPrefs = typeof storedPrefs === 'string' ? JSON.parse(storedPrefs) : storedPrefs;
+            const validatedPrefs: StableUserPreferences = {
+              ...defaultValues,
+              ...parsedPrefs,
+              era: Array.isArray(parsedPrefs.era) && parsedPrefs.era.length > 0 ? parsedPrefs.era : defaultValues.era,
+              movieDuration: Array.isArray(parsedPrefs.movieDuration) && parsedPrefs.movieDuration.length > 0 ? parsedPrefs.movieDuration : defaultValues.movieDuration,
+              preferredNumberOfSeasons: Array.isArray(parsedPrefs.preferredNumberOfSeasons) && parsedPrefs.preferredNumberOfSeasons.length > 0 ? parsedPrefs.preferredNumberOfSeasons : defaultValues.preferredNumberOfSeasons,
+              preferredLanguages: Array.isArray(parsedPrefs.preferredLanguages) && parsedPrefs.preferredLanguages.length > 0 ? parsedPrefs.preferredLanguages : defaultValues.preferredLanguages,
+              country: typeof parsedPrefs.country === 'string' && COUNTRIES.some(c => c.code === parsedPrefs.country) ? parsedPrefs.country : defaultValues.country,
+            };
+            setStablePreferences(validatedPrefs);
+            resolve(validatedPrefs);
+          } else {
+            setStablePreferences(defaultValues);
+            chrome.storage.local.set({ [CINE_SUGGEST_STABLE_PREFERENCES_KEY]: defaultValues });
+            resolve(defaultValues);
+          }
+        });
+      } else {
+        // Fallback to localStorage if chrome API not available
+        const storedPrefsString = localStorage.getItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY);
+        if (storedPrefsString) {
+          try {
+             const parsedPrefs = JSON.parse(storedPrefsString);
+             // Basic validation
+             const validatedPrefs = { ...defaultValues, ...parsedPrefs };
+             setStablePreferences(validatedPrefs);
+             resolve(validatedPrefs);
+          } catch {
+             setStablePreferences(defaultValues);
+             localStorage.setItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY, JSON.stringify(defaultValues));
+             resolve(defaultValues);
+          }
+        } else {
+             setStablePreferences(defaultValues);
+             localStorage.setItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY, JSON.stringify(defaultValues));
+             resolve(defaultValues);
+        }
       }
-    }
-    setStablePreferences(defaultValues); // Update state
-    localStorage.setItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY, JSON.stringify(defaultValues));
-    return defaultValues;
+    });
   }, [stablePreferences]);
 
 
   useEffect(() => {
-    const storedSessionCount = parseInt(localStorage.getItem(CINE_SUGGEST_SESSION_COUNT_KEY) || '0', 10);
-    const newSessionCount = storedSessionCount + 1;
-    localStorage.setItem(CINE_SUGGEST_SESSION_COUNT_KEY, newSessionCount.toString());
-    sessionCountRef.current = newSessionCount;
-    trackEvent('app_session_start', { session_count: newSessionCount });
+    const initializeApp = async () => {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+          // Extension environment
+          const result = await new Promise<any>(resolve => {
+              chrome.storage.local.get([CINE_SUGGEST_SESSION_COUNT_KEY, CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, 'netflixTitlesToProcess'], resolve);
+          });
+          
+          const storedSessionCount = result[CINE_SUGGEST_SESSION_COUNT_KEY] || 0;
+          const newSessionCount = storedSessionCount + 1;
+          sessionCountRef.current = newSessionCount;
+          chrome.storage.local.set({ [CINE_SUGGEST_SESSION_COUNT_KEY]: newSessionCount });
+          trackEvent('app_session_start', { session_count: newSessionCount });
+          
+          const titlesToProcess = result['netflixTitlesToProcess'];
+          if (titlesToProcess && titlesToProcess.length > 0) {
+              console.log(`Found ${titlesToProcess.length} Netflix titles to process.`);
+              trackEvent('auto_import_start', { source: 'netflix', count: titlesToProcess.length });
+              const enriched = await enrichViewingHistory(titlesToProcess);
+              const newFeedback: MovieFeedback[] = enriched.map(item => ({
+                  id: `${item.title.toLowerCase().replace(/[^a-z0-9]/g, '')}${item.year}`,
+                  title: item.title,
+                  year: item.year,
+                  feedback: 'Liked it',
+                  source: 'netflix-import'
+              }));
+              await importExternalFeedback(newFeedback);
+              chrome.storage.local.remove('netflixTitlesToProcess'); // Clear after processing
+              chrome.action.setBadgeText({ text: '' }); // Clear badge
+              trackEvent('auto_import_complete', { source: 'netflix', new_count: newFeedback.length });
+          }
 
-    const onboardingComplete = localStorage.getItem(CINE_SUGGEST_ONBOARDING_COMPLETE_KEY);
-    if (!onboardingComplete) {
-      setView('landing');
-    } else {
-      const currentPrefs = getEnsuredStablePreferences();
-      if (!stablePreferences) { 
-          setStablePreferences(currentPrefs);
+          if (!result[CINE_SUGGEST_ONBOARDING_COMPLETE_KEY]) {
+              setView('landing');
+          } else {
+              const currentPrefs = await getEnsuredStablePreferences();
+              if (!stablePreferences) {
+                  setStablePreferences(currentPrefs);
+              }
+              setView('main');
+          }
+      } else {
+          // Non-extension environment (fallback to localStorage)
+          const storedSessionCount = parseInt(localStorage.getItem(CINE_SUGGEST_SESSION_COUNT_KEY) || '0', 10);
+          const newSessionCount = storedSessionCount + 1;
+          localStorage.setItem(CINE_SUGGEST_SESSION_COUNT_KEY, newSessionCount.toString());
+          sessionCountRef.current = newSessionCount;
+          trackEvent('app_session_start', { session_count: newSessionCount });
+
+          const onboardingComplete = localStorage.getItem(CINE_SUGGEST_ONBOARDING_COMPLETE_KEY);
+          if (!onboardingComplete) {
+              setView('landing');
+          } else {
+              const currentPrefs = await getEnsuredStablePreferences();
+              if (!stablePreferences) {
+                  setStablePreferences(currentPrefs);
+              }
+              setView('main');
+          }
       }
-      setView('main');
-    }
+    };
+    initializeApp();
   }, [getEnsuredStablePreferences, stablePreferences]);
+
+  // Handle initial search from content script
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.session) {
+      chrome.storage.session.get('initialSearch', (result) => {
+        if (result.initialSearch) {
+          const { tab, query, type } = result.initialSearch;
+          
+          if (tab === 'similarSearch' && query) {
+            setTimeout(() => {
+              handleTabChange('similarSearch');
+              if (type && type !== recommendationType) {
+                handleRecommendationTypeChange(type);
+              }
+              const searchInput = document.querySelector('#similar-search-input') as HTMLInputElement;
+              if (searchInput) {
+                 searchInput.value = query;
+              }
+              handleFindSimilarItems(query);
+            }, 100);
+          }
+          chrome.storage.session.remove('initialSearch');
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   useEffect(() => {
     if (view === 'main' && activeTab === 'recommendations' && recommendations.length > 0 && !isLoadingRecommendations && hasSearchedRecommendations) {
@@ -147,15 +257,15 @@ const App: React.FC = () => {
   }, [recommendations, isLoadingRecommendations, hasSearchedRecommendations, activeTab, view]);
 
   useEffect(() => {
-    if (view === 'main' && activeTab === 'similarSearch' && additionalSimilarItems.length > 0 && !isLoadingAdditionalSimilar && hasAttemptedViewMore) {
+    if (view === 'main' && activeTab === 'similarSearch' && similarItems.length > 0 && !isLoadingSimilarItems && hasSearchedSimilarItems) {
       const timer = setTimeout(() => {
-        if (additionalSimilarTitleRef.current) {
-          additionalSimilarTitleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (similarItemsTitleRef.current) {
+          similarItemsTitleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [additionalSimilarItems, isLoadingAdditionalSimilar, hasAttemptedViewMore, activeTab, view]);
+  }, [similarItems, isLoadingSimilarItems, hasSearchedSimilarItems, activeTab, view]);
 
   const handleStartOnboarding = () => {
     trackEvent('onboarding_start', {});
@@ -193,16 +303,23 @@ const App: React.FC = () => {
   const handleCloseTrailer = () => {
     setTrailerId(null);
   };
+  
+    const updateGrowthState = (updates: Partial<GrowthPromptState>) => {
+      const storage = typeof chrome !== 'undefined' && chrome.storage ? chrome.storage.local : null;
+      if (storage) {
+          storage.get([CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY], (result: any) => {
+              const currentState = result[CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY] || { lastPromptSession: 0, hasRated: false, hasShared: false };
+              const newState = { ...currentState, ...updates };
+              storage.set({ [CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY]: newState });
+          });
+      } else {
+          const growthStateString = localStorage.getItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY);
+          const currentState: GrowthPromptState = growthStateString ? JSON.parse(growthStateString) : { lastPromptSession: 0, hasRated: false, hasShared: false };
+          const newState = { ...currentState, ...updates };
+          localStorage.setItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY, JSON.stringify(newState));
+      }
+    };
 
-  const updateGrowthState = (updates: Partial<GrowthPromptState>) => {
-    const growthStateString = localStorage.getItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY);
-    const currentState: GrowthPromptState = growthStateString 
-      ? JSON.parse(growthStateString) 
-      : { lastPromptSession: 0, hasRated: false, hasShared: false };
-    
-    const newState = { ...currentState, ...updates };
-    localStorage.setItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY, JSON.stringify(newState));
-  };
 
   const handleRateApp = () => {
     updateGrowthState({ hasRated: true, lastPromptSession: sessionCountRef.current });
@@ -238,14 +355,10 @@ const App: React.FC = () => {
       setSessionExcludedRecommendations([]);
       setLastSessionPreferences(null);
       
-      setSimilarItemResult(null);
-      setHasSearchedSimilarItem(false);
-      setSimilarItemError(null);
-      setOriginalQueryTextForSimilarSearch(null);
-
-      setAdditionalSimilarItems([]);
-      setAdditionalSimilarError(null);
-      setHasAttemptedViewMore(false);
+      setSimilarItems([]);
+      setHasSearchedSimilarItems(false);
+      setSimilarItemsError(null);
+      setOriginalQueryForSimilar(null);
 
       setTasteCheckResult(null);
       setTasteCheckJustification(null);
@@ -297,7 +410,7 @@ const App: React.FC = () => {
         }
     }, 0);
 
-    const currentStablePrefs = getEnsuredStablePreferences();
+    const currentStablePrefs = await getEnsuredStablePreferences();
 
     const fullPreferences: UserPreferences = {
       ...currentStablePrefs,
@@ -305,38 +418,45 @@ const App: React.FC = () => {
     };
 
     try {
-      const items = await getMovieRecommendations(fullPreferences, recommendationType, combinedExclusions);
-      const numToDisplay = 3; // Or get from settings
+      const [items, numToDisplay] = await Promise.all([
+          getMovieRecommendations(fullPreferences, recommendationType, combinedExclusions),
+          getNumberOfRecommendationsSetting()
+      ]);
+
       setRecommendations(items.slice(0, numToDisplay));
       setPrefetchedRecommendations(items.slice(numToDisplay));
 
       if (!promptTriggeredThisSession && items.length > 0) {
-        const growthStateString = localStorage.getItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY);
-        const growthState: GrowthPromptState = growthStateString 
-          ? JSON.parse(growthStateString) 
-          : { lastPromptSession: 0, hasRated: false, hasShared: false };
-          
-        const currentSession = sessionCountRef.current;
-        
-        const canShowAnyPrompt = currentSession > 3 && 
-                                 currentSession >= (growthState.lastPromptSession || 0) + 3;
-      
-        if (canShowAnyPrompt) {
-          let promptType: 'review' | 'referral' | null = null;
-          
-          if (!growthState.hasRated) {
-            promptType = 'review';
-          } else if (!growthState.hasShared) {
-            promptType = 'referral';
-          }
-          
-          if (promptType) {
-            setTimeout(() => {
-              setPromptToShow(promptType);
-              trackEvent(`${promptType}_prompt_view`, {});
-            }, 4000); 
-            setPromptTriggeredThisSession(true);
-          }
+        const showPrompt = (growthState: GrowthPromptState) => {
+            const currentSession = sessionCountRef.current;
+            const canShowAnyPrompt = currentSession > 3 && currentSession >= (growthState.lastPromptSession || 0) + 3;
+            if (canShowAnyPrompt) {
+                let promptType: 'review' | 'referral' | null = null;
+                if (!growthState.hasRated) {
+                    promptType = 'review';
+                } else if (!growthState.hasShared) {
+                    promptType = 'referral';
+                }
+                if (promptType) {
+                    setTimeout(() => {
+                        setPromptToShow(promptType);
+                        trackEvent(`${promptType}_prompt_view`, {});
+                    }, 4000);
+                    setPromptTriggeredThisSession(true);
+                }
+            }
+        };
+
+        const storage = typeof chrome !== 'undefined' && chrome.storage ? chrome.storage.local : null;
+        if (storage) {
+            storage.get([CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY], (result: any) => {
+                const growthState = result[CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY] || { lastPromptSession: 0, hasRated: false, hasShared: false };
+                showPrompt(growthState);
+            });
+        } else {
+            const growthStateString = localStorage.getItem(CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY);
+            const growthState = growthStateString ? JSON.parse(growthStateString) : { lastPromptSession: 0, hasRated: false, hasShared: false };
+            showPrompt(growthState);
         }
       }
     } catch (err) {
@@ -357,7 +477,7 @@ const App: React.FC = () => {
 
     const allCurrentItems = [...recommendations, ...prefetchedRecommendations, ...sessionExcludedRecommendations];
 
-    const currentStablePrefs = getEnsuredStablePreferences();
+    const currentStablePrefs = await getEnsuredStablePreferences();
     const fullPreferences: UserPreferences = {
       ...currentStablePrefs,
       ...lastSessionPreferences,
@@ -394,66 +514,38 @@ const App: React.FC = () => {
     }
   };
 
-  const handleFindSimilarItem = useCallback(async (itemTitleFromInput: string) => {
-    setIsLoadingSimilarItem(true);
-    setSimilarItemError(null);
-    setHasSearchedSimilarItem(true);
-    setSimilarItemResult(null);
-    setOriginalQueryTextForSimilarSearch(itemTitleFromInput);
+  const handleFindSimilarItems = useCallback(async (itemTitleFromInput: string) => {
+    setIsLoadingSimilarItems(true);
+    setSimilarItemsError(null);
+    setHasSearchedSimilarItems(true);
+    setSimilarItems([]);
+    setOriginalQueryForSimilar(itemTitleFromInput);
 
     trackEvent('similar_search', { type: recommendationType, query: itemTitleFromInput });
 
-    setAdditionalSimilarItems([]);
-    setAdditionalSimilarError(null);
-    setIsLoadingAdditionalSimilar(false); 
-    setHasAttemptedViewMore(false);
-
-    const currentStablePrefs = getEnsuredStablePreferences();
+    const currentStablePrefs = await getEnsuredStablePreferences();
 
     try {
-      const item = await findSimilarItemByName(itemTitleFromInput, recommendationType, currentStablePrefs);
-      setSimilarItemResult(item);
+      const items = await findSimilarItems(itemTitleFromInput, recommendationType, currentStablePrefs);
+      setSimilarItems(items);
     } catch (err) {
       if (err instanceof Error) {
-        setSimilarItemError(err.message || `Failed to find similar ${recommendationType}.`);
+        setSimilarItemsError(err.message || `Failed to find similar ${recommendationType}.`);
       } else {
-        setSimilarItemError(`An unknown error occurred while finding similar ${recommendationType}.`);
+        setSimilarItemsError(`An unknown error occurred while finding similar ${recommendationType}.`);
       }
-      setSimilarItemResult(null);
+      setSimilarItems([]);
       trackEvent('similar_search_error', { query: itemTitleFromInput, error: err instanceof Error ? err.message : String(err) });
     } finally {
-      setIsLoadingSimilarItem(false);
+      setIsLoadingSimilarItems(false);
     }
   }, [recommendationType, getEnsuredStablePreferences]);
 
-  const handleViewMoreSimilarItems = useCallback(async (
-    queryTextForPrompt: string, 
-    contextualYearForPrompt: number, 
-    actualItemIdToExclude: string | undefined
-  ) => {
-    setIsLoadingAdditionalSimilar(true);
-    setAdditionalSimilarError(null);
-    setAdditionalSimilarItems([]);
-    setHasAttemptedViewMore(true);
-    
-    trackEvent('similar_search_view_more', { type: recommendationType, query: queryTextForPrompt });
-
-    const currentStablePrefs = getEnsuredStablePreferences();
-
-    try {
-      const items = await getMoreSimilarItems(queryTextForPrompt, contextualYearForPrompt, recommendationType, actualItemIdToExclude, currentStablePrefs);
-      setAdditionalSimilarItems(items);
-    } catch (err) {
-      if (err instanceof Error) {
-        setAdditionalSimilarError(err.message || `Failed to fetch more similar ${recommendationType}s.`);
-      } else {
-        setAdditionalSimilarError(`An unknown error occurred while fetching more similar ${recommendationType}s.`);
-      }
-      setAdditionalSimilarItems([]);
-    } finally {
-      setIsLoadingAdditionalSimilar(false);
-    }
-  }, [recommendationType, getEnsuredStablePreferences]);
+  const handleFindSimilarFromCard = (title: string) => {
+    trackEvent('find_similar_from_card', { title });
+    setInitialSimilarSearchQuery(title);
+    handleTabChange('similarSearch');
+  };
 
   const handleCheckTasteMatch = useCallback(async (itemTitle: string) => {
     setIsLoadingTasteCheck(true);
@@ -465,7 +557,7 @@ const App: React.FC = () => {
 
     trackEvent('taste_check_search', { type: recommendationType, query: itemTitle });
 
-    const currentStablePrefs = getEnsuredStablePreferences();
+    const currentStablePrefs = await getEnsuredStablePreferences();
 
     try {
       const result = await checkTasteMatch(itemTitle, recommendationType, currentStablePrefs);
@@ -527,6 +619,18 @@ const App: React.FC = () => {
     backgroundSize: 'cover',
   };
 
+  const GlobalLoadingOverlay = () => {
+    if (!isLoadingTranslations) return null;
+    return (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+            <div className="flex flex-col items-center gap-4">
+                <div className="w-12 h-12 border-4 border-dashed rounded-full animate-spin border-purple-400"></div>
+                <p className="text-lg font-semibold text-purple-300">{t('translation_loading', 'Translating UI...')}</p>
+            </div>
+        </div>
+    );
+  };
+
   const renderContent = () => {
     switch(view) {
       case 'loading':
@@ -574,7 +678,7 @@ const App: React.FC = () => {
                         aria-pressed={recommendationType === 'movie'}
                     >
                         <span dangerouslySetInnerHTML={{ __html: ICONS.movie_toggle_icon }} className="w-5 h-5 mr-2" />
-                        Movies
+                        {t('movies', 'Movies')}
                     </button>
                     <button
                         onClick={() => handleRecommendationTypeChange('series')}
@@ -586,30 +690,30 @@ const App: React.FC = () => {
                         aria-pressed={recommendationType === 'series'}
                     >
                         <span dangerouslySetInnerHTML={{ __html: ICONS.series_toggle_icon }} className="w-5 h-5 mr-2" />
-                        Series
+                        {t('series', 'Series')}
                     </button>
                 </div>
 
                 <nav className="mb-6 sm:mb-8 flex justify-center space-x-0.5 sm:space-x-1 border-b border-slate-700 w-full max-w-5xl" role="tablist">
                   <TabButton tabName="recommendations" currentTab={activeTab} onClick={() => handleTabChange('recommendations')} icon={ICONS.recommendations_tab_icon}>
-                    <span className="hidden sm:inline">Recommendations</span>
-                    <span className="inline sm:hidden">Recs</span>
+                    <span className="hidden sm:inline">{t('tab_recommendations', 'Recommendations')}</span>
+                    <span className="inline sm:hidden">{t('tab_recommendations_short', 'Recs')}</span>
                   </TabButton>
                   <TabButton tabName="similarSearch" currentTab={activeTab} onClick={() => handleTabChange('similarSearch')} icon={ICONS.similar_search_tab_icon}>
-                    <span className="hidden sm:inline">Find Similar</span>
-                    <span className="inline sm:hidden">Similar</span>
+                    <span className="hidden sm:inline">{t('tab_find_similar', 'Find Similar')}</span>
+                    <span className="inline sm:hidden">{t('tab_find_similar_short', 'Similar')}</span>
                   </TabButton>
                   <TabButton tabName="tasteCheck" currentTab={activeTab} onClick={() => handleTabChange('tasteCheck')} icon={ICONS.taste_check_tab_icon}>
-                    <span className="hidden sm:inline">Will I Like This?</span>
-                    <span className="inline sm:hidden">Taste</span>
+                    <span className="hidden sm:inline">{t('tab_taste_check', 'Will I Like This?')}</span>
+                    <span className="inline sm:hidden">{t('tab_taste_check_short', 'Taste')}</span>
                   </TabButton>
                   <TabButton tabName="discovery" currentTab={activeTab} onClick={() => handleTabChange('discovery')} icon={ICONS.discovery_tab_icon}>
-                    <span className="hidden sm:inline">Discover & Rate</span>
-                    <span className="inline sm:hidden">Discover</span>
+                    <span className="hidden sm:inline">{t('tab_discover_rate', 'Discover & Rate')}</span>
+                    <span className="inline sm:hidden">{t('tab_discover_rate_short', 'Discover')}</span>
                   </TabButton>
-                  <TabButton tabName="watchParty" currentTab={activeTab} onClick={() => handleTabChange('watchParty')} icon={ICONS.watch_party_tab_icon}>
-                    <span className="hidden sm:inline">Watch Party</span>
-                    <span className="inline sm:hidden">Party</span>
+                  <TabButton tabName="watchlist" currentTab={activeTab} onClick={() => handleTabChange('watchlist')} icon={ICONS.watchlist_tab_icon}>
+                    <span className="hidden sm:inline">{t('tab_watchlist', 'Watchlist')}</span>
+                    <span className="inline sm:hidden">{t('tab_watchlist_short', 'List')}</span>
                   </TabButton>
                 </nav>
 
@@ -639,32 +743,32 @@ const App: React.FC = () => {
                     )}
 
                     {recommendationError && (() => {
-                        let title = "Oops! Something went wrong.";
-                        let primaryMessage = "We couldn't get recommendations at this time.";
-                        let secondaryAdvice = "There might be an issue with the AI service or your query. Please try again.";
+                        let title = t('error_generic_title');
+                        let primaryMessage = t('error_generic_primary');
+                        let secondaryAdvice = t('error_generic_secondary');
                         
                         const lowerCaseError = recommendationError.toLowerCase();
 
                         if (lowerCaseError.includes("api key invalid")) {
-                            title = "API Key Error";
-                            primaryMessage = "Your Gemini API key appears to be invalid or is not configured correctly.";
-                            secondaryAdvice = "Please verify your API key in the project's environment settings. It is provided via an environment variable and is essential for the app to function.";
+                            title = t('error_api_key_invalid_title');
+                            primaryMessage = t('error_api_key_invalid_primary');
+                            secondaryAdvice = t('error_api_key_invalid_secondary');
                         } else if (lowerCaseError.includes("usage limit") || lowerCaseError.includes("quota") || lowerCaseError.includes("billing")) {
-                            title = "Usage Limit Reached";
-                            primaryMessage = "It looks like you've exceeded the free usage limits for the Gemini API.";
-                            secondaryAdvice = "To continue using the app, please visit your Google Cloud Console, select the project associated with your API key, and ensure that billing is enabled.";
+                            title = t('error_usage_limit_title');
+                            primaryMessage = t('error_usage_limit_primary');
+                            secondaryAdvice = t('error_usage_limit_secondary');
                         } else if (lowerCaseError.includes("safety filter")) {
-                            title = "Request Blocked for Safety";
-                            primaryMessage = "Your request was blocked by the AI's safety filters. This can happen with certain keywords or combinations of preferences.";
-                            secondaryAdvice = "Please try adjusting your mood, keywords, or genre selections and search again.";
+                            title = t('error_safety_filter_title');
+                            primaryMessage = t('error_safety_filter_primary');
+                            secondaryAdvice = t('error_safety_filter_secondary');
                         } else if (lowerCaseError.includes("service unavailable")) {
-                            title = "AI Service Unavailable";
-                            primaryMessage = "We're having trouble connecting to the AI recommendation service at the moment.";
-                            secondaryAdvice = "This is likely a temporary issue. Please wait a few moments and try your search again.";
+                            title = t('error_service_unavailable_title');
+                            primaryMessage = t('error_service_unavailable_primary');
+                            secondaryAdvice = t('error_service_unavailable_secondary');
                         } else if (lowerCaseError.includes("invalid request") || lowerCaseError.includes("malformed")) {
-                            title = "Invalid Request";
-                            primaryMessage = "The request sent to the AI was invalid, which can sometimes be caused by unusual keywords or preferences.";
-                            secondaryAdvice = "Please try simplifying your search terms and try again.";
+                            title = t('error_invalid_request_title');
+                            primaryMessage = t('error_invalid_request_primary');
+                            secondaryAdvice = t('error_invalid_request_secondary');
                         } else {
                             primaryMessage = recommendationError;
                         }
@@ -691,9 +795,13 @@ const App: React.FC = () => {
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-sky-400">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                           </svg>
-                          <h2 className="text-xl sm:text-2xl font-semibold text-slate-300">No {recommendationType === 'series' ? 'Series' : 'Movies'} Found</h2>
+                          <h2 className="text-xl sm:text-2xl font-semibold text-slate-300">
+                            {recommendationType === 'series' ? t('no_series_found_title') : t('no_movies_found_title')}
+                          </h2>
                         </div>
-                        <p className="text-sm sm:text-base">We couldn't find any {recommendationType === 'series' ? 'series' : 'movies'} matching your criteria. Try adjusting your preferences for a wider search!</p>
+                        <p className="text-sm sm:text-base">
+                          {t('no_results_found_message', undefined, { itemType: recommendationType })}
+                        </p>
                       </div>
                     )}
 
@@ -702,9 +810,10 @@ const App: React.FC = () => {
                         <MovieList 
                             movies={recommendations} 
                             titleRef={recommendationsTitleRef} 
-                            titleText={recommendationType === 'series' ? "Your Personalised Series Recommendations" : "Your Personalised Movie Recommendations"}
+                            titleText={recommendationType === 'series' ? t('list_title_series_default') : t('list_title_movie_default')}
                             onCardFeedback={handleRecommendationFeedback}
                             onViewTrailer={handleViewTrailer}
+                            onFindSimilar={handleFindSimilarFromCard}
                         />
                       </div>
                     )}
@@ -728,39 +837,41 @@ const App: React.FC = () => {
                   >
                     <div className="max-w-3xl mx-auto w-full">
                       <SimilarMovieSearch
-                        onSearch={handleFindSimilarItem}
-                        isLoading={isLoadingSimilarItem}
+                        onSearch={handleFindSimilarItems}
+                        isLoading={isLoadingSimilarItems}
                         isActive={activeTab === 'similarSearch'}
                         recommendationType={recommendationType}
                         searchContext="similar"
+                        initialQuery={initialSimilarSearchQuery}
+                        onSearchComplete={() => setInitialSimilarSearchQuery(null)}
                       />
                     </div>
-                    {isLoadingSimilarItem && (
+                    {isLoadingSimilarItems && (
                       <div className="mt-8 flex justify-center">
                         <LoadingSpinner />
                       </div>
                     )}
-                    {similarItemError && (() => {
-                        let title = "Search Failed";
-                        let primaryMessage = "Could not complete the search.";
-                        let secondaryAdvice = "Please try again later or adjust your search term.";
+                    {similarItemsError && (() => {
+                        let title = t('similar_search_failed_title');
+                        let primaryMessage = t('similar_search_failed_primary');
+                        let secondaryAdvice = t('similar_search_failed_secondary');
 
-                        const lowerCaseError = similarItemError.toLowerCase();
+                        const lowerCaseError = similarItemsError.toLowerCase();
                         
                         if (lowerCaseError.includes("api key invalid")) {
-                            title = "API Key Error";
-                            primaryMessage = "Cannot search without a valid API key.";
-                            secondaryAdvice = "Please check your project's environment settings.";
+                            title = t('error_api_key_invalid_title');
+                            primaryMessage = t('similar_search_api_key_error');
+                            secondaryAdvice = "";
                         } else if (lowerCaseError.includes("usage limit") || lowerCaseError.includes("quota") || lowerCaseError.includes("billing")) {
-                            title = "Usage Limit Reached";
-                            primaryMessage = "The API usage limit has been reached.";
-                            secondaryAdvice = "Please check your Google Cloud project's billing status.";
+                            title = t('error_usage_limit_title');
+                            primaryMessage = t('similar_search_usage_limit_error');
+                            secondaryAdvice = "";
                         } else if (lowerCaseError.includes("safety filter")) {
-                            title = "Request Blocked";
-                            primaryMessage = "The search query was blocked for safety reasons.";
-                            secondaryAdvice = "Please try a different search term.";
+                            title = t('error_safety_filter_title');
+                            primaryMessage = t('similar_search_safety_error');
+                            secondaryAdvice = "";
                         } else {
-                            primaryMessage = similarItemError;
+                            primaryMessage = similarItemsError;
                         }
 
                         return (
@@ -771,62 +882,22 @@ const App: React.FC = () => {
                             </div>
                         );
                     })()}
-                    {hasSearchedSimilarItem && !isLoadingSimilarItem && !similarItemError && similarItemResult && originalQueryTextForSimilarSearch && (
-                      <div className="mt-8">
-                        <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-teal-300">
-                          Similar to "{originalQueryTextForSimilarSearch}":
-                        </h2>
-                        <div className="max-w-sm mx-auto">
-                          <MovieCard movie={similarItemResult} isSearchResult={true} onViewTrailer={handleViewTrailer} />
-                        </div>
-                        <div className="mt-8 text-center max-w-3xl mx-auto">
-                          {!isLoadingAdditionalSimilar && (
-                            <button
-                              onClick={() => {
-                                if (similarItemResult) { 
-                                  handleViewMoreSimilarItems(similarItemResult.title, similarItemResult.year, similarItemResult.id);
-                                }
-                              }}
-                              className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150"
-                              aria-label={`View more ${recommendationType}s similar to ${similarItemResult.title}`}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2 inline">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5h3m-3 0V7.5m0 3V13.5" />
-                              </svg>
-                              View More Like This
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {isLoadingAdditionalSimilar && (
-                      <div className="mt-8 flex justify-center">
-                        <LoadingSpinner /> 
-                      </div>
-                    )}
-                    {additionalSimilarError && (
-                      <div className="mt-8 max-w-3xl mx-auto text-center text-red-400 bg-red-900/30 p-4 rounded-lg shadow-xl">
-                        <p>{additionalSimilarError}</p>
-                      </div>
-                    )}
-                    {!isLoadingAdditionalSimilar && !additionalSimilarError && hasAttemptedViewMore && additionalSimilarItems.length === 0 && originalQueryTextForSimilarSearch && (
-                      <div className="mt-8 max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-4 rounded-lg shadow-xl">
-                        <p>No more similar {recommendationType}s found for "{originalQueryTextForSimilarSearch}".</p>
-                      </div>
-                    )}
-                    {!isLoadingAdditionalSimilar && !additionalSimilarError && additionalSimilarItems.length > 0 && originalQueryTextForSimilarSearch && (
+
+                    {!isLoadingSimilarItems && hasSearchedSimilarItems && similarItems.length > 0 && originalQueryForSimilar && (
                       <div className="w-full mt-12">
-                        <MovieList 
-                            movies={additionalSimilarItems} 
-                            titleRef={additionalSimilarTitleRef} 
-                            titleText={`More ${recommendationType === 'series' ? 'Series' : 'Movies'} Like "${similarItemResult?.title || originalQueryTextForSimilarSearch}"`}
-                            onViewTrailer={handleViewTrailer}
+                          <MovieList 
+                              movies={similarItems} 
+                              titleRef={similarItemsTitleRef} 
+                              titleText={t('list_title_more_like', undefined, { itemType: recommendationType === 'series' ? 'Series' : 'Movies', title: originalQueryForSimilar })}
+                              onViewTrailer={handleViewTrailer}
+                              onFindSimilar={handleFindSimilarFromCard}
                           />
                       </div>
                     )}
-                    {hasSearchedSimilarItem && !isLoadingSimilarItem && !similarItemError && !similarItemResult && originalQueryTextForSimilarSearch && (
+
+                    {!isLoadingSimilarItems && hasSearchedSimilarItems && similarItems.length === 0 && originalQueryForSimilar && (
                       <div className="mt-8 max-w-3xl mx-auto text-center text-slate-400 bg-slate-800 p-4 rounded-lg shadow-xl">
-                        <p>Could not find a distinct {recommendationType === 'series' ? 'series' : 'movie'} similar to "{originalQueryTextForSimilarSearch}". Try a different title or check for typos.</p>
+                        <p>{t('similar_search_not_found', undefined, { itemType: recommendationType, query: originalQueryForSimilar })}</p>
                       </div>
                     )}
                   </section>
@@ -856,24 +927,24 @@ const App: React.FC = () => {
                       </div>
                     )}
                     {tasteCheckError && (() => {
-                        let title = "Analysis Failed";
-                        let primaryMessage = "Could not complete the taste analysis.";
-                        let secondaryAdvice = "Please try again later or with a different title.";
+                        let title = t('taste_check_analysis_failed_title');
+                        let primaryMessage = t('taste_check_analysis_failed_primary');
+                        let secondaryAdvice = t('taste_check_analysis_failed_secondary');
 
                         const lowerCaseError = tasteCheckError.toLowerCase();
                         
                         if (lowerCaseError.includes("api key invalid")) {
-                            title = "API Key Error";
-                            primaryMessage = "Cannot perform analysis without a valid API key.";
-                            secondaryAdvice = "Please check your project's environment settings.";
+                            title = t('error_api_key_invalid_title');
+                            primaryMessage = t('taste_check_api_key_error');
+                            secondaryAdvice = "";
                         } else if (lowerCaseError.includes("usage limit") || lowerCaseError.includes("quota") || lowerCaseError.includes("billing")) {
-                            title = "Usage Limit Reached";
-                            primaryMessage = "The API usage limit has been reached.";
-                            secondaryAdvice = "Please check your Google Cloud project's billing status.";
+                            title = t('error_usage_limit_title');
+                            primaryMessage = t('taste_check_usage_limit_error');
+                            secondaryAdvice = "";
                         } else if (lowerCaseError.includes("safety filter")) {
-                            title = "Request Blocked";
-                            primaryMessage = "The title was blocked for safety reasons.";
-                            secondaryAdvice = "Please try a different title.";
+                            title = t('error_safety_filter_title');
+                            primaryMessage = t('taste_check_safety_error');
+                            secondaryAdvice = "";
                         } else {
                             primaryMessage = tasteCheckError;
                         }
@@ -894,10 +965,10 @@ const App: React.FC = () => {
                     {hasSearchedTasteCheck && !isLoadingTasteCheck && !tasteCheckError && tasteCheckResult && (
                       <div className="mt-8">
                         <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
-                          Taste Analysis for "{originalQueryForTasteCheck}"
+                          {t('taste_check_result_title', undefined, { query: originalQueryForTasteCheck })}
                         </h2>
                         <div className="max-w-sm mx-auto">
-                          <MovieCard movie={{...tasteCheckResult, matchScore: tasteCheckResult.matchScore}} isSearchResult={false} onViewTrailer={handleViewTrailer} />
+                          <MovieCard movie={{...tasteCheckResult, matchScore: tasteCheckResult.matchScore}} isSearchResult={false} onViewTrailer={handleViewTrailer} onFindSimilar={handleFindSimilarFromCard} />
                         </div>
                         {tasteCheckJustification && (
                           <div className="mt-6 p-4 sm:p-6 bg-slate-700/60 backdrop-blur-sm rounded-lg shadow-lg max-w-xl mx-auto">
@@ -905,7 +976,7 @@ const App: React.FC = () => {
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mr-2 text-purple-300">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.354a15.055 15.055 0 0 1-4.5 0m4.5 0 3.06-3.06m-3.06 3.06a2.25 2.25 0 0 1 3.06 0M12 6.75a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5Zm0 0a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z" />
                               </svg>
-                              Why you might (or might not) like it:
+                              {t('card_justification_prefix')}
                             </h4>
                             <p className="text-slate-200 whitespace-pre-line text-sm sm:text-base">{tasteCheckJustification}</p>
                           </div>
@@ -918,9 +989,9 @@ const App: React.FC = () => {
                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2 text-sky-400">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                           </svg>
-                          <h2 className="text-xl sm:text-2xl font-semibold text-slate-300">Analysis Inconclusive</h2>
+                          <h2 className="text-xl sm:text-2xl font-semibold text-slate-300">{t('taste_check_inconclusive_title')}</h2>
                         </div>
-                        <p>We couldn't provide a taste analysis for "{originalQueryForTasteCheck}". This might be because the {recommendationType} wasn't found, or there was an issue with the analysis.</p>
+                        <p>{t('taste_check_inconclusive_message', undefined, { query: originalQueryForTasteCheck, itemType: recommendationType })}</p>
                       </div>
                     )}
                   </section>
@@ -939,16 +1010,16 @@ const App: React.FC = () => {
                   </section>
 
                   <section
-                    id="tabpanel-watchParty"
+                    id="tabpanel-watchlist"
                     role="tabpanel"
-                    aria-labelledby="tab-watchParty"
+                    aria-labelledby="tab-watchlist"
                     className={`transition-opacity duration-500 ease-in-out
-                      ${activeTab === 'watchParty'
+                      ${activeTab === 'watchlist'
                         ? 'opacity-100 pointer-events-auto flex flex-col flex-grow min-h-0' 
                         : 'opacity-0 pointer-events-none absolute inset-0'
                       }`}
                   >
-                    <WatchPartyView isActive={activeTab === 'watchParty'} recommendationType={recommendationType} />
+                    <WatchlistView isActive={activeTab === 'watchlist'} />
                   </section>
 
                 </div>
@@ -961,7 +1032,12 @@ const App: React.FC = () => {
     }
   };
 
-  return renderContent();
+  return (
+    <>
+      <GlobalLoadingOverlay />
+      {renderContent()}
+    </>
+  );
 };
 
 export default App;

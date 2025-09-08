@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { StableUserPreferences } from '../types';
 import { MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, OTT_PLATFORMS, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, CINE_SUGGEST_STABLE_PREFERENCES_KEY, CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, TOTAL_ONBOARDING_STEPS, ONBOARDING_STEP_MILESTONES, COUNTRIES } from '../constants';
+import { trackEvent } from '../services/analyticsService';
 
 interface OnboardingWizardProps {
   onComplete: (preferences: StableUserPreferences) => void;
@@ -149,6 +150,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     if (currentStep === 4 && preferences.country === '') {
         return;
     }
+    
+    if (!isEditMode) {
+      trackEvent('onboarding_step_complete', { step: currentStep, step_name: ONBOARDING_STEP_MILESTONES[currentStep - 1] });
+    }
+
     setIsTransitioning(true);
     setAnimationClass('opacity-0 transition-opacity duration-150 ease-out'); 
     setTimeout(() => {
@@ -200,6 +206,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     localStorage.setItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY, JSON.stringify(finalPreferences));
     if (!isEditMode) {
       localStorage.setItem(CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, 'true');
+      trackEvent('onboarding_complete', {
+        frequency: finalPreferences.movieFrequency,
+        actor_director: finalPreferences.actorDirectorPreference,
+        ott_count: finalPreferences.ottPlatforms.length,
+      });
+    } else {
+       trackEvent('preferences_updated', {
+        frequency: finalPreferences.movieFrequency,
+        actor_director: finalPreferences.actorDirectorPreference,
+        ott_count: finalPreferences.ottPlatforms.length,
+      });
     }
     onComplete(finalPreferences);
   };
@@ -352,13 +369,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                  )}
             </div>
             <div>
-              <QuestionLabel  text="Your Streaming Services (optional)" />
+              <QuestionLabel icon={ICONS.question_ott} text="Your Streaming Services (optional)" />
               <div className="flex flex-wrap gap-3 justify-center">
                 {OTT_PLATFORMS.map(platform => (
                   <button type="button" key={platform} onClick={() => handleOttPlatformToggle(platform)}
                     aria-pressed={preferences.ottPlatforms.includes(platform)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 flex items-center ${preferences.ottPlatforms.includes(platform) ? 'bg-purple-500 text-white shadow-md ring-2 ring-purple-300' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
-                    <span dangerouslySetInnerHTML={{ __html: getOttIcon(platform) }} />
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${preferences.ottPlatforms.includes(platform) ? 'bg-purple-500 text-white shadow-md ring-2 ring-purple-300' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
                     {platform}
                   </button>
                 ))}
@@ -368,17 +384,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
         );
        case 5: // Confirmation
         return (
-          <div className="text-center px-2 sm:px-4">
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16 sm:w-20 sm:h-20 text-green-400 mx-auto mb-4 sm:mb-6">
+          <div className="text-center">
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-20 h-20 text-green-400 mx-auto mb-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">
+            <h2 className="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">
                 {isEditMode ? "Preferences Updated!" : "You're All Set!"}
             </h2>
-            <p className="text-slate-300 text-base sm:text-lg mb-4 sm:mb-6 px-2">
+            <p className="text-slate-300 text-lg mb-6">
                 {isEditMode ? "Your preferences have been saved." : "Your preferences have been saved. You can change these later using the settings icon in the header."}
             </p>
-            <p className="text-slate-400 text-xs sm:text-sm px-2">
+            <p className="text-slate-400 text-sm">
                 {isEditMode ? "Click \"Save Changes\" to return to the app." : "Click \"Start Discovering\" to find your next favorite movie or series."}
             </p>
           </div>
@@ -391,22 +407,22 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
   const isCountryStepAndInvalid = currentStep === 4 && preferences.country === '';
 
   return (
-    <div className="fixed inset-0 bg-slate-900 bg-opacity-95 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-4 z-[100]">
+    <div className="fixed inset-0 bg-slate-900 bg-opacity-95 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-[100]">
       {isEditMode && onBack && currentStep === 1 && (
         <button
           type="button"
           onClick={onBack}
           disabled={isTransitioning}
-          className={`absolute top-3 left-3 sm:top-4 sm:left-4 md:top-6 md:left-6 z-[110] p-2 rounded-full hover:bg-slate-700/70 text-slate-300 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`absolute top-4 left-4 sm:top-6 sm:left-6 z-[110] p-2 rounded-full hover:bg-slate-700/70 text-slate-300 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
           aria-label="Back to application"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
         </button>
       )}
-      <div className="bg-slate-800 p-4 sm:p-6 md:p-10 rounded-xl shadow-2xl w-full max-w-sm sm:max-w-md md:max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col">
-        <div className="mb-6 sm:mb-8">
+      <div className="bg-slate-800 p-6 sm:p-10 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="mb-8">
           <div className="relative pt-1">
             <div className="flex mb-2 items-center justify-between">
               <div>
@@ -426,18 +442,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
           </div>
         </div>
 
-        <div className={`flex-grow overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-slate-700 min-h-0 ${animationClass}`}>
+        <div className={`flex-grow overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-slate-700 min-h-0 ${animationClass} scroll-fade pb-6`}>
           {renderStepContent()}
         </div>
 
-        <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-700 flex flex-row justify-between items-center gap-3 sm:gap-4">
+        <div className="mt-8 pt-6 border-t border-slate-700 flex justify-between items-center">
           <div className="flex items-center">
             {isEditMode && onBack && currentStep > 1 && ( 
                 <button
                     type="button"
                     onClick={onBack}
                     disabled={isTransitioning}
-                    className={`px-4 sm:px-8 py-3 sm:py-3 bg-slate-500 hover:bg-slate-400 text-white text-sm sm:text-base font-medium rounded-lg shadow-md transition-colors duration-150 mr-3 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`px-6 py-2.5 bg-slate-500 hover:bg-slate-400 text-white font-medium rounded-lg shadow-md transition-colors duration-150 mr-3 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
                     aria-label="Back to main application"
                 >
                     Back to App
@@ -448,7 +464,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
                 type="button"
                 onClick={prevStep}
                 disabled={isTransitioning || (isEditMode && currentStep === 1 && !!onBack)} 
-                className={`px-4 sm:px-8 py-3 sm:py-3 bg-slate-600 hover:bg-slate-500 text-white text-sm sm:text-base font-medium rounded-lg shadow-md transition-colors duration-150 ${isTransitioning || (isEditMode && currentStep ===1 && !!onBack) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`px-6 py-2.5 bg-slate-600 hover:bg-slate-500 text-white font-medium rounded-lg shadow-md transition-colors duration-150 ${isTransitioning || (isEditMode && currentStep ===1 && !!onBack) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 aria-label="Previous step"
               >
                 Back
@@ -457,30 +473,28 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
              {currentStep === 1 && (!isEditMode || !onBack) && <div className="w-0 h-0 invisible"></div>}
 
           </div>
-          <div>
-            {currentStep < TOTAL_ONBOARDING_STEPS ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                disabled={isTransitioning || isCountryStepAndInvalid}
-                className={`px-4 sm:px-8 py-3 sm:py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ${isTransitioning || isCountryStepAndInvalid ? 'opacity-50 cursor-not-allowed' : ''}`}
-                aria-label="Next step"
-                title={isCountryStepAndInvalid ? "Please select a country to proceed" : undefined}
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isTransitioning}
-                className={`px-4 sm:px-8 py-3 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm sm:text-base font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
-                aria-label={isEditMode ? "Save Changes" : "Start Discovering"}
-              >
-                {isEditMode ? "Save Changes" : "Start Discovering!"}
-              </button>
-            )}
-          </div>
+          {currentStep < TOTAL_ONBOARDING_STEPS ? (
+            <button
+              type="button"
+              onClick={nextStep}
+              disabled={isTransitioning || isCountryStepAndInvalid}
+              className={`px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ${isTransitioning || isCountryStepAndInvalid ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label="Next step"
+              title={isCountryStepAndInvalid ? "Please select a country to proceed" : undefined}
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isTransitioning}
+              className={`px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ${isTransitioning ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label={isEditMode ? "Save Changes" : "Start Discovering"}
+            >
+              {isEditMode ? "Save Changes" : "Start Discovering!"}
+            </button>
+          )}
         </div>
       </div>
     </div>

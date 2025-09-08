@@ -2,6 +2,7 @@ import React from 'react';
 import type { Movie, MovieFeedback } from '../types';
 import { MovieCard } from './MovieCard';
 import { ShareButtons } from './ShareButtons';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface MovieListProps {
   movies: Movie[];
@@ -9,26 +10,28 @@ interface MovieListProps {
   titleText?: string;
   onCardFeedback?: (movieId: string, feedbackType: MovieFeedback['feedback']) => void;
   onViewTrailer?: (movie: Movie) => void;
+  onFindSimilar?: (title: string) => void;
 }
 
-export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleText, onCardFeedback, onViewTrailer }) => {
+export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleText, onCardFeedback, onViewTrailer, onFindSimilar }) => {
+  const { t } = useLanguage();
   if (movies.length === 0) {
     return null;
   }
 
-  const displayTitle = titleText || "Your Personalised Movie Recommendations"; // Default if not provided
+  const displayTitle = titleText || t('list_title_movie_default', "Your Personalised Movie Recommendations");
 
   return (
     <div className="mt-12">
       <h2 
         ref={titleRef}
         id="movie-list-title" // More generic ID
-        className="text-3xl font-bold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500"
+        className="text-3xl font-bold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 scroll-mt-20"
         tabIndex={-1} 
       >
-        {displayTitle} 
+        {displayTitle}
       </h2>
-      <ShareButtons />
+      
       {movies.length === 1 ? (
         <div className="flex justify-center px-2"> {/* Added padding for small screens */}
           <div className="w-full max-w-sm"> {/* Container to constrain the single MovieCard */}
@@ -36,6 +39,7 @@ export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleTex
               movie={movies[0]}
               onFeedback={onCardFeedback && movies[0].id ? (feedbackType) => onCardFeedback(movies[0].id!, feedbackType) : undefined}
               onViewTrailer={onViewTrailer}
+              onFindSimilar={onFindSimilar}
             />
           </div>
         </div>
@@ -53,10 +57,14 @@ export const MovieList: React.FC<MovieListProps> = ({ movies, titleRef, titleTex
               movie={movie}
               onFeedback={onCardFeedback && movie.id ? (feedbackType) => onCardFeedback(movie.id!, feedbackType) : undefined}
               onViewTrailer={onViewTrailer}
+              onFindSimilar={onFindSimilar}
             />
           ))}
         </div>
       )}
+      <div className="mt-12">
+        <ShareButtons />
+      </div>
     </div>
   );
 };

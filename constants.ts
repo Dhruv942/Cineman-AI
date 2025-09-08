@@ -1,10 +1,27 @@
-import type { PopularItemEntry, Country } from './types'; // Updated import
+import type { PopularItemEntry, Country, Language } from './types';
 
-export const MOVIE_GENRES: string[] = [
-  "Action", "Adventure", "Animation", "Comedy", "Crime",
-  "Documentary", "Drama", "Family", "Fantasy", "History",
-  "Horror", "Music", "Mystery", "Romance", "Scifi",
-  "Sport", "Superhero", "Thriller", "War", "Western", "Musical"
+export const MOVIE_GENRES = [
+  { value: "Action", icon: "action", key: "genre_action" },
+  { value: "Adventure", icon: "adventure", key: "genre_adventure" },
+  { value: "Animation", icon: "animation", key: "genre_animation" },
+  { value: "Comedy", icon: "comedy", key: "genre_comedy" },
+  { value: "Crime", icon: "crime", key: "genre_crime" },
+  { value: "Documentary", icon: "documentary", key: "genre_documentary" },
+  { value: "Drama", icon: "drama", key: "genre_drama" },
+  { value: "Family", icon: "family", key: "genre_family" },
+  { value: "Fantasy", icon: "fantasy", key: "genre_fantasy" },
+  { value: "History", icon: "history", key: "genre_history" },
+  { value: "Horror", icon: "horror", key: "genre_horror" },
+  { value: "Music", icon: "music", key: "genre_music" },
+  { value: "Mystery", icon: "mystery", key: "genre_mystery" },
+  { value: "Romance", icon: "romance", key: "genre_romance" },
+  { value: "Scifi", icon: "scifi", key: "genre_scifi" },
+  { value: "Sport", icon: "sport", key: "genre_sport" },
+  { value: "Superhero", icon: "superhero", key: "genre_superhero" },
+  { value: "Thriller", icon: "thriller", key: "genre_thriller" },
+  { value: "War", icon: "war", key: "genre_war" },
+  { value: "Western", icon: "western", key: "genre_western" },
+  { value: "Musical", icon: "musical", key: "genre_musical" }
 ];
 
 export const MOVIE_ERAS: string[] = [
@@ -36,6 +53,22 @@ export const MOVIE_LANGUAGES: { code: string; name: string }[] = [
   { code: "it", name: "Italian (Italiano)" },
   { code: "pt", name: "Portuguese (Português)" },
 ];
+
+export const SUPPORTED_TRANSLATION_LANGUAGES: Language[] = [
+    { code: "en", name: "English" },
+    { code: "es", name: "Español (Spanish)" },
+    { code: "fr", name: "Français (French)" },
+    { code: "de", name: "Deutsch (German)" },
+    { code: "ja", name: "日本語 (Japanese)" },
+    { code: "hi", name: "हिन्दी (Hindi)" },
+    { code: "pt", name: "Português (Portuguese)" },
+    { code: "it", name: "Italiano (Italian)" },
+    { code: "ru", name: "Русский (Russian)" },
+    { code: "zh", name: "中文 (Chinese)" },
+    { code: "ar", name: "العربية (Arabic)" },
+    { code: "ko", name: "한국어 (Korean)" },
+];
+
 
 export const COUNTRIES: Country[] = [
   { code: "any", name: "Any Country (Global)" },
@@ -145,6 +178,9 @@ export const CINE_SUGGEST_MOVIE_FEEDBACK_KEY = 'cineSuggestMovieFeedback_v1';
 export const CINE_SUGGEST_APP_SETTINGS_KEY = 'cineSuggestAppSettings_v1';
 export const CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY = 'cineSuggestGrowthPromptState_v1';
 export const CINE_SUGGEST_SESSION_COUNT_KEY = 'cineSuggestSessionCount_v1';
+export const CINE_SUGGEST_WATCHLIST_KEY = 'cineSuggestWatchlist_v1';
+export const CINE_SUGGEST_TRANSLATIONS_KEY_PREFIX = 'cineSuggestTranslations_';
+export const CINE_SUGGEST_USER_LANGUAGE_KEY = 'cineSuggestUserLanguage_v1';
 export const CINE_SUGGEST_STORE_REVIEW_URL = 'https://apps.apple.com/app/id1234567890';
 export const CINE_SUGGEST_SHARE_URL = 'https://cinemanai.app';
 
@@ -187,24 +223,33 @@ export const POPULAR_MOVIES_FOR_SUGGESTION: PopularItemEntry[] = [
 ];
 
 export const POPULAR_SERIES_FOR_SUGGESTION: PopularItemEntry[] = [
-  { title: "Breaking Bad", year: 2008, posterUrl: "https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg" },
-  { title: "Game of Thrones", year: 2011, posterUrl: "https://image.tmdb.org/t/p/w500/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg" },
-  { title: "Stranger Things", year: 2016, posterUrl: "https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg" },
-  { title: "The Office", year: 2005, posterUrl: "https://image.tmdb.org/t/p/w500/qj95rff3f57ZWVrL34G3jEZ0zS.jpg" },
-  { title: "Friends", year: 1994, posterUrl: "https://image.tmdb.org/t/p/w500/f496cm9enuEsZkSPzCwnTESEK5s.jpg" },
-  { title: "Chernobyl", year: 2019, posterUrl: "https://image.tmdb.org/t/p/w500/900h1PbCcTemPSXaDb7difQBgdA.jpg" },
-  { title: "The Mandalorian", year: 2019, posterUrl: "https://image.tmdb.org/t/p/w500/eU1i6eHXlzMOlEq0ku1R8GS7HlE.jpg" },
-  { title: "The Crown", year: 2016, posterUrl: "https://image.tmdb.org/t/p/w500/1MPK1s6Q5S1eO3WsoKk2tBsVTo.jpg" },
-  { title: "Black Mirror", year: 2011, posterUrl: "https://image.tmdb.org/t/p/w500/5UaYsGZOFhjh6G7jZnoPjL1n70n.jpg" },
-  { title: "Fleabag", year: 2016, posterUrl: "https://image.tmdb.org/t/p/w500/2yK7T9SB2l4fqtS82RBw09aVvXM.jpg" },
-  { title: "Ted Lasso", year: 2020, posterUrl: "https://image.tmdb.org/t/p/w500/5DUMPBSnHOZsbBv81GFXZXvDpoP.jpg" },
-  { title: "Squid Game", year: 2021, posterUrl: "https://image.tmdb.org/t/p/w500/dDlEmu3EZ0Pgg93K2SVNLCjCSvE.jpg" },
-  { title: "Attack on Titan", year: 2013, posterUrl: "https://image.tmdb.org/t/p/w500/hTP1DtLGFamjfu8WqjnuQ51nJ0o.jpg" },
-  { title: "Death Note", year: 2006, posterUrl: "https://image.tmdb.org/t/p/w500/iigT62j3Yl3jZgy2J6s7W2S2n0A.jpg" },
-  { title: "Arcane", year: 2021, posterUrl: "https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg" },
-  { title: "The Sopranos", year: 1999, posterUrl: "https://image.tmdb.org/t/p/w500/r5wVeymM2WCweV3Q0KOE6K2m8S2aT62S.jpg" },
-  { title: "Sherlock", year: 2010, posterUrl: "https://image.tmdb.org/t/p/w500/7WTsnHkbA0FaG6R9twfFde0I9hl.jpg" },
-  { title: "Better Call Saul", year: 2015, posterUrl: "https://image.tmdb.org/t/p/w500/hPeiGVoN265VbL2BUd7x3X0j4wV.jpg" },
-  { title: "Peaky Blinders", year: 2013, posterUrl: "https://image.tmdb.org/t/p/w500/vUUqzSgbQpSRnZc54Vp8mvhwu2l.jpg" },
-  { title: "Succession", year: 2018, posterUrl: "https://image.tmdb.org/t/p/w500/mRuXNAdLhX9426n2K2m8S2aT62S.jpg" }
+  { title: 'Breaking Bad', year: 2008, posterUrl: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg' },
+  { title: 'Game of Thrones', year: 2011, posterUrl: 'https://image.tmdb.org/t/p/w500/1XS1oqL89wqerub5QVE9INscBse.jpg' },
+  { title: 'The Sopranos', year: 1999, posterUrl: 'https://image.tmdb.org/t/p/w500/rTc7ZXdroIuB7DDoq2a07G1E140.jpg' },
+  { title: 'The Wire', year: 2002, posterUrl: 'https://image.tmdb.org/t/p/w500/4lbFpL2zPuA0QYQ2Z1g9CaTMh4i.jpg' },
+  { title: 'Stranger Things', year: 2016, posterUrl: 'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg' },
+  { title: 'Friends', year: 1994, posterUrl: 'https://image.tmdb.org/t/p/w500/f496cm9enuEsZkSPzCwnTESEK5s.jpg' },
+  { title: 'The Office', year: 2005, posterUrl: 'https://image.tmdb.org/t/p/w500/qWnJzyZhyy74gjpSjIXWmuk0ifX.jpg' },
+  { title: 'Chernobyl', year: 2019, posterUrl: 'https://image.tmdb.org/t/p/w500/900h1lPAj2DfiTjRjC6L6LsoALM.jpg' },
+  { title: 'Fleabag', year: 2016, posterUrl: 'https://image.tmdb.org/t/p/w500/27v2zDs00L2sHDM2Wa1Sj2a0gT.jpg' },
+  { title: 'Black Mirror', year: 2011, posterUrl: 'https://image.tmdb.org/t/p/w500/5UaYsGZOFhjh6xxMFRsraBGAo16.jpg' },
+  { title: 'Succession', year: 2018, posterUrl: 'https://image.tmdb.org/t/p/w500/m6TlinLhLB2b4iK6o1t4bA83er4.jpg' },
+  { title: 'Ted Lasso', year: 2020, posterUrl: 'https://image.tmdb.org/t/p/w500/5DbeS3Q2iNlI2E2wT8pBNfLdaL4.jpg' },
+  { title: 'The Mandalorian', year: 2019, posterUrl: 'https://image.tmdb.org/t/p/w500/pB82qt6gKzAqCDdALPeDBhB2Ljj.jpg' },
+  { title: 'Peaky Blinders', year: 2013, posterUrl: 'https://image.tmdb.org/t/p/w500/vUUqzSykIBD2fDRrghBvl7vDLI1.jpg' },
+  { title: 'Attack on Titan', year: 2013, posterUrl: 'https://image.tmdb.org/t/p/w500/hTP1DtLGFamjG9IMeGWxJCNVbYY.jpg' },
+  { title: 'Dark', year: 2017, posterUrl: 'https://image.tmdb.org/t/p/w500/apbrb6EVack4UqSSbK2O8n3s57.jpg' },
+  { title: 'The Crown', year: 2016, posterUrl: 'https://image.tmdb.org/t/p/w500/1M87TDEs23DOvS1iL2M8i2bN2A.jpg' },
+  { title: 'Westworld', year: 2016, posterUrl: 'https://image.tmdb.org/t/p/w500/8MfgyFHf7ikdmeEaBvAlim24GgG.jpg' },
+  { title: 'Sherlock', year: 2010, posterUrl: 'https://image.tmdb.org/t/p/w500/7WTsnHkGs3NBQpbGmWbM2A9jsYV.jpg' },
+  { title: 'The Boys', year: 2019, posterUrl: 'https://image.tmdb.org/t/p/w500/2zmTngn1tYC1DqNHM4K43v45pA6.jpg' },
+];
+
+export const LANDING_PAGE_POSTERS = [
+  'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', // Interstellar
+  'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg', // Pulp Fiction
+  'https://image.tmdb.org/t/p/w500/39wmItIW2zwAtoO7K4S3r4wko24.jpg', // Spirited Away
+  'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg', // The Dark Knight
+  'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg', // Blade Runner 2049
+  'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', // Parasite
 ];

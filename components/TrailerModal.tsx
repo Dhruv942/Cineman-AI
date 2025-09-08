@@ -7,6 +7,33 @@ interface TrailerModalProps {
 
 export const TrailerModal: React.FC<TrailerModalProps> = ({ trailerId, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  
+  // Normalize trailerId in case a full YouTube URL was provided instead of just the ID
+  const getEmbedId = (input: string): string => {
+    try {
+      // If it's already a clean ID (no special chars except - _), return as-is
+      if (/^[a-zA-Z0-9_-]{6,}$/i.test(input) && !input.includes('http')) {
+        return input;
+      }
+      const url = new URL(input);
+      // Standard watch URL: https://www.youtube.com/watch?v=VIDEO_ID
+      const v = url.searchParams.get('v');
+      if (v) return v;
+      // Short URL: https://youtu.be/VIDEO_ID
+      if (url.hostname.includes('youtu.be')) {
+        const parts = url.pathname.split('/').filter(Boolean);
+        if (parts[0]) return parts[0];
+      }
+      // Embed URL already: https://www.youtube.com/embed/VIDEO_ID
+      if (url.pathname.startsWith('/embed/')) {
+        const id = url.pathname.replace('/embed/', '').split('/')[0];
+        if (id) return id;
+      }
+    } catch {}
+    // Fallback to raw input
+    return input;
+  };
+  const embedId = getEmbedId(trailerId);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -61,10 +88,11 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({ trailerId, onClose }
         </div>
         <iframe
           className="absolute top-0 left-0 w-full h-full rounded-lg"
-          src={`https://www.youtube.com/embed/${trailerId}?autoplay=1&rel=0&modestbranding=1`}
+          src={`https://www.youtube.com/embed/${embedId}?autoplay=1&rel=0&modestbranding=1`}
           title="YouTube video player"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
         ></iframe>
       </div>

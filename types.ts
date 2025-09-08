@@ -1,3 +1,5 @@
+import { en } from "./translations/en";
+
 export interface StableUserPreferences {
   movieFrequency: string;
   actorDirectorPreference: string;
@@ -14,6 +16,7 @@ export interface SessionPreferences {
   mood: string;
   keywords: string;
   excludedGenres?: string[]; 
+  bingeWatchedSeries?: string[];
 }
 
 export interface UserPreferences extends StableUserPreferences, SessionPreferences {}
@@ -30,6 +33,9 @@ export interface Movie {
   posterUrl?: string;
   durationMinutes?: number; 
   matchScore?: number; 
+  justification?: string;
+  youtubeTrailerId?: string;
+  socialProofTag?: string;
 }
 
 export interface GeminiMovieRecommendation { 
@@ -43,63 +49,77 @@ export interface GeminiMovieRecommendation {
   posterUrl?: string;
   durationMinutes?: number;
   matchScore?: number;
+  justification?: string;
+  youtubeTrailerId?: string;
+  socialProofTag?: string;
 }
 
-export interface MovieFeedback {
-  id: string; 
-  title: string;
-  year: number;
-  feedback: 'Loved it!' | 'Liked it' | 'Not my vibe';
-  source?: string; // Optional: e.g., "in-app", "netflix-import"
+export interface ItemTitleSuggestion {
+    title: string;
+    year: number;
 }
 
-export type ActiveTab = 'recommendations' | 'similarSearch' | 'discovery' | 'watchParty' | 'tasteCheck';
-
-export interface PopularItemEntry { // Renamed from PopularMovieEntry
-  title: string;
-  year: number;
-  posterUrl?: string; 
-}
-
-export type view = 'main' | 'onboardingEdit' | 'myAccount' | 'otherSettings';
-
-export interface AppSettings {
-  numberOfRecommendations: number;
-}
-
-export type RecommendationType = 'movie' | 'series';
-
-export interface ItemTitleSuggestion { // Renamed from MovieTitleSuggestion
-  title: string;
-  year: number;
-}
-
-export interface Country { // Added for country selection
-  code: string;
-  name: string;
-}
-
-// For the raw response from Gemini for the taste check feature
 export interface TasteCheckGeminiResponseItem {
-  title: string | null;
-  year: number | null;
-  summary: string | null;
-  genres: string[] | null;
-  posterUrl?: string | null;
-  durationMinutes?: number | null;
-  matchScore: number | null; // User's taste match score for this specific item
+  title: string;
+  year: number;
+  summary: string;
+  genres: string[];
+  posterUrl?: string;
+  matchScore: number;
 }
 
 export interface TasteCheckGeminiResponse {
   itemFound: boolean;
   identifiedItem: TasteCheckGeminiResponseItem | null;
-  justification: string | null; // Explanation of why the user might like/dislike it
+  justification: string;
+  error?: string;
 }
 
-// For the structured response from the geminiService.checkTasteMatch function
 export interface TasteCheckServiceResponse {
-  itemFound: boolean;
-  movie: Movie | null; // This will be the identified item, transformed into our Movie type
-  justification: string | null;
-  error?: string | null;
+    movie: Movie | null;
+    justification: string | null;
+    itemFound: boolean;
+    error?: string;
 }
+
+
+export interface AppSettings {
+    numberOfRecommendations: number;
+    numberOfSimilarItems: number;
+    language?: string;
+}
+
+export interface MovieFeedback {
+    id: string; // e.g., 'thematrix1999'
+    title: string;
+    year: number;
+    feedback: 'Loved it!' | 'Liked it' | 'Not my vibe';
+    source?: string; // e.g., 'in-app', 'netflix-import'
+}
+
+export type ActiveTab = 'recommendations' | 'similarSearch' | 'tasteCheck' | 'discovery' | 'watchlist';
+export type RecommendationType = 'movie' | 'series';
+
+export interface PopularItemEntry {
+  title: string;
+  year: number;
+  posterUrl: string;
+}
+
+export interface GrowthPromptState {
+    lastPromptSession: number;
+    hasRated: boolean;
+    hasShared: boolean;
+}
+
+export interface Country {
+    code: string;
+    name: string;
+}
+
+export interface Language {
+    code: string;
+    name: string;
+}
+
+export type Translations = typeof en;
