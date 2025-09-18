@@ -61,6 +61,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
         )}
         <div style={{ animation: 'fade-in-hero 0.8s ease-out forwards' }} className="opacity-0">
             <div className="mb-4">
+               <img
+            src="./icons/icon128.png"
+            alt="CineMan AI logo"
+            className="w-20 h-20 text-purple-400 mx-auto mb-6"
+          />
                 <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
                     {t('appName', 'CineMan AI')}
                 </h1>
