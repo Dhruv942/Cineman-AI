@@ -1,1 +1,24 @@
-
+{
+  "name": "CineMan AI: Smart Movie & TV Show Recommender",
+  "short_name": "CineMan AI",
+  "description": "AI-powered movie and TV show recommender with personalized suggestions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["entertainment", "lifestyle"],
+  "lang": "en-US"
+}

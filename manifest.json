@@ -1,0 +1,73 @@
+{
+  "manifest_version": 3,
+  "name": "CineMan AI: Smart Movie & TV Show Recommender",
+  "short_name": "CineMan AI",
+  "version": "1.0.0",
+  "description": "AI-powered movie and TV show recommender with personalized suggestions for Netflix, Prime Video, Hotstar and more",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "CineMan AI"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.netflix.com/*"],
+      "js": [
+        "content-scripts/netflix-scraper.js",
+        "content-scripts/netflix-injector.js"
+      ],
+      "css": ["content-scripts/styles.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["*://*.primevideo.com/*"],
+      "js": [
+        "content-scripts/primevideo-scraper.js",
+        "content-scripts/primevideo-injector.js"
+      ],
+      "css": ["content-scripts/styles.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["*://*.hotstar.com/*"],
+      "js": [
+        "content-scripts/hotstar-scraper.js",
+        "content-scripts/hotstar-injector.js"
+      ],
+      "css": ["content-scripts/styles.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["*://*.google.com/search*"],
+      "js": ["content-scripts/google-injector.js"],
+      "css": ["content-scripts/styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": ["storage", "activeTab", "history"],
+  "host_permissions": [
+    "*://*.netflix.com/*",
+    "*://*.primevideo.com/*",
+    "*://*.hotstar.com/*",
+    "*://*.google.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*", "assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

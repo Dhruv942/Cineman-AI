@@ -16,10 +16,19 @@ const filesToCopy = [
 
 // Directories to copy from root to dist
 const dirsToCopy = [
-  'content-scripts',
-  'icons',
-  'public'
+  'content-scripts'
 ];
+
+// Special handling for icons (copy from public/icons to dist/icons)
+const iconsSrc = path.join(projectRoot, 'public', 'icons');
+const iconsDest = path.join(distDir, 'icons');
+if (fs.existsSync(iconsSrc)) {
+  if (fs.existsSync(iconsDest)) {
+    fs.rmSync(iconsDest, { recursive: true, force: true });
+  }
+  fs.cpSync(iconsSrc, iconsDest, { recursive: true });
+  console.log('Copied icons from public/icons to dist/icons');
+}
 
 console.log('Copying extension files...');
 

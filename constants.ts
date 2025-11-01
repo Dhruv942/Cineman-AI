@@ -1,4 +1,4 @@
-import type { PopularItemEntry, Country, Language } from './types';
+import type { PopularItemEntry, Country, Language } from "./types";
 
 export const MOVIE_GENRES = [
   { value: "Action", icon: "action", key: "genre_action" },
@@ -21,24 +21,47 @@ export const MOVIE_GENRES = [
   { value: "Thriller", icon: "thriller", key: "genre_thriller" },
   { value: "War", icon: "war", key: "genre_war" },
   { value: "Western", icon: "western", key: "genre_western" },
-  { value: "Musical", icon: "musical", key: "genre_musical" }
+  { value: "Musical", icon: "musical", key: "genre_musical" },
 ];
 
 export const MOVIE_ERAS: string[] = [
-  "Any", "2020s", "2010s", "2000s", "1990s", "1980s", "1970s", "Classics (pre-1970s)"
+  "Any",
+  "2020s",
+  "2010s",
+  "2000s",
+  "1990s",
+  "1980s",
+  "1970s",
+  "Classics (pre-1970s)",
 ];
 
 export const MOVIE_FREQUENCIES: string[] = [
-  "Daily", "A few times a week", "Once a week", "A few times a month", "Rarely"
+  "Daily",
+  "A few times a week",
+  "Once a week",
+  "A few times a month",
+  "Rarely",
 ];
 
 export const ACTOR_DIRECTOR_PREFERENCES: string[] = [
-  "No Preference", "Yes, prefer known actors", "Yes, prefer known directors", "Yes, both"
+  "No Preference",
+  "Yes, prefer known actors",
+  "Yes, prefer known directors",
+  "Yes, both",
 ];
 
 export const OTT_PLATFORMS: string[] = [
-  "Netflix", "Amazon Prime Video", "Disney+", "HBO Max (Max)", "Hulu",
-  "Apple TV+", "Paramount+", "Peacock", "Crunchyroll", "MUBI", "Other"
+  "Netflix",
+  "Amazon Prime Video",
+  "Disney+",
+  "HBO Max (Max)",
+  "Hulu",
+  "Apple TV+",
+  "Paramount+",
+  "Peacock",
+  "Crunchyroll",
+  "MUBI",
+  "Other",
 ];
 
 export const MOVIE_LANGUAGES: { code: string; name: string }[] = [
@@ -55,20 +78,19 @@ export const MOVIE_LANGUAGES: { code: string; name: string }[] = [
 ];
 
 export const SUPPORTED_TRANSLATION_LANGUAGES: Language[] = [
-    { code: "en", name: "English" },
-    { code: "es", name: "Español (Spanish)" },
-    { code: "fr", name: "Français (French)" },
-    { code: "de", name: "Deutsch (German)" },
-    { code: "ja", name: "日本語 (Japanese)" },
-    { code: "hi", name: "हिन्दी (Hindi)" },
-    { code: "pt", name: "Português (Portuguese)" },
-    { code: "it", name: "Italiano (Italian)" },
-    { code: "ru", name: "Русский (Russian)" },
-    { code: "zh", name: "中文 (Chinese)" },
-    { code: "ar", name: "العربية (Arabic)" },
-    { code: "ko", name: "한국어 (Korean)" },
+  { code: "en", name: "English" },
+  { code: "es", name: "Español (Spanish)" },
+  { code: "fr", name: "Français (French)" },
+  { code: "de", name: "Deutsch (German)" },
+  { code: "ja", name: "日本語 (Japanese)" },
+  { code: "hi", name: "हिन्दी (Hindi)" },
+  { code: "pt", name: "Português (Portuguese)" },
+  { code: "it", name: "Italiano (Italian)" },
+  { code: "ru", name: "Русский (Russian)" },
+  { code: "zh", name: "中文 (Chinese)" },
+  { code: "ar", name: "العربية (Arabic)" },
+  { code: "ko", name: "한국어 (Korean)" },
 ];
-
 
 export const COUNTRIES: Country[] = [
   { code: "any", name: "Any Country (Global)" },
@@ -87,19 +109,18 @@ export const COUNTRIES: Country[] = [
   // Add more countries as needed
 ];
 
-
 export const MOVIE_DURATIONS: string[] = [
   "Any",
   "Short (Under 90 min)",
   "Medium (90-120 min)",
-  "Long (Over 120 min)"
+  "Long (Over 120 min)",
 ];
 
 export const SERIES_SEASON_COUNTS: string[] = [
   "Any",
   "Short (1-3 seasons)",
   "Medium (4-7 seasons)",
-  "Long (8+ seasons)"
+  "Long (8+ seasons)",
 ];
 
 export const ICONS = {
@@ -107,7 +128,7 @@ export const ICONS = {
   action: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1.5 inline-block"><path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>`,
   adventure: `<img src="./icons/hiking.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
   animation: `<img src="./icons/animation.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
-  drama:` <img src="./icons/theater.png" class="w-4 h-4 mr-1.5 inline-block"/>`,
+  drama: ` <img src="./icons/theater.png" class="w-4 h-4 mr-1.5 inline-block"/>`,
   documentary: `<img src="./icons/documentary.png" class="w-4 h-4 mr-1.5 inline-block"/>`,
   comedy: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1.5 inline-block"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>`,
   romance: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1.5 inline-block"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>`,
@@ -116,18 +137,18 @@ export const ICONS = {
   horror: `<img src="./icons/hand.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
   history: `<img src="./icons/scroll.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
   crime: `<img src="./icons/knife.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
-  sport:`<img src="./icons/running.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
+  sport: `<img src="./icons/running.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
   superhero: `<img src="./icons/action.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
   family: `<img src="./icons/family.png" class="w-4 h-6 mr-1.5 inline-block"/>`,
-  fantasy:`<img src="./icons/wand.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
+  fantasy: `<img src="./icons/wand.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
   music: `<img src="./icons/musical-note.png" class="w-4 h-4 mr-1.5 inline-block"/>`,
   musical: `<img src="./icons/music.png" class="w-4 h-4 mr-1.5 inline-block"/>`,
-  mystery:`<img src="./icons/annonymous.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
-  war:`<img src="./icons/tank.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
-  western:`<img src="./icons/cowboy.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
-  facebook:`<img src = './icons/Facebook.png' class="w-10 h-10 mr-1.5 inline-block"/>`,
-whatsapp:`<img src = './icons/WhatsApp.png' class="w-10 h-10 mr-1.5 inline-block"/>`,
-twitter:`<img src = './icons/twitter.jpg' class="w-10 h-10 mr-1.5 inline-block"/>`,
+  mystery: `<img src="./icons/annonymous.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
+  war: `<img src="./icons/tank.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
+  western: `<img src="./icons/cowboy.png" class="w-6 h-6 mr-1.5 inline-block"/>`,
+  facebook: `<img src = './icons/Facebook.png' class="w-10 h-10 mr-1.5 inline-block"/>`,
+  whatsapp: `<img src = './icons/WhatsApp.png' class="w-10 h-10 mr-1.5 inline-block"/>`,
+  twitter: `<img src = './icons/twitter.jpg' class="w-10 h-10 mr-1.5 inline-block"/>`,
   default_genre: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1.5 inline-block"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" /></svg>`,
 
   // OTT Platforms
@@ -137,7 +158,7 @@ twitter:`<img src = './icons/twitter.jpg' class="w-10 h-10 mr-1.5 inline-block"/
   hbo_max_max: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1.5 inline-block"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.557l3.113-5.603a.375.375 0 0 1 .557 0l2.49 2.491Z" /></svg>`,
   default_ott: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1.5 inline-block"><path stroke-linecap="round" stroke-linejoin="round" d="M6 20.25h12M8.25 3v18m7.5-18v18M3.75 9h16.5M3.75 15h16.5" /></svg>`,
   movie_toggle_icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9A2.25 2.25 0 0 0 4.5 18.75Z" /></svg>`,
-  
+
   // Onboarding & Preference Form Icons
   question_frequency: `<img src="./icons/repeat.png" class="w-6 h-6 mr-2 text-purple-400 inline-block"/>`,
   question_actor_director: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2 text-purple-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>`,
@@ -152,11 +173,11 @@ twitter:`<img src = './icons/twitter.jpg' class="w-10 h-10 mr-1.5 inline-block"/
   question_mood: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2 text-purple-400"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>`,
   question_keywords: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2 text-purple-400"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H12M12 3.75H7.5M12 3.75C12 3.75 12 5.25 12 5.25m0-1.5C12 3.75 12 2.25 12 2.25m0 3C12 5.25 12 6.75 12 6.75m0-1.5C12 5.25 13.5 5.25 13.5 5.25m-1.5 0C12 5.25 10.5 5.25 10.5 5.25" /></svg>`,
   go_cta: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 ml-2 inline-block transform group-hover:translate-x-1 transition-transform duration-150"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>`,
-  
+
   // Movie Card Icons
   similar_to: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>`,
   availability: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`,
-  
+
   // Tab Icons
   recommendations_tab_icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>`,
   similar_search_tab_icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>`,
@@ -172,84 +193,312 @@ twitter:`<img src = './icons/twitter.jpg' class="w-10 h-10 mr-1.5 inline-block"/
   skip_for_party_icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m15 15-6 6m0-6 6-6m6 3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`,
 };
 
-export const CINE_SUGGEST_ONBOARDING_COMPLETE_KEY = 'cineSuggestOnboardingComplete_v1';
-export const CINE_SUGGEST_STABLE_PREFERENCES_KEY = 'cineSuggestStablePreferences_v1';
-export const CINE_SUGGEST_MOVIE_FEEDBACK_KEY = 'cineSuggestMovieFeedback_v1';
-export const CINE_SUGGEST_APP_SETTINGS_KEY = 'cineSuggestAppSettings_v1';
-export const CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY = 'cineSuggestGrowthPromptState_v1';
-export const CINE_SUGGEST_SESSION_COUNT_KEY = 'cineSuggestSessionCount_v1';
-export const CINE_SUGGEST_WATCHLIST_KEY = 'cineSuggestWatchlist_v1';
-export const CINE_SUGGEST_TRANSLATIONS_KEY_PREFIX = 'cineSuggestTranslations_';
-export const CINE_SUGGEST_USER_LANGUAGE_KEY = 'cineSuggestUserLanguage_v1';
-export const CINE_SUGGEST_STORE_REVIEW_URL = 'https://apps.apple.com/app/id1234567890';
-export const CINE_SUGGEST_SHARE_URL = 'https://cinemanai.app';
+export const CINE_SUGGEST_ONBOARDING_COMPLETE_KEY =
+  "cineSuggestOnboardingComplete_v1";
+export const CINE_SUGGEST_STABLE_PREFERENCES_KEY =
+  "cineSuggestStablePreferences_v1";
+export const CINE_SUGGEST_MOVIE_FEEDBACK_KEY = "cineSuggestMovieFeedback_v1";
+export const CINE_SUGGEST_APP_SETTINGS_KEY = "cineSuggestAppSettings_v1";
+export const CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY =
+  "cineSuggestGrowthPromptState_v1";
+export const CINE_SUGGEST_SESSION_COUNT_KEY = "cineSuggestSessionCount_v1";
+export const CINE_SUGGEST_WATCHLIST_KEY = "cineSuggestWatchlist_v1";
+export const CINE_SUGGEST_TRANSLATIONS_KEY_PREFIX = "cineSuggestTranslations_";
+export const CINE_SUGGEST_USER_LANGUAGE_KEY = "cineSuggestUserLanguage_v1";
+export const CINE_SUGGEST_STORE_REVIEW_URL =
+  "https://apps.apple.com/app/id1234567890";
+export const CINE_SUGGEST_SHARE_URL = "https://cinemanai.app";
+export const CINE_SUGGEST_EXTENSION_NUDGE_DISMISSED_KEY =
+  "cineSuggestExtensionNudgeDismissed_v1";
+export const CINE_SUGGEST_CHROME_STORE_URL =
+  "https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb";
 
-export const TOTAL_ONBOARDING_STEPS = 5; 
-export const ONBOARDING_STEP_MILESTONES = [ 
+export const TOTAL_ONBOARDING_STEPS = 5;
+export const ONBOARDING_STEP_MILESTONES = [
   "Welcome",
-  "Viewing Habits", 
-  "Content Style", 
+  "Viewing Habits",
+  "Content Style",
   "Access & Language", // Country will be added here
-  "Confirmation"
+  "Confirmation",
 ];
 
-
 export const POPULAR_MOVIES_FOR_SUGGESTION: PopularItemEntry[] = [
-  { title: "Inception", year: 2010, posterUrl: "https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg" },
-  { title: "The Shawshank Redemption", year: 1994, posterUrl: "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg" },
-  { title: "The Godfather", year: 1972, posterUrl: "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg" },
-  { title: "Pulp Fiction", year: 1994, posterUrl: "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg" },
-  { title: "The Dark Knight", year: 2008, posterUrl: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg" },
-  { title: "Forrest Gump", year: 1994, posterUrl: "https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg" },
-  { title: "Spirited Away", year: 2001, posterUrl: "https://image.tmdb.org/t/p/w500/39wmItIW2zwAtoO7K4P77f4kIe1.jpg" },
-  { title: "Parasite", year: 2019, posterUrl: "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg" },
-  { title: "Interstellar", year: 2014, posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" },
-  { title: "The Matrix", year: 1999, posterUrl: "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg" },
-  { title: "Gladiator", year: 2000, posterUrl: "https://image.tmdb.org/t/p/w500/ty8TGRBGvKMYFwc5AnAiOA1015M.jpg" },
-  { title: "Eternal Sunshine of the Spotless Mind", year: 2004, posterUrl: "https://image.tmdb.org/t/p/w500/5MwkWH9tYGE3sDkKqjXQCn22m7Q.jpg" },
-  { title: "Amélie", year: 2001, posterUrl: "https://image.tmdb.org/t/p/w500/nAPpkL5slyB50ig9E3Nn7D3S33F.jpg" },
-  { title: "Oldboy", year: 2003, posterUrl: "https://image.tmdb.org/t/p/w500/pWDt3i0t9K4KhK42Y6zYt0bCMhD.jpg" },
-  { title: "Mad Max: Fury Road", year: 2015, posterUrl: "https://image.tmdb.org/t/p/w500/8tZYtuWezp8JbcsvHYO0O46t2Qh.jpg" },
-  { title: "Arrival", year: 2016, posterUrl: "https://image.tmdb.org/t/p/w500/x2FJsf1ElAgr63Y3PNPtJ2z7wdL.jpg" },
-  { title: "Blade Runner 2049", year: 2017, posterUrl: "https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg" },
-  { title: "Spider-Man: Into the Spider-Verse", year: 2018, posterUrl: "https://image.tmdb.org/t/p/w500/iiZZdoQBEYBvYPUbJ3o5T2kTTaK.jpg" },
-  { title: "Everything Everywhere All at Once", year: 2022, posterUrl: "https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg" },
-  { title: "La La Land", year: 2016, posterUrl: "https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg" },
-  { title: "Whiplash", year: 2014, posterUrl: "https://image.tmdb.org/t/p/w500/7fn624j5lj3xTme2SgiLCeuedmO.jpg" },
-  { title: "The Grand Budapest Hotel", year: 2014, posterUrl: "https://image.tmdb.org/t/p/w500/eWdyYQreja6JGCzqHWXpWHDrrPo.jpg" },
-  { title: "Coco", year: 2017, posterUrl: "https://image.tmdb.org/t/p/w500/gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg" },
-  { title: "Your Name.", year: 2016, posterUrl: "https://image.tmdb.org/t/p/w500/q719jXXEzOoYaps6babgKnONONX.jpg" },
-  { title: "A Silent Voice", year: 2016, posterUrl: "https://image.tmdb.org/t/p/w500/tuFaWiqX04pWG64MvA7d2Q381Mz.jpg" }
+  {
+    title: "Inception",
+    year: 2010,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
+  },
+  {
+    title: "The Shawshank Redemption",
+    year: 1994,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg",
+  },
+  {
+    title: "The Godfather",
+    year: 1972,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+  },
+  {
+    title: "Pulp Fiction",
+    year: 1994,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
+  },
+  {
+    title: "The Dark Knight",
+    year: 2008,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+  },
+  {
+    title: "Forrest Gump",
+    year: 1994,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg",
+  },
+  {
+    title: "Spirited Away",
+    year: 2001,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/39wmItIW2zwAtoO7K4P77f4kIe1.jpg",
+  },
+  {
+    title: "Parasite",
+    year: 2019,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+  },
+  {
+    title: "Interstellar",
+    year: 2014,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+  },
+  {
+    title: "The Matrix",
+    year: 1999,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
+  },
+  {
+    title: "Gladiator",
+    year: 2000,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/ty8TGRBGvKMYFwc5AnAiOA1015M.jpg",
+  },
+  {
+    title: "Eternal Sunshine of the Spotless Mind",
+    year: 2004,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/5MwkWH9tYGE3sDkKqjXQCn22m7Q.jpg",
+  },
+  {
+    title: "Amélie",
+    year: 2001,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/nAPpkL5slyB50ig9E3Nn7D3S33F.jpg",
+  },
+  {
+    title: "Oldboy",
+    year: 2003,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/pWDt3i0t9K4KhK42Y6zYt0bCMhD.jpg",
+  },
+  {
+    title: "Mad Max: Fury Road",
+    year: 2015,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/8tZYtuWezp8JbcsvHYO0O46t2Qh.jpg",
+  },
+  {
+    title: "Arrival",
+    year: 2016,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/x2FJsf1ElAgr63Y3PNPtJ2z7wdL.jpg",
+  },
+  {
+    title: "Blade Runner 2049",
+    year: 2017,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg",
+  },
+  {
+    title: "Spider-Man: Into the Spider-Verse",
+    year: 2018,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/iiZZdoQBEYBvYPUbJ3o5T2kTTaK.jpg",
+  },
+  {
+    title: "Everything Everywhere All at Once",
+    year: 2022,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg",
+  },
+  {
+    title: "La La Land",
+    year: 2016,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg",
+  },
+  {
+    title: "Whiplash",
+    year: 2014,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/7fn624j5lj3xTme2SgiLCeuedmO.jpg",
+  },
+  {
+    title: "The Grand Budapest Hotel",
+    year: 2014,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/eWdyYQreja6JGCzqHWXpWHDrrPo.jpg",
+  },
+  {
+    title: "Coco",
+    year: 2017,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg",
+  },
+  {
+    title: "Your Name.",
+    year: 2016,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/q719jXXEzOoYaps6babgKnONONX.jpg",
+  },
+  {
+    title: "A Silent Voice",
+    year: 2016,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/tuFaWiqX04pWG64MvA7d2Q381Mz.jpg",
+  },
 ];
 
 export const POPULAR_SERIES_FOR_SUGGESTION: PopularItemEntry[] = [
-  { title: 'Breaking Bad', year: 2008, posterUrl: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg' },
-  { title: 'Game of Thrones', year: 2011, posterUrl: 'https://image.tmdb.org/t/p/w500/1XS1oqL89wqerub5QVE9INscBse.jpg' },
-  { title: 'The Sopranos', year: 1999, posterUrl: 'https://image.tmdb.org/t/p/w500/rTc7ZXdroIuB7DDoq2a07G1E140.jpg' },
-  { title: 'The Wire', year: 2002, posterUrl: 'https://image.tmdb.org/t/p/w500/4lbFpL2zPuA0QYQ2Z1g9CaTMh4i.jpg' },
-  { title: 'Stranger Things', year: 2016, posterUrl: 'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg' },
-  { title: 'Friends', year: 1994, posterUrl: 'https://image.tmdb.org/t/p/w500/f496cm9enuEsZkSPzCwnTESEK5s.jpg' },
-  { title: 'The Office', year: 2005, posterUrl: 'https://image.tmdb.org/t/p/w500/qWnJzyZhyy74gjpSjIXWmuk0ifX.jpg' },
-  { title: 'Chernobyl', year: 2019, posterUrl: 'https://image.tmdb.org/t/p/w500/900h1lPAj2DfiTjRjC6L6LsoALM.jpg' },
-  { title: 'Fleabag', year: 2016, posterUrl: 'https://image.tmdb.org/t/p/w500/27v2zDs00L2sHDM2Wa1Sj2a0gT.jpg' },
-  { title: 'Black Mirror', year: 2011, posterUrl: 'https://image.tmdb.org/t/p/w500/5UaYsGZOFhjh6xxMFRsraBGAo16.jpg' },
-  { title: 'Succession', year: 2018, posterUrl: 'https://image.tmdb.org/t/p/w500/m6TlinLhLB2b4iK6o1t4bA83er4.jpg' },
-  { title: 'Ted Lasso', year: 2020, posterUrl: 'https://image.tmdb.org/t/p/w500/5DbeS3Q2iNlI2E2wT8pBNfLdaL4.jpg' },
-  { title: 'The Mandalorian', year: 2019, posterUrl: 'https://image.tmdb.org/t/p/w500/pB82qt6gKzAqCDdALPeDBhB2Ljj.jpg' },
-  { title: 'Peaky Blinders', year: 2013, posterUrl: 'https://image.tmdb.org/t/p/w500/vUUqzSykIBD2fDRrghBvl7vDLI1.jpg' },
-  { title: 'Attack on Titan', year: 2013, posterUrl: 'https://image.tmdb.org/t/p/w500/hTP1DtLGFamjG9IMeGWxJCNVbYY.jpg' },
-  { title: 'Dark', year: 2017, posterUrl: 'https://image.tmdb.org/t/p/w500/apbrb6EVack4UqSSbK2O8n3s57.jpg' },
-  { title: 'The Crown', year: 2016, posterUrl: 'https://image.tmdb.org/t/p/w500/1M87TDEs23DOvS1iL2M8i2bN2A.jpg' },
-  { title: 'Westworld', year: 2016, posterUrl: 'https://image.tmdb.org/t/p/w500/8MfgyFHf7ikdmeEaBvAlim24GgG.jpg' },
-  { title: 'Sherlock', year: 2010, posterUrl: 'https://image.tmdb.org/t/p/w500/7WTsnHkGs3NBQpbGmWbM2A9jsYV.jpg' },
-  { title: 'The Boys', year: 2019, posterUrl: 'https://image.tmdb.org/t/p/w500/2zmTngn1tYC1DqNHM4K43v45pA6.jpg' },
+  {
+    title: "Breaking Bad",
+    year: 2008,
+    posterUrl: "https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",
+  },
+  {
+    title: "Game of Thrones",
+    year: 2011,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/1XS1oqL89wqerub5QVE9INscBse.jpg",
+  },
+  {
+    title: "The Sopranos",
+    year: 1999,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/rTc7ZXdroIuB7DDoq2a07G1E140.jpg",
+  },
+  {
+    title: "The Wire",
+    year: 2002,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/4lbFpL2zPuA0QYQ2Z1g9CaTMh4i.jpg",
+  },
+  {
+    title: "Stranger Things",
+    year: 2016,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg",
+  },
+  {
+    title: "Friends",
+    year: 1994,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/f496cm9enuEsZkSPzCwnTESEK5s.jpg",
+  },
+  {
+    title: "The Office",
+    year: 2005,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/qWnJzyZhyy74gjpSjIXWmuk0ifX.jpg",
+  },
+  {
+    title: "Chernobyl",
+    year: 2019,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/900h1lPAj2DfiTjRjC6L6LsoALM.jpg",
+  },
+  {
+    title: "Fleabag",
+    year: 2016,
+    posterUrl: "https://image.tmdb.org/t/p/w500/27v2zDs00L2sHDM2Wa1Sj2a0gT.jpg",
+  },
+  {
+    title: "Black Mirror",
+    year: 2011,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/5UaYsGZOFhjh6xxMFRsraBGAo16.jpg",
+  },
+  {
+    title: "Succession",
+    year: 2018,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/m6TlinLhLB2b4iK6o1t4bA83er4.jpg",
+  },
+  {
+    title: "Ted Lasso",
+    year: 2020,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/5DbeS3Q2iNlI2E2wT8pBNfLdaL4.jpg",
+  },
+  {
+    title: "The Mandalorian",
+    year: 2019,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/pB82qt6gKzAqCDdALPeDBhB2Ljj.jpg",
+  },
+  {
+    title: "Peaky Blinders",
+    year: 2013,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/vUUqzSykIBD2fDRrghBvl7vDLI1.jpg",
+  },
+  {
+    title: "Attack on Titan",
+    year: 2013,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/hTP1DtLGFamjG9IMeGWxJCNVbYY.jpg",
+  },
+  {
+    title: "Dark",
+    year: 2017,
+    posterUrl: "https://image.tmdb.org/t/p/w500/apbrb6EVack4UqSSbK2O8n3s57.jpg",
+  },
+  {
+    title: "The Crown",
+    year: 2016,
+    posterUrl: "https://image.tmdb.org/t/p/w500/1M87TDEs23DOvS1iL2M8i2bN2A.jpg",
+  },
+  {
+    title: "Westworld",
+    year: 2016,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/8MfgyFHf7ikdmeEaBvAlim24GgG.jpg",
+  },
+  {
+    title: "Sherlock",
+    year: 2010,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/7WTsnHkGs3NBQpbGmWbM2A9jsYV.jpg",
+  },
+  {
+    title: "The Boys",
+    year: 2019,
+    posterUrl:
+      "https://image.tmdb.org/t/p/w500/2zmTngn1tYC1DqNHM4K43v45pA6.jpg",
+  },
 ];
 
 export const LANDING_PAGE_POSTERS = [
-  'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', // Interstellar
-  'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg', // Pulp Fiction
-  'https://image.tmdb.org/t/p/w500/39wmItIW2zwAtoO7K4S3r4wko24.jpg', // Spirited Away
-  'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg', // The Dark Knight
-  'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg', // Blade Runner 2049
-  'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', // Parasite
+  "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg", // Interstellar
+  "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg", // Pulp Fiction
+  "https://image.tmdb.org/t/p/w500/39wmItIW2zwAtoO7K4S3r4wko24.jpg", // Spirited Away
+  "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg", // The Dark Knight
+  "https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg", // Blade Runner 2049
+  "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg", // Parasite
 ];
