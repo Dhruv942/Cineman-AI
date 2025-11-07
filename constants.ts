@@ -206,7 +206,7 @@ export const CINE_SUGGEST_WATCHLIST_KEY = "cineSuggestWatchlist_v1";
 export const CINE_SUGGEST_TRANSLATIONS_KEY_PREFIX = "cineSuggestTranslations_";
 export const CINE_SUGGEST_USER_LANGUAGE_KEY = "cineSuggestUserLanguage_v1";
 export const CINE_SUGGEST_STORE_REVIEW_URL =
-  "https://apps.apple.com/app/id1234567890";
+  "https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci";
 export const CINE_SUGGEST_SHARE_URL = "https://cinemanai.app";
 export const CINE_SUGGEST_EXTENSION_NUDGE_DISMISSED_KEY =
   "cineSuggestExtensionNudgeDismissed_v1";
