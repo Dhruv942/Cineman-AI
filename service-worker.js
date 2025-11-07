@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'what-to-watch-cache-v2'; // Incremented version for updates
+const CACHE_NAME = 'what-to-watch-cache-v3'; // Incremented version for updates
 const urlsToCache = [
   '/', // Alias for index.html
   '/index.html',
