@@ -1,4 +1,4 @@
-const CACHE_NAME = "what-to-watch-cache-v4"; // Incremented version for updates
+const CACHE_NAME = "what-to-watch-cache-v5"; // Incremented version for updates
 const urlsToCache = [
   "/", // Alias for index.html
   "/index.html",
@@ -65,41 +65,66 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // App shell resources (HTML files): Cache first, then network.
+  // App shell resources (HTML files): Network first, then cache (for offline support)
+  // This ensures we always get the latest HTML with correct asset references
   if (
     event.request.mode === "navigate" ||
     urlsToCache.includes(requestUrl.pathname) ||
     (requestUrl.origin === self.origin && requestUrl.pathname === "/")
   ) {
     event.respondWith(
-      caches
-        .match(event.request)
-        .then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
+      fetch(event.request)
+        .then((networkResponse) => {
+          // Always fetch fresh HTML from network first
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
           }
-          // Not in cache, fetch from network and cache it.
-          return fetch(event.request).then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-            }
-            return networkResponse;
-          });
+          return networkResponse;
         })
         .catch((error) => {
           console.error(
-            "[Service Worker] Fetch error for app shell resource:",
+            "[Service Worker] Network fetch failed for HTML, trying cache:",
             event.request.url,
             error
           );
-          // Optional: For navigation requests, return a fallback offline page if one is cached.
-          // if (event.request.mode === 'navigate') {
-          //   return caches.match('/offline.html');
-          // }
-          throw error; // Re-throw to let the browser handle the error display.
+          // If network fails, try cache (for offline support)
+          return caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            throw error; // Re-throw if cache also fails
+          });
+        })
+    );
+    return;
+  }
+
+  // For asset files (JS, CSS): Network first with cache fallback
+  // Always try network first to get latest assets
+  if (requestUrl.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            // Cache successful responses
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Network failed, try cache
+          return caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            return new Response("", { status: 404, statusText: "Not Found" });
+          });
         })
     );
     return;
