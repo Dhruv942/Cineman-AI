@@ -94,11 +94,15 @@ export const getTrailerLink = async (
 ): Promise<string | null> => {
   console.log("🎬 [TrailerService] Starting trailer fetch for:", title, year);
 
-  const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || "";
+  const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
   const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
 
   if (!PERPLEXITY_API_KEY) {
-    console.error("❌ [TrailerService] Perplexity API key is not configured");
+    console.error(
+      "❌ [TrailerService] Perplexity API key is not configured. " +
+        "Please set PERPLEXITY_API_KEY in your environment variables. " +
+        "For Render: Go to Environment tab and add PERPLEXITY_API_KEY"
+    );
     return null;
   }
 
