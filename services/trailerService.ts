@@ -102,6 +102,11 @@ export const getTrailerLink = async (
     return null;
   }
 
+  console.log(
+    "🔑 [TrailerService] Using Perplexity API Key:",
+    PERPLEXITY_API_KEY.substring(0, 10) + "..."
+  );
+
   console.log("✅ [TrailerService] API Key configured");
 
   const prompt = `Find the official YouTube trailer link for the movie "${title}" released in ${year}. 
