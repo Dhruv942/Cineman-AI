@@ -103,6 +103,15 @@ export const getTrailerLink = async (
   }
 
   console.log(
+    "🔑 [TrailerService] API Key status:",
+    PERPLEXITY_API_KEY ? "Configured" : "Missing"
+  );
+  console.log(
+    "🔑 [TrailerService] API Key prefix:",
+    PERPLEXITY_API_KEY.substring(0, 10) + "..."
+  );
+
+  console.log(
     "🔑 [TrailerService] Using Perplexity API Key:",
     PERPLEXITY_API_KEY.substring(0, 10) + "..."
   );
