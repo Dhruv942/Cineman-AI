@@ -27,7 +27,7 @@ import {
 } from "../constants";
 import { getAllFeedback } from "./feedbackService";
 
-const API_KEY = "process.env.GEMINI_API_KEY";
+const API_KEY = process.env.GEMINI_API_KEY;
 
 const ai = new GoogleGenAI({ apiKey: API_KEY! });
 

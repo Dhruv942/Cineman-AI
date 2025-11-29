@@ -28,6 +28,20 @@ const extractStreamingLinks = (text: string): StreamingOption[] => {
 
   const streamingOptions: StreamingOption[] = [];
 
+  // First, remove all search URLs from text completely to avoid any matches
+  // Remove Prime Video search URLs like: /search/ref=atv_sr_sug...
+  text = text.replace(
+    /https?:\/\/(?:www\.)?primevideo\.com\/search\/[^\s\)]+/gi,
+    ""
+  );
+  // Remove any other search URLs
+  text = text.replace(/https?:\/\/[^\s\)]*\/search[^\s\)]*/gi, "");
+  // Remove URLs with search parameters
+  text = text.replace(
+    /https?:\/\/[^\s\)]*[?&](?:q=|phrase=|search)[^\s\)]*/gi,
+    ""
+  );
+
   // Netflix patterns - ONLY accept direct title links, REJECT search URLs
   const netflixTitlePattern =
     /https?:\/\/(?:www\.)?netflix\.com\/title\/(\d+)/gi;
@@ -61,32 +75,31 @@ const extractStreamingLinks = (text: string): StreamingOption[] => {
   }
 
   // Amazon Prime Video patterns - STRICTLY REJECT search URLs
-  // First check: Reject if text contains Prime Video search URLs
-  const primeVideoSearchPattern = /primevideo\.com\/search/gi;
-  if (primeVideoSearchPattern.test(text)) {
-    console.log("⚠️ [StreamingLinksService] Rejected Prime Video search URL");
-  }
-
-  // Only extract direct detail/watch page URLs
+  // Only extract direct detail/watch/dp page URLs (NOT search pages)
   const primeVideoPatterns = [
-    /https?:\/\/(?:www\.)?primevideo\.com\/(?:detail|watch)\/[^\s\)]+/gi,
-    /https?:\/\/(?:www\.)?primevideo\.com\/dp\/[^\s\)]+/gi,
-    /https?:\/\/(?:www\.)?amazon\.com\/[^\s\)]+(?:dp|gp\/product)\/[A-Z0-9]+/gi,
+    // Direct detail/watch pages only
+    /https?:\/\/(?:www\.)?primevideo\.com\/(?:detail|watch|dp)\/[^\s\)]+/gi,
+    // Amazon product pages (for Prime Video content)
+    /https?:\/\/(?:www\.)?amazon\.com\/[^\s\)]+(?:dp|gp\/product)\/[A-Z0-9]+[^\s\)]*/gi,
   ];
 
   for (const pattern of primeVideoPatterns) {
     const matches = text.match(pattern);
     if (matches && matches.length > 0) {
-      // Strictly filter out search URLs and any URLs with search parameters
-      const validMatches = matches.filter(
-        (url) =>
-          !url.includes("/search") &&
-          !url.includes("/s?") &&
-          !url.includes("search?q=") &&
-          !url.includes("phrase=") &&
-          !url.includes("ref=atv_sr") &&
-          !url.match(/primevideo\.com\/search/)
-      );
+      // Strictly filter out ANY search URLs or URLs with search parameters
+      const validMatches = matches.filter((url) => {
+        const urlLower = url.toLowerCase();
+        return (
+          !urlLower.includes("/search") &&
+          !urlLower.includes("/s?") &&
+          !urlLower.includes("search?q=") &&
+          !urlLower.includes("phrase=") &&
+          !urlLower.includes("ref=atv_sr") &&
+          !urlLower.includes("prefix=") &&
+          !url.match(/primevideo\.com\/search/i) &&
+          !url.match(/amazon\.com.*search/i)
+        );
+      });
       if (validMatches.length > 0) {
         const url = validMatches[0];
         streamingOptions.push({
@@ -231,8 +244,10 @@ CRITICAL REQUIREMENTS:
 2. For Amazon Prime Video: You MUST find and return the DIRECT DETAIL/WATCH PAGE URL, NOT search page
    - CORRECT Format: https://www.primevideo.com/detail/... or https://www.primevideo.com/watch/... or direct movie/show page
    - WRONG (REJECT): https://www.primevideo.com/search/... (ANY URL with "/search" in it)
-   - DO NOT return URLs like: https://www.primevideo.com/search/ref=atv_sr_sug... or any search URLs
-   - ONLY return direct content detail/watch page URLs
+   - DO NOT return URLs like: 
+     * https://www.primevideo.com/search/ref=atv_sr_sug_atv_sr_hom_ss_1_5?phrase=Interstellar
+     * https://www.primevideo.com/search/... (ANY search URL)
+   - ONLY return direct content detail/watch/dp page URLs - NO search pages at all
 
 3. For other platforms: Return direct content pages, NOT search pages
 
