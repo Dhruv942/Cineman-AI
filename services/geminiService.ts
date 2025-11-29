@@ -27,13 +27,7 @@ import {
 } from "../constants";
 import { getAllFeedback } from "./feedbackService";
 
-const API_KEY = "AIzaSyAydFe00gWhKQYdoF7oKD6QALZMwnCfkus";
-
-if (!API_KEY) {
-  console.error(
-    "API_KEY is not set in environment variables. Movie recommendations will not work."
-  );
-}
+const API_KEY = "process.env.GEMINI_API_KEY";
 
 const ai = new GoogleGenAI({ apiKey: API_KEY! });
 
