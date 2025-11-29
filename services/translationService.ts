@@ -3,7 +3,7 @@ import { en } from "../translations/en";
 import { SUPPORTED_TRANSLATION_LANGUAGES } from "../constants";
 import type { Translations } from "../types";
 
-const API_KEY = process.env.GEMINI_API_KEY;
+const API_KEY = "process.env.GEMINI_API_KEY";
 
 if (!API_KEY) {
   console.error("API_KEY is not set for Translation Service.");
