@@ -210,8 +210,15 @@ export const getStreamingLinks = async (
     year
   );
 
-  const PERPLEXITY_API_KEY = "process.env.PERPLEXITY_API_KEY";
+  const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
   const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+
+  if (!PERPLEXITY_API_KEY) {
+    console.error(
+      "❌ [StreamingLinksService] Perplexity API key is not configured."
+    );
+    return [];
+  }
 
   const prompt = `Find the EXACT DIRECT streaming platform links (NOT search links) for the movie "${title}" released in ${year}.
 
