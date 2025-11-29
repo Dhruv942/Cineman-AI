@@ -7,6 +7,7 @@ import {
 } from "../services/feedbackService";
 import { useLanguage } from "../hooks/useLanguage";
 import { addToWatchlist } from "../services/watchlistService";
+import { getStreamingLinksCached } from "../services/streamingLinksService";
 
 interface MovieCardProps {
   movie: Movie;
@@ -38,6 +39,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   >("idle");
   const optionsMenuRef = useRef<HTMLDivElement>(null);
   const [posterUrl, setPosterUrl] = useState<string | null>(null);
+  const [fetchedStreamingOptions, setFetchedStreamingOptions] = useState<Array<{
+    service: string;
+    url: string;
+  }> | null>(null);
 
   useEffect(() => {
     setIsNew(true); // Mark as new whenever the movie prop changes
@@ -86,6 +91,29 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     fetchFeedback();
   }, [movie.title, movie.year, onFeedback]);
 
+  // Always fetch streaming links from Prelixty API
+  useEffect(() => {
+    const fetchStreamingLinks = async () => {
+      try {
+        const links = await getStreamingLinksCached(movie.title, movie.year);
+        if (links && links.length > 0) {
+          setFetchedStreamingOptions(links);
+          console.log(
+            "✅ [MovieCard] Fetched streaming links from Prelixty:",
+            links
+          );
+        } else {
+          setFetchedStreamingOptions(null);
+        }
+      } catch (error) {
+        console.error("❌ [MovieCard] Error fetching streaming links:", error);
+        setFetchedStreamingOptions(null);
+      }
+    };
+
+    fetchStreamingLinks();
+  }, [movie.title, movie.year]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -126,6 +154,186 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       onFindSimilar(movie.title);
       setIsOptionsOpen(false);
     }
+  };
+
+  const getServiceStyles = (serviceName: string) => {
+    const lowerName = serviceName.toLowerCase();
+    if (lowerName.includes("netflix"))
+      return "bg-red-600 hover:bg-red-700 text-white";
+    if (lowerName.includes("prime") || lowerName.includes("amazon"))
+      return "bg-[#00A8E1] hover:bg-[#008dbd] text-white";
+    if (lowerName.includes("disney") || lowerName.includes("hotstar"))
+      return "bg-[#113CCF] hover:bg-[#0e31aa] text-white";
+    if (lowerName.includes("hbo") || lowerName.includes("max"))
+      return "bg-purple-700 hover:bg-purple-800 text-white";
+    if (lowerName.includes("hulu"))
+      return "bg-[#1CE783] hover:bg-[#15b366] text-black";
+    if (lowerName.includes("apple"))
+      return "bg-gray-900 hover:bg-black text-white border border-gray-700";
+    if (lowerName.includes("jiocinema") || lowerName.includes("jio cinema"))
+      return "bg-blue-600 hover:bg-blue-700 text-white";
+    return "bg-slate-600 hover:bg-slate-500 text-white"; // Default
+  };
+
+  // Extract platform info from availability note (only for "Included with")
+  const getPlatformFromAvailability = (availabilityNote: string) => {
+    const note = availabilityNote.toLowerCase();
+
+    // Only process if it says "Included with"
+    const includedMatch = note.match(/included with\s+([^.]+)/i);
+    if (!includedMatch) {
+      return null;
+    }
+
+    const platformText = includedMatch[1].trim();
+    const searchQuery = encodeURIComponent(movie.title);
+
+    // Use only Prelixty fetched streaming options
+    const streamingOptions = fetchedStreamingOptions || [];
+
+    // Detect platform and return info
+    if (platformText.includes("netflix")) {
+      // Prefer: Check if we have a Netflix streaming option with direct link first
+      const netflixOption = streamingOptions.find((opt: any) =>
+        opt.service?.toLowerCase().includes("netflix")
+      );
+
+      let netflixUrl: string;
+
+      // Priority 1: If streamingOptions has a direct URL, use it (preferred)
+      if (netflixOption?.url) {
+        if (netflixOption.url.startsWith("http")) {
+          // Full URL provided - use directly (highest priority)
+          netflixUrl = netflixOption.url;
+        } else {
+          // Title ID provided - construct Netflix title link
+          netflixUrl = `https://www.netflix.com/title/${netflixOption.url}`;
+        }
+      } else {
+        // Priority 2: Fallback to search if no streamingOption found
+        netflixUrl = `https://www.netflix.com/search?q=${searchQuery}`;
+      }
+
+      return {
+        name: "Netflix",
+        url: netflixUrl,
+      };
+    }
+
+    if (
+      platformText.includes("prime video") ||
+      platformText.includes("amazon prime")
+    ) {
+      // Prefer: Check if we have a Prime Video streaming option with direct link first
+      const primeOption = streamingOptions.find(
+        (opt: any) =>
+          opt.service?.toLowerCase().includes("prime") ||
+          opt.service?.toLowerCase().includes("amazon")
+      );
+
+      let primeUrl: string;
+
+      // Priority 1: If streamingOptions has a direct URL, use it (preferred)
+      if (primeOption?.url) {
+        if (primeOption.url.startsWith("http")) {
+          // Full URL provided - use directly (highest priority)
+          primeUrl = primeOption.url;
+        } else {
+          // Title ID provided - construct Prime Video detail link
+          primeUrl = `https://www.primevideo.com/detail/${primeOption.url}`;
+        }
+      } else {
+        // Priority 2: Fallback to search if no streamingOption found
+        primeUrl = `https://www.primevideo.com/search/ref=atv_sr?query=${searchQuery}`;
+      }
+
+      return {
+        name: "Prime Video",
+        url: primeUrl,
+      };
+    }
+
+    if (platformText.includes("amazon")) {
+      // Prefer: Check if we have an Amazon streaming option with direct link first
+      const amazonOption = streamingOptions.find((opt: any) =>
+        opt.service?.toLowerCase().includes("amazon")
+      );
+
+      let amazonUrl: string;
+
+      // Priority 1: If streamingOptions has a direct URL, use it (preferred)
+      if (amazonOption?.url) {
+        if (amazonOption.url.startsWith("http")) {
+          // Full URL provided - use directly (highest priority)
+          amazonUrl = amazonOption.url;
+        } else {
+          // Title ID provided - construct Prime Video detail link
+          amazonUrl = `https://www.primevideo.com/detail/${amazonOption.url}`;
+        }
+      } else {
+        // Priority 2: Fallback to search if no streamingOption found
+        amazonUrl = `https://www.amazon.com/s?k=${searchQuery}&i=prime-instant-video`;
+      }
+
+      return {
+        name: "Amazon",
+        url: amazonUrl,
+      };
+    }
+
+    if (platformText.includes("disney") && platformText.includes("hotstar")) {
+      return {
+        name: "Disney+ Hotstar",
+        url: `https://www.hotstar.com/in/search?q=${searchQuery}`,
+      };
+    }
+
+    if (platformText.includes("hotstar")) {
+      return {
+        name: "Hotstar",
+        url: `https://www.hotstar.com/in/search?q=${searchQuery}`,
+      };
+    }
+
+    if (platformText.includes("disney")) {
+      return {
+        name: "Disney+",
+        url: `https://www.disneyplus.com/search?q=${searchQuery}`,
+      };
+    }
+
+    if (
+      platformText.includes("jiocinema") ||
+      platformText.includes("jio cinema")
+    ) {
+      return {
+        name: "JioCinema",
+        url: `https://www.jiocinema.com/search?q=${searchQuery}`,
+      };
+    }
+
+    if (platformText.includes("hulu")) {
+      return {
+        name: "Hulu",
+        url: `https://www.hulu.com/search?q=${searchQuery}`,
+      };
+    }
+
+    if (platformText.includes("hbo") || platformText.includes("max")) {
+      return {
+        name: "Max",
+        url: `https://www.max.com/search?q=${searchQuery}`,
+      };
+    }
+
+    if (platformText.includes("apple")) {
+      return {
+        name: "Apple TV+",
+        url: `https://tv.apple.com/search?term=${searchQuery}`,
+      };
+    }
+
+    return null;
   };
 
   const initialImageUrl = posterUrl || movie.posterUrl || placeholderImageUrl;
@@ -216,24 +424,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({
                   Find Similar
                 </button>
               )}
-              {onViewTrailer && (
-                <button
-                  onClick={() => {
-                    onViewTrailer(movie);
-                    setIsOptionsOpen(false);
-                  }}
-                  className="movie-card-options-button"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
-                  </svg>
-                  View Trailer
-                </button>
-              )}
               {movie.id && (
                 <button
                   onClick={handleAddToWatchlist}
@@ -263,18 +453,23 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </div>
         )}
 
-        {/* {movie.youtubeTrailerId && onViewTrailer && (
-    <button
-      onClick={() => onViewTrailer(movie)}
-      className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg z-10 flex items-center hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 focus-within:opacity-100"
-      aria-label={`View trailer for ${movie.title}`}
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 mr-1">
-        <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
-      </svg>
-      {t('card_trailer', 'Trailer')}
-    </button>
-  )} */}
+        {onViewTrailer && (
+          <button
+            onClick={() => onViewTrailer(movie)}
+            className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg z-10 flex items-center hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 focus-within:opacity-100"
+            aria-label={`View trailer for ${movie.title}`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="w-4 h-4 mr-1"
+            >
+              <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
+            </svg>
+            {t("card_trailer", "Trailer")}
+          </button>
+        )}
       </div>
 
       <div className="p-4 sm:p-5 flex flex-col flex-grow">
@@ -340,6 +535,58 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </p>
         </div>
 
+        {/* Streaming Options - Only from Prelixty */}
+        {fetchedStreamingOptions && fetchedStreamingOptions.length > 0 && (
+          <div className="mb-4 flex flex-wrap justify-center gap-2">
+            {fetchedStreamingOptions.map((option: any, idx: number) => {
+              const serviceLower = option.service.toLowerCase();
+              let finalUrl: string;
+
+              // Priority 1 (Preferred): If option.url is already a full URL, use it directly
+              if (option.url && option.url.startsWith("http")) {
+                finalUrl = option.url;
+              }
+              // Priority 2: If URL is just an ID, construct the full URL based on platform
+              else if (serviceLower.includes("netflix") && option.url) {
+                // Construct Netflix title link from ID
+                finalUrl = `https://www.netflix.com/title/${option.url}`;
+              } else if (
+                (serviceLower.includes("prime") ||
+                  serviceLower.includes("amazon")) &&
+                option.url
+              ) {
+                // Construct Prime Video detail link from ID
+                finalUrl = `https://www.primevideo.com/detail/${option.url}`;
+              } else {
+                // Fallback: Use option.url as-is if no special handling needed
+                finalUrl = option.url || "#";
+              }
+
+              return (
+                <a
+                  key={idx}
+                  href={finalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-md transition-transform transform hover:scale-105 flex items-center ${getServiceStyles(
+                    option.service
+                  )}`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-3 h-3 mr-1.5"
+                  >
+                    <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
+                  </svg>
+                  {option.service}
+                </a>
+              );
+            })}
+          </div>
+        )}
+
         <div className="mt-auto pt-4 border-t border-slate-700 space-y-3">
           {movie.similarTo && (
             <p className="text-xs text-slate-300 flex items-start justify-center text-center">
@@ -358,22 +605,56 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             </p>
           )}
 
-          {movie.availabilityNote && (
-            <p className="text-xs text-sky-300 flex items-start justify-center text-center">
-              <span
-                dangerouslySetInnerHTML={{ __html: ICONS.availability }}
-                className="flex-shrink-0 w-4 h-4 mr-1.5 text-sky-400 mt-px"
-              />
-              <span className="min-w-0">
-                <span className="font-semibold text-sky-400">
-                  {t("card_availability", "Availability:")}&nbsp;
-                </span>
-                <span className="font-bold text-sky-200">
-                  {movie.availabilityNote}
-                </span>
-              </span>
-            </p>
-          )}
+          {movie.availabilityNote &&
+            (() => {
+              const platformInfo = getPlatformFromAvailability(
+                movie.availabilityNote
+              );
+
+              // If platform detected from "Included with", show button
+              if (platformInfo) {
+                return (
+                  <div className="flex justify-center">
+                    <a
+                      href={platformInfo.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-md transition-transform transform hover:scale-105 flex items-center ${getServiceStyles(
+                        platformInfo.name
+                      )}`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-3 h-3 mr-1.5"
+                      >
+                        <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
+                      </svg>
+                      Watch on {platformInfo.name}
+                    </a>
+                  </div>
+                );
+              }
+
+              // Otherwise show text as fallback
+              return (
+                <p className="text-xs text-sky-300 flex items-start justify-center text-center">
+                  <span
+                    dangerouslySetInnerHTML={{ __html: ICONS.availability }}
+                    className="flex-shrink-0 w-4 h-4 mr-1.5 text-sky-400 mt-px"
+                  />
+                  <span className="min-w-0">
+                    <span className="font-semibold text-sky-400">
+                      {t("card_availability", "Availability:")}&nbsp;
+                    </span>
+                    <span className="font-bold text-sky-200">
+                      {movie.availabilityNote}
+                    </span>
+                  </span>
+                </p>
+              );
+            })()}
 
           {onFeedback && (
             <div className="pt-2">
