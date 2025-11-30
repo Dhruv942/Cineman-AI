@@ -94,21 +94,51 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   // Always fetch streaming links from Prelixty API
   useEffect(() => {
     const fetchStreamingLinks = async () => {
+      console.log(
+        `🎬 [MovieCard] ========== FETCHING STREAMING LINKS ==========`
+      );
+      console.log(`🎬 [MovieCard] Movie: ${movie.title} (${movie.year})`);
       try {
+        console.log(`📞 [MovieCard] Calling getStreamingLinksCached...`);
         const links = await getStreamingLinksCached(movie.title, movie.year);
-        if (links && links.length > 0) {
-          setFetchedStreamingOptions(links);
+        console.log(`📦 [MovieCard] Received response from API`);
+        console.log(`📦 [MovieCard] Links type:`, typeof links);
+        console.log(`📦 [MovieCard] Links is array:`, Array.isArray(links));
+        console.log(`📦 [MovieCard] Links length:`, links?.length || 0);
+        console.log(`📦 [MovieCard] Full links object:`, links);
+
+        if (links && Array.isArray(links) && links.length > 0) {
+          console.log("✅ [MovieCard] Links found! Total:", links.length);
           console.log(
-            "✅ [MovieCard] Fetched streaming links from Prelixty:",
-            links
+            "🔍 [MovieCard] All links received:",
+            JSON.stringify(links, null, 2)
           );
+          links.forEach((link: any, index: number) => {
+            console.log(
+              `  [${index + 1}] Service: "${link?.service}", URL: "${
+                link?.url
+              }"`
+            );
+            console.log(`  [${index + 1}] Full link object:`, link);
+          });
+          setFetchedStreamingOptions(links);
+          console.log("✅ [MovieCard] Set fetchedStreamingOptions state");
         } else {
+          console.log(
+            "⚠️ [MovieCard] No streaming links found or invalid format"
+          );
+          console.log("⚠️ [MovieCard] Links value:", links);
           setFetchedStreamingOptions(null);
         }
       } catch (error) {
         console.error("❌ [MovieCard] Error fetching streaming links:", error);
+        console.error(
+          "❌ [MovieCard] Error stack:",
+          error instanceof Error ? error.stack : "No stack"
+        );
         setFetchedStreamingOptions(null);
       }
+      console.log(`🎬 [MovieCard] ========== FETCH COMPLETE ==========`);
     };
 
     fetchStreamingLinks();
@@ -162,7 +192,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       return "bg-red-600 hover:bg-red-700 text-white";
     if (lowerName.includes("prime") || lowerName.includes("amazon"))
       return "bg-[#00A8E1] hover:bg-[#008dbd] text-white";
-    if (lowerName.includes("disney") || lowerName.includes("hotstar"))
+    if (lowerName.includes("hotstar") && !lowerName.includes("disney"))
       return "bg-[#113CCF] hover:bg-[#0e31aa] text-white";
     if (lowerName.includes("hbo") || lowerName.includes("max"))
       return "bg-purple-700 hover:bg-purple-800 text-white";
@@ -535,41 +565,142 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </p>
         </div>
 
-        {/* Streaming Options - Only from Prelixty */}
-        {fetchedStreamingOptions && fetchedStreamingOptions.length > 0 && (
-          <div className="mb-4 flex flex-wrap justify-center gap-2">
-            {fetchedStreamingOptions.map((option: any, idx: number) => {
-              const serviceLower = option.service.toLowerCase();
-              let finalUrl: string;
+        {/* Streaming Options - Show only if movie is actually available on Netflix or Amazon/Prime Video */}
+        {(() => {
+          console.log("🎯 [MovieCard] Rendering streaming button section");
+          console.log(
+            "📊 [MovieCard] fetchedStreamingOptions:",
+            fetchedStreamingOptions
+          );
 
-              // Priority 1 (Preferred): If option.url is already a full URL, use it directly
-              if (option.url && option.url.startsWith("http")) {
-                finalUrl = option.url;
-              }
-              // Priority 2: If URL is just an ID, construct the full URL based on platform
-              else if (serviceLower.includes("netflix") && option.url) {
-                // Construct Netflix title link from ID
-                finalUrl = `https://www.netflix.com/title/${option.url}`;
-              } else if (
-                (serviceLower.includes("prime") ||
-                  serviceLower.includes("amazon")) &&
-                option.url
-              ) {
-                // Construct Prime Video detail link from ID
-                finalUrl = `https://www.primevideo.com/detail/${option.url}`;
+          // ONLY show button if we have actual streaming options from Perplexity API
+          // NO fallbacks - if not available, show nothing
+          if (fetchedStreamingOptions && fetchedStreamingOptions.length > 0) {
+            console.log(
+              `🔍 [MovieCard] Found ${fetchedStreamingOptions.length} streaming options, filtering for Netflix/Amazon...`
+            );
+
+            // Find Netflix, Amazon/Prime Video, Hotstar, or JioCinema options
+            // Priority: Netflix > Amazon/Prime Video > Hotstar > JioCinema
+            const netflixOption = fetchedStreamingOptions.find((opt: any) =>
+              opt.service?.toLowerCase().includes("netflix")
+            );
+            const amazonOption = fetchedStreamingOptions.find(
+              (opt: any) =>
+                opt.service?.toLowerCase().includes("prime") ||
+                opt.service?.toLowerCase().includes("amazon")
+            );
+            const hotstarOption = fetchedStreamingOptions.find(
+              (opt: any) =>
+                opt.service?.toLowerCase().includes("hotstar") &&
+                !opt.service?.toLowerCase().includes("disney")
+            );
+            const jioCinemaOption = fetchedStreamingOptions.find(
+              (opt: any) =>
+                opt.service?.toLowerCase().includes("jiocinema") ||
+                opt.service?.toLowerCase().includes("jio cinema")
+            );
+
+            console.log("🎬 [MovieCard] Netflix option:", netflixOption);
+            console.log("🛒 [MovieCard] Amazon option:", amazonOption);
+            console.log("📺 [MovieCard] Hotstar option:", hotstarOption);
+            console.log("📱 [MovieCard] JioCinema option:", jioCinemaOption);
+
+            // Priority order: Netflix > Amazon/Prime Video > Hotstar > JioCinema
+            const selectedOption =
+              netflixOption || amazonOption || hotstarOption || jioCinemaOption;
+
+            if (!selectedOption) {
+              console.log(
+                "❌ [MovieCard] No supported platform (Netflix/Amazon/Hotstar/JioCinema) found, not showing button"
+              );
+              // No supported platform found, don't show any button
+              return null;
+            }
+
+            console.log("✅ [MovieCard] Selected option:", selectedOption);
+
+            // Also check if we have a valid URL
+            if (!selectedOption.url) {
+              console.log(
+                "❌ [MovieCard] Selected option has no URL, not showing button"
+              );
+              // No URL available, don't show button
+              return null;
+            }
+
+            const serviceLower = selectedOption.service.toLowerCase();
+            let finalUrl: string;
+
+            // Priority 1 (Preferred): If option.url is already a full URL, use it directly
+            if (selectedOption.url.startsWith("http")) {
+              finalUrl = selectedOption.url;
+              console.log("🔗 [MovieCard] Using full URL directly:", finalUrl);
+            }
+            // Priority 2: If URL is just an ID, construct the full URL based on platform
+            else if (serviceLower.includes("netflix")) {
+              // Construct Netflix title link from ID
+              finalUrl = `https://www.netflix.com/title/${selectedOption.url}`;
+              console.log(
+                "🔗 [MovieCard] Constructed Netflix URL from ID:",
+                finalUrl
+              );
+            } else if (
+              serviceLower.includes("prime") ||
+              serviceLower.includes("amazon")
+            ) {
+              // Construct Prime Video detail link from ID
+              finalUrl = `https://www.primevideo.com/detail/${selectedOption.url}`;
+              console.log(
+                "🔗 [MovieCard] Constructed Prime Video URL from ID:",
+                finalUrl
+              );
+            } else if (
+              serviceLower.includes("hotstar") &&
+              !serviceLower.includes("disney")
+            ) {
+              // Construct Hotstar URL (if it's not a full URL already)
+              if (selectedOption.url.startsWith("http")) {
+                finalUrl = selectedOption.url;
               } else {
-                // Fallback: Use option.url as-is if no special handling needed
-                finalUrl = option.url || "#";
+                finalUrl = `https://www.hotstar.com/in/${selectedOption.url}`;
               }
+              console.log("🔗 [MovieCard] Constructed Hotstar URL:", finalUrl);
+            } else if (
+              serviceLower.includes("jiocinema") ||
+              serviceLower.includes("jio cinema")
+            ) {
+              // Construct JioCinema URL (if it's not a full URL already)
+              if (selectedOption.url.startsWith("http")) {
+                finalUrl = selectedOption.url;
+              } else {
+                finalUrl = `https://www.jiocinema.com/${selectedOption.url}`;
+              }
+              console.log(
+                "🔗 [MovieCard] Constructed JioCinema URL:",
+                finalUrl
+              );
+            } else {
+              console.log("❌ [MovieCard] Invalid option, not showing button");
+              // Invalid option, don't show button
+              return null;
+            }
 
-              return (
+            console.log(
+              "🎉 [MovieCard] Showing button for:",
+              selectedOption.service,
+              "with URL:",
+              finalUrl
+            );
+
+            return (
+              <div className="mb-4 flex justify-center">
                 <a
-                  key={idx}
                   href={finalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-md transition-transform transform hover:scale-105 flex items-center ${getServiceStyles(
-                    option.service
+                    selectedOption.service
                   )}`}
                 >
                   <svg
@@ -580,12 +711,18 @@ export const MovieCard: React.FC<MovieCardProps> = ({
                   >
                     <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
                   </svg>
-                  {option.service}
+                  Watch on {selectedOption.service}
                 </a>
-              );
-            })}
-          </div>
-        )}
+              </div>
+            );
+          }
+
+          console.log(
+            "⚠️ [MovieCard] No streaming options found, not showing button"
+          );
+          // No streaming options found - show nothing (no fallback)
+          return null;
+        })()}
 
         <div className="mt-auto pt-4 border-t border-slate-700 space-y-3">
           {movie.similarTo && (
@@ -605,55 +742,35 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             </p>
           )}
 
+          {/* Show availability note as text only if no streaming button was shown above */}
           {movie.availabilityNote &&
+            !fetchedStreamingOptions?.length &&
             (() => {
               const platformInfo = getPlatformFromAvailability(
                 movie.availabilityNote
               );
 
-              // If platform detected from "Included with", show button
-              if (platformInfo) {
+              // Only show text if platform button wasn't shown
+              if (!platformInfo) {
                 return (
-                  <div className="flex justify-center">
-                    <a
-                      href={platformInfo.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-md transition-transform transform hover:scale-105 flex items-center ${getServiceStyles(
-                        platformInfo.name
-                      )}`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-3 h-3 mr-1.5"
-                      >
-                        <path d="M6.3 2.841A1.5 1.5 0 0 0 4 4.11V15.89a1.5 1.5 0 0 0 2.3 1.269l9.344-5.89a1.5 1.5 0 0 0 0-2.538L6.3 2.84Z" />
-                      </svg>
-                      Watch on {platformInfo.name}
-                    </a>
-                  </div>
+                  <p className="text-xs text-sky-300 flex items-start justify-center text-center">
+                    <span
+                      dangerouslySetInnerHTML={{ __html: ICONS.availability }}
+                      className="flex-shrink-0 w-4 h-4 mr-1.5 text-sky-400 mt-px"
+                    />
+                    <span className="min-w-0">
+                      <span className="font-semibold text-sky-400">
+                        {t("card_availability", "Availability:")}&nbsp;
+                      </span>
+                      <span className="font-bold text-sky-200">
+                        {movie.availabilityNote}
+                      </span>
+                    </span>
+                  </p>
                 );
               }
 
-              // Otherwise show text as fallback
-              return (
-                <p className="text-xs text-sky-300 flex items-start justify-center text-center">
-                  <span
-                    dangerouslySetInnerHTML={{ __html: ICONS.availability }}
-                    className="flex-shrink-0 w-4 h-4 mr-1.5 text-sky-400 mt-px"
-                  />
-                  <span className="min-w-0">
-                    <span className="font-semibold text-sky-400">
-                      {t("card_availability", "Availability:")}&nbsp;
-                    </span>
-                    <span className="font-bold text-sky-200">
-                      {movie.availabilityNote}
-                    </span>
-                  </span>
-                </p>
-              );
+              return null;
             })()}
 
           {onFeedback && (
