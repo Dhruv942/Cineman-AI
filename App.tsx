@@ -59,7 +59,7 @@ import { importExternalFeedback } from "./services/feedbackService";
 import { storeChromeHistory } from "./services/chromeHistoryService";
 import { useLanguage } from "./hooks/useLanguage";
 import { MovieCard } from "./components/MovieCard";
-
+import { Analytics } from "@vercel/analytics/react";
 type AppView =
   | "loading"
   | "landing"
@@ -564,19 +564,25 @@ const App: React.FC = () => {
   };
 
   const handleViewTrailer = async (movie: Movie) => {
-    console.log("🎬 [App] handleViewTrailer called for:", movie.title, movie.year);
+    console.log(
+      "🎬 [App] handleViewTrailer called for:",
+      movie.title,
+      movie.year
+    );
     trackEvent("view_trailer", { title: movie.title, year: movie.year });
-    
+
     // Always fetch fresh trailer from Perplexity to ensure we get a working link
     // Even if youtubeTrailerId exists, it might be unavailable/removed
     console.log("🔍 [App] Fetching fresh trailer from Perplexity...");
     setIsLoadingTrailer(true);
     try {
-      const { getTrailerLinkCached } = await import("./services/trailerService");
+      const { getTrailerLinkCached } = await import(
+        "./services/trailerService"
+      );
       console.log("📞 [App] Calling getTrailerLinkCached...");
       const trailerLink = await getTrailerLinkCached(movie.title, movie.year);
       console.log("📥 [App] Received trailer link:", trailerLink);
-      
+
       if (trailerLink) {
         console.log("✅ [App] Setting trailer ID:", trailerLink);
         setTrailerId(trailerLink);
@@ -584,7 +590,10 @@ const App: React.FC = () => {
         console.warn("⚠️ [App] Trailer link is null/empty");
         // Fallback to existing ID if available
         if (movie.youtubeTrailerId) {
-          console.log("🔄 [App] Falling back to existing trailer ID:", movie.youtubeTrailerId);
+          console.log(
+            "🔄 [App] Falling back to existing trailer ID:",
+            movie.youtubeTrailerId
+          );
           setTrailerId(movie.youtubeTrailerId);
         } else {
           // Show error message
@@ -601,7 +610,10 @@ const App: React.FC = () => {
       }
       // Fallback to existing ID if available
       if (movie.youtubeTrailerId) {
-        console.log("🔄 [App] Error occurred, falling back to existing trailer ID:", movie.youtubeTrailerId);
+        console.log(
+          "🔄 [App] Error occurred, falling back to existing trailer ID:",
+          movie.youtubeTrailerId
+        );
         setTrailerId(movie.youtubeTrailerId);
       } else {
         alert("Failed to fetch trailer. Please try again later.");
@@ -1158,7 +1170,9 @@ const App: React.FC = () => {
               <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
                 <div className="bg-slate-900 rounded-lg p-8 shadow-2xl">
                   <LoadingSpinner />
-                  <p className="text-slate-300 mt-4 text-center">Fetching trailer...</p>
+                  <p className="text-slate-300 mt-4 text-center">
+                    Fetching trailer...
+                  </p>
                 </div>
               </div>
             )}
@@ -1799,6 +1813,7 @@ const App: React.FC = () => {
     <>
       <GlobalLoadingOverlay />
       {renderContent()}
+      <Analytics />
     </>
   );
 };
