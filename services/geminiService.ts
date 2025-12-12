@@ -1,5 +1,4 @@
 declare const chrome: any;
-import { GoogleGenAI } from "@google/genai";
 import type {
   UserPreferences,
   Movie,
@@ -27,9 +26,67 @@ import {
 } from "../constants";
 import { getAllFeedback } from "./feedbackService";
 
-const API_KEY = process.env.GEMINI_API_KEY;
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
+const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
+interface PerplexityResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+/**
+ * Helper function to call Perplexity API
+ */
+const callPerplexityAPI = async (
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens: number = 2000
+): Promise<string> => {
+  if (!PERPLEXITY_API_KEY) {
+    throw new Error("PERPLEXITY_API_KEY is not configured.");
+  }
+
+  const response = await fetch(PERPLEXITY_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "sonar-pro",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: userPrompt,
+        },
+      ],
+      temperature: 0.1,
+      max_tokens: maxTokens,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`
+    );
+  }
+
+  const data: PerplexityResponse = await response.json();
+
+  if (!data.choices || data.choices.length === 0) {
+    throw new Error("No response from Perplexity API");
+  }
+
+  return data.choices[0].message.content;
+};
 
 const getCurrentLanguageInfo = (): { code: string; name: string } => {
   const langCode = localStorage.getItem(CINE_SUGGEST_USER_LANGUAGE_KEY) || "en";
@@ -557,7 +614,8 @@ export const getMovieRecommendations = async (
   recommendationType: RecommendationType,
   sessionExcludedItems: Movie[] = []
 ): Promise<Movie[]> => {
-  if (!API_KEY) throw new Error("API_KEY is not configured.");
+  if (!PERPLEXITY_API_KEY)
+    throw new Error("PERPLEXITY_API_KEY is not configured.");
 
   const [feedbackHistory, numberOfRecommendations] = await Promise.all([
     getAllFeedback(),
@@ -572,17 +630,11 @@ export const getMovieRecommendations = async (
     numberOfRecommendations + 3
   ); // Fetch more to build a buffer
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      thinkingConfig: { thinkingBudget: 0 },
-    },
-  });
+  const systemPrompt = `You are a world-class movie and TV series recommendation expert AI. Your primary goal is to provide high-quality, personalized recommendations. You MUST return ONLY valid JSON - no explanations, no markdown, just the JSON array.`;
 
+  const responseText = await callPerplexityAPI(systemPrompt, prompt, 4000);
   const rawRecommendations: GeminiMovieRecommendation[] =
-    parseAndValidateResponse(response.text, true);
+    parseAndValidateResponse(responseText, true);
 
   return rawRecommendations.map((rec) => ({
     ...rec,
@@ -595,7 +647,8 @@ export const findSimilarItems = async (
   recommendationType: RecommendationType,
   stablePreferences: StableUserPreferences
 ): Promise<Movie[]> => {
-  if (!API_KEY) throw new Error("API_KEY is not configured.");
+  if (!PERPLEXITY_API_KEY)
+    throw new Error("PERPLEXITY_API_KEY is not configured.");
 
   const [feedbackHistory, numberOfRecs] = await Promise.all([
     getAllFeedback(),
@@ -610,17 +663,11 @@ export const findSimilarItems = async (
     numberOfRecs
   );
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      thinkingConfig: { thinkingBudget: 0 },
-    },
-  });
+  const systemPrompt = `You are a movie and TV series recommendation expert. You MUST return ONLY valid JSON array - no explanations, no markdown, just the JSON array.`;
 
+  const responseText = await callPerplexityAPI(systemPrompt, prompt, 3000);
   const rawRecommendations: GeminiMovieRecommendation[] =
-    parseAndValidateResponse(response.text, true);
+    parseAndValidateResponse(responseText, true);
 
   return rawRecommendations.map((rec) => ({
     ...rec,
@@ -633,7 +680,8 @@ export const checkTasteMatch = async (
   recommendationType: RecommendationType,
   stablePreferences: StableUserPreferences
 ): Promise<TasteCheckServiceResponse> => {
-  if (!API_KEY) throw new Error("API_KEY is not configured.");
+  if (!PERPLEXITY_API_KEY)
+    throw new Error("PERPLEXITY_API_KEY is not configured.");
   const feedbackHistory = await getAllFeedback();
   const prompt = constructTasteCheckPrompt(
     itemTitle,
@@ -642,17 +690,11 @@ export const checkTasteMatch = async (
     feedbackHistory
   );
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      thinkingConfig: { thinkingBudget: 0 },
-    },
-  });
+  const systemPrompt = `You are a movie and series taste analysis expert. You MUST return ONLY valid JSON object - no explanations, no markdown, just the JSON object.`;
 
+  const responseText = await callPerplexityAPI(systemPrompt, prompt, 2000);
   const result: TasteCheckGeminiResponse = parseAndValidateResponse(
-    response.text,
+    responseText,
     false
   );
 
@@ -689,8 +731,10 @@ export const getSingleReplacementRecommendation = async (
   recommendationType: RecommendationType,
   allExcludedItems: Movie[]
 ): Promise<Movie | null> => {
-  if (!API_KEY) {
-    console.error("API_KEY not configured, cannot fetch replacement.");
+  if (!PERPLEXITY_API_KEY) {
+    console.error(
+      "PERPLEXITY_API_KEY not configured, cannot fetch replacement."
+    );
     return null;
   }
   const feedbackHistory = await getAllFeedback();
@@ -702,16 +746,10 @@ export const getSingleReplacementRecommendation = async (
   );
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
+    const systemPrompt = `You are a movie and TV series recommendation expert. You MUST return ONLY valid JSON object - no explanations, no markdown, just the JSON object.`;
+    const responseText = await callPerplexityAPI(systemPrompt, prompt, 2000);
     const rawRecommendation: GeminiMovieRecommendation =
-      parseAndValidateResponse(response.text, false);
+      parseAndValidateResponse(responseText, false);
     return {
       ...rawRecommendation,
       id: `${rawRecommendation.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${
@@ -729,7 +767,7 @@ export const getItemTitleSuggestions = async (
   query: string,
   recommendationType: RecommendationType
 ): Promise<AppItemTitleSuggestion[]> => {
-  if (!API_KEY || query.length < 2) return [];
+  if (!PERPLEXITY_API_KEY || query.length < 2) return [];
 
   const cacheKey = `${recommendationType}:${query}`;
   if (autosuggestCache.has(cacheKey)) {
@@ -747,16 +785,10 @@ Return a valid JSON array ONLY, with each object following this schema:
 Do not add any text before or after the JSON array. If you have no suggestions, return an empty array [].`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
+    const systemPrompt = `You are a movie and TV series title auto-completer. You MUST return ONLY valid JSON array - no explanations, no markdown, just the JSON array.`;
+    const responseText = await callPerplexityAPI(systemPrompt, prompt, 1000);
     const suggestions: AppItemTitleSuggestion[] = parseAndValidateResponse(
-      response.text,
+      responseText,
       true
     );
     autosuggestCache.set(cacheKey, suggestions); // Store in cache
@@ -770,22 +802,16 @@ Do not add any text before or after the JSON array. If you have no suggestions, 
 export const enrichViewingHistory = async (
   titles: string[]
 ): Promise<{ title: string; year: number }[]> => {
-  if (!API_KEY || titles.length === 0)
+  if (!PERPLEXITY_API_KEY || titles.length === 0)
     return titles.map((t) => ({ title: t, year: new Date().getFullYear() }));
 
   const prompt = constructEnrichHistoryPrompt(titles);
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    });
+    const systemPrompt = `You are a film and TV series data enrichment expert. You MUST return ONLY valid JSON array - no explanations, no markdown, just the JSON array.`;
+    const responseText = await callPerplexityAPI(systemPrompt, prompt, 2000);
     const enrichedItems: { title: string; year: number }[] =
-      parseAndValidateResponse(response.text, true);
+      parseAndValidateResponse(responseText, true);
     return enrichedItems;
   } catch (error) {
     console.error("Error enriching viewing history:", error);
