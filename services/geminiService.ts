@@ -284,8 +284,10 @@ Based on the user's detailed taste profile and current request, suggest ${number
       prompt += `\n- **WATCHED (Implicitly Liked):** ${importedHistory
         .map((f) => `"${f.title} (${f.year})"`)
         .join(", ")}`;
-    if (dislikedItems)
-      prompt += `\n- **DISLIKED (Avoid Similar):** ${dislikedItems}`;
+    if (dislikedItems) {
+      prompt += `\n- **DISLIKED (CRITICAL - Do NOT suggest these exact titles OR similar ones):** ${dislikedItems}`;
+      prompt += `\n  - **IMPORTANT:** Do NOT suggest any of these exact movies/series again. Also avoid suggesting titles with similar characteristics (genre, tone, style, themes) to these disliked items.`;
+    }
   } else {
     prompt += `\n- **CRITICAL NEW USER:** This user has no feedback history. It is VITAL that these initial recommendations are high-quality, popular, and critically acclaimed to build trust. Prioritize "safe bets".`;
   }
@@ -330,9 +332,10 @@ Based on the user's detailed taste profile and current request, suggest ${number
 ---
 **Exclusions & Formatting**
 
--   **Do NOT suggest these titles:** ${sessionExcludedItems
+-   **Do NOT suggest these exact titles (CRITICAL):** ${sessionExcludedItems
     .map((m) => `"${m.title} (${m.year})"`)
     .join(", ")}.
+    -   These titles must be completely excluded from your suggestions. Do not suggest them under any circumstances.
 -   **Response Format:** Your response MUST be a single, valid JSON array. Each object represents one recommendation. Do not add any text, comments, or markdown before or after the JSON array.
 
 **JSON Schema per item (REMEMBER THE LANGUAGE & AVAILABILITY RULE):**
@@ -415,7 +418,7 @@ USER'S TASTE PROFILE:
       .map((f) => `"${f.title}"`)
       .join(", ") || "None"
   }
-  - Disliked: ${
+  - Disliked (Do NOT suggest these exact titles OR similar ones): ${
     feedbackHistory
       .filter((f) => f.feedback === "Not my vibe")
       .map((f) => `"${f.title}"`)
@@ -622,11 +625,22 @@ export const getMovieRecommendations = async (
     getNumberOfRecommendationsSetting(),
   ]);
 
+  // Add all "Not my vibe" movies to excluded items to prevent them from appearing again
+  const notMyVibeMovies: Movie[] = feedbackHistory
+    .filter((f) => f.feedback === "Not my vibe")
+    .map((f) => ({
+      id: `${f.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${f.year}`,
+      title: f.title,
+      year: f.year,
+    }));
+
+  const allExcludedItems = [...sessionExcludedItems, ...notMyVibeMovies];
+
   const prompt = constructPrompt(
     preferences,
     recommendationType,
     feedbackHistory,
-    sessionExcludedItems,
+    allExcludedItems,
     numberOfRecommendations + 3
   ); // Fetch more to build a buffer
 
@@ -636,10 +650,16 @@ export const getMovieRecommendations = async (
   const rawRecommendations: GeminiMovieRecommendation[] =
     parseAndValidateResponse(responseText, true);
 
-  return rawRecommendations.map((rec) => ({
-    ...rec,
-    id: `${rec.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${rec.year}`,
-  }));
+  // Convert to Movie objects and filter out any "Not my vibe" movies (safety check)
+  const excludedIds = new Set(allExcludedItems.map((m) => m.id));
+  const movies = rawRecommendations
+    .map((rec) => ({
+      ...rec,
+      id: `${rec.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${rec.year}`,
+    }))
+    .filter((movie) => !excludedIds.has(movie.id));
+
+  return movies;
 };
 
 export const findSimilarItems = async (
@@ -655,6 +675,13 @@ export const findSimilarItems = async (
     getNumberOfSimilarItemsSetting(),
   ]);
 
+  // Get all "Not my vibe" movies to exclude
+  const notMyVibeIds = new Set(
+    feedbackHistory
+      .filter((f) => f.feedback === "Not my vibe")
+      .map((f) => `${f.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${f.year}`)
+  );
+
   const prompt = constructSimilarItemsPrompt(
     itemTitle,
     recommendationType,
@@ -669,10 +696,13 @@ export const findSimilarItems = async (
   const rawRecommendations: GeminiMovieRecommendation[] =
     parseAndValidateResponse(responseText, true);
 
-  return rawRecommendations.map((rec) => ({
-    ...rec,
-    id: `${rec.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${rec.year}`,
-  }));
+  // Filter out "Not my vibe" movies
+  return rawRecommendations
+    .map((rec) => ({
+      ...rec,
+      id: `${rec.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${rec.year}`,
+    }))
+    .filter((movie) => !notMyVibeIds.has(movie.id));
 };
 
 export const checkTasteMatch = async (
