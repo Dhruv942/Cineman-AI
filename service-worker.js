@@ -1,5 +1,5 @@
 const CACHE_NAME = "what-to-watch-cache-v5"; // Incremented version for updates
-const PERPLEXITY_API_KEY = "REPLACED_API_KEY";
+// API key is passed in the request message, not hardcoded for security
 const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
 
 const urlsToCache = [
@@ -13,13 +13,21 @@ const urlsToCache = [
 // Handle messages from extension pages to proxy API calls
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request && request.type === "CALL_PERPLEXITY_API") {
-    const { systemPrompt, userPrompt, maxTokens } = request;
+    const { systemPrompt, userPrompt, maxTokens, apiKey } = request;
+    
+    if (!apiKey) {
+      sendResponse({
+        success: false,
+        error: "API key not provided",
+      });
+      return true;
+    }
     
     fetch(PERPLEXITY_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: "sonar-pro",

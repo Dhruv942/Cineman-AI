@@ -26,7 +26,11 @@ import {
 } from "../constants";
 import { getAllFeedback } from "./feedbackService";
 
-const PERPLEXITY_API_KEY = "process.env.PERPLEXITY_API_KEY";
+// Get API key from Vite's injected environment variable (replaced at build time)
+// Vite replaces process.env.PERPLEXITY_API_KEY with actual value from vite.config.ts
+// In development, this comes from .env file or vite.config.ts fallback
+declare const process: { env: { PERPLEXITY_API_KEY?: string } };
+const PERPLEXITY_API_KEY = (process?.env?.PERPLEXITY_API_KEY || "") as string;
 // Use proxy in development (Vite dev server), direct API in production/extension
 // Check if we're in development by checking if we're on localhost
 const isDevelopment = typeof window !== "undefined" && 
@@ -66,6 +70,7 @@ const callPerplexityAPI = async (
           systemPrompt,
           userPrompt,
           maxTokens,
+          apiKey: PERPLEXITY_API_KEY, // Pass API key to service worker
         },
         (response: { success: boolean; data?: string; error?: string } | undefined) => {
           if (chrome.runtime.lastError) {
