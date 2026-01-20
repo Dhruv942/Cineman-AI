@@ -62,7 +62,8 @@
     "*://*.primevideo.com/*",
     "*://*.hotstar.com/*",
     "*://*.google.com/*",
-    "https://generativelanguage.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.perplexity.ai/*"
   ],
   "web_accessible_resources": [
     {

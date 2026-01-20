@@ -1,4 +1,7 @@
 const CACHE_NAME = "what-to-watch-cache-v5"; // Incremented version for updates
+const PERPLEXITY_API_KEY = "REPLACED_API_KEY";
+const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+
 const urlsToCache = [
   "/", // Alias for index.html
   "/index.html",
@@ -6,6 +9,64 @@ const urlsToCache = [
   // e.g., '/icons/icon-192x192.png', '/icons/icon-512x512.png'
   // For now, we'll let the manifest trigger their download or cache them on first use.
 ];
+
+// Handle messages from extension pages to proxy API calls
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request && request.type === "CALL_PERPLEXITY_API") {
+    const { systemPrompt, userPrompt, maxTokens } = request;
+    
+    fetch(PERPLEXITY_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "sonar-pro",
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt,
+          },
+          {
+            role: "user",
+            content: userPrompt,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: maxTokens || 2000,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.text().then((text) => {
+            throw new Error(
+              `Perplexity API error: ${response.status} ${response.statusText} - ${text}`
+            );
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (!data.choices || data.choices.length === 0) {
+          throw new Error("No response from Perplexity API");
+        }
+        sendResponse({
+          success: true,
+          data: data.choices[0].message.content,
+        });
+      })
+      .catch((error) => {
+        sendResponse({
+          success: false,
+          error: error.message || "Unknown error",
+        });
+      });
+    
+    // Return true to indicate we will send a response asynchronously
+    return true;
+  }
+});
 
 // Install event: cache core assets
 self.addEventListener("install", (event) => {
@@ -49,6 +110,23 @@ self.addEventListener("activate", (event) => {
 // Fetch event: serve cached assets or fetch from network
 self.addEventListener("fetch", (event) => {
   const requestUrl = new URL(event.request.url);
+
+  // Handle Perplexity API calls (POST requests) - proxy through service worker to avoid CORS
+  if (requestUrl.hostname.includes("api.perplexity.ai")) {
+    event.respondWith(
+      fetch(event.request.clone()).catch((error) => {
+        console.error("[Service Worker] Perplexity API error:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to fetch from Perplexity API" }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      })
+    );
+    return;
+  }
 
   // Skip non-GET requests or non-http/https requests
   if (

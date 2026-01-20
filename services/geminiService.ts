@@ -26,8 +26,14 @@ import {
 } from "../constants";
 import { getAllFeedback } from "./feedbackService";
 
-const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
-const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+const PERPLEXITY_API_KEY = "process.env.PERPLEXITY_API_KEY";
+// Use proxy in development (Vite dev server), direct API in production/extension
+// Check if we're in development by checking if we're on localhost
+const isDevelopment = typeof window !== "undefined" && 
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+const PERPLEXITY_API_URL = isDevelopment 
+  ? "/api/perplexity" 
+  : "https://api.perplexity.ai/chat/completions";
 
 interface PerplexityResponse {
   choices: Array<{
@@ -39,6 +45,7 @@ interface PerplexityResponse {
 
 /**
  * Helper function to call Perplexity API
+ * Uses service worker to proxy the request and avoid CORS issues
  */
 const callPerplexityAPI = async (
   systemPrompt: string,
@@ -49,12 +56,46 @@ const callPerplexityAPI = async (
     throw new Error("PERPLEXITY_API_KEY is not configured.");
   }
 
+  // In development, use Vite proxy (no CORS issues)
+  // In production/extension, try service worker first, then direct fetch
+  if (!isDevelopment && typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        {
+          type: "CALL_PERPLEXITY_API",
+          systemPrompt,
+          userPrompt,
+          maxTokens,
+        },
+        (response: { success: boolean; data?: string; error?: string } | undefined) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          if (response && response.success) {
+            resolve(response.data || "");
+          } else {
+            reject(new Error(response?.error || "Unknown error"));
+          }
+        }
+      );
+    });
+  }
+
+  // Direct fetch: works in development (via Vite proxy) or as fallback
+  // In development, proxy handles auth. In production/extension, we need to send the key.
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+  
+  // Only add Authorization header if not using proxy (production/extension)
+  if (!isDevelopment) {
+    headers.Authorization = `Bearer ${PERPLEXITY_API_KEY}`;
+  }
+
   const response = await fetch(PERPLEXITY_API_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
-    },
+    headers,
     body: JSON.stringify({
       model: "sonar-pro",
       messages: [
@@ -632,6 +673,8 @@ export const getMovieRecommendations = async (
       id: `${f.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${f.year}`,
       title: f.title,
       year: f.year,
+      summary: "", // Not needed for exclusion, but required by Movie type
+      genres: [], // Not needed for exclusion, but required by Movie type
     }));
 
   const allExcludedItems = [...sessionExcludedItems, ...notMyVibeMovies];
