@@ -11,7 +11,9 @@ const urlsToCache = [
 ];
 
 // Handle messages from extension pages to proxy API calls
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// Check if chrome API is available (extension context)
+if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request && request.type === "CALL_PERPLEXITY_API") {
     const { systemPrompt, userPrompt, maxTokens, apiKey } = request;
     
@@ -74,7 +76,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Return true to indicate we will send a response asynchronously
     return true;
   }
-});
+  });
+}
 
 // Install event: cache core assets
 self.addEventListener("install", (event) => {

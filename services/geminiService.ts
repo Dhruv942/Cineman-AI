@@ -1,4 +1,6 @@
 declare const chrome: any;
+// Type declaration for Vite's injected process.env
+declare const process: { env: { PERPLEXITY_API_KEY?: string } };
 import type {
   UserPreferences,
   Movie,
@@ -26,11 +28,11 @@ import {
 } from "../constants";
 import { getAllFeedback } from "./feedbackService";
 
-// Get API key from Vite's injected environment variable (replaced at build time)
-// Vite replaces process.env.PERPLEXITY_API_KEY with actual value from vite.config.ts
-// In development, this comes from .env file or vite.config.ts fallback
-declare const process: { env: { PERPLEXITY_API_KEY?: string } };
-const PERPLEXITY_API_KEY = (process?.env?.PERPLEXITY_API_KEY || "") as string;
+// Get API key from Vite's injected environment variable
+// Vite's define option replaces process.env.PERPLEXITY_API_KEY with actual string at build time
+// This is a compile-time string replacement, not a runtime object access
+// Vite will replace "process.env.PERPLEXITY_API_KEY" with the actual value (e.g., "pplx-..." or "")
+const PERPLEXITY_API_KEY = (process.env.PERPLEXITY_API_KEY || "") as string;
 // Use proxy in development (Vite dev server), direct API in production/extension
 // Check if we're in development by checking if we're on localhost
 const isDevelopment = typeof window !== "undefined" && 
