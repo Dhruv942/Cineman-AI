@@ -33,13 +33,14 @@ import { getAllFeedback } from "./feedbackService";
 // This is a compile-time string replacement, not a runtime object access
 // Vite will replace "process.env.PERPLEXITY_API_KEY" with the actual value (e.g., "pplx-..." or "")
 const PERPLEXITY_API_KEY = (process.env.PERPLEXITY_API_KEY || "") as string;
-// Use proxy in development (Vite dev server), direct API in production/extension
-// Check if we're in development by checking if we're on localhost
-const isDevelopment = typeof window !== "undefined" && 
-  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-const PERPLEXITY_API_URL = isDevelopment 
-  ? "/api/perplexity" 
-  : "https://api.perplexity.ai/chat/completions";
+// Use same-origin proxy for all web (dev and prod) to avoid CORS
+// - Development: Vite proxy forwards /api/perplexity to Perplexity
+// - Production (e.g. cinemanai.com): Vercel serverless API forwards /api/perplexity to Perplexity
+// - Extension: uses chrome.runtime.sendMessage (service worker), not this URL
+const isExtension = typeof window !== "undefined" && typeof chrome !== "undefined" && chrome?.runtime?.sendMessage;
+const PERPLEXITY_API_URL = isExtension 
+  ? "https://api.perplexity.ai/chat/completions" 
+  : "/api/perplexity";
 
 interface PerplexityResponse {
   choices: Array<{
@@ -58,13 +59,11 @@ const callPerplexityAPI = async (
   userPrompt: string,
   maxTokens: number = 2000
 ): Promise<string> => {
-  if (!PERPLEXITY_API_KEY) {
-    throw new Error("PERPLEXITY_API_KEY is not configured.");
-  }
-
-  // In development, use Vite proxy (no CORS issues)
-  // In production/extension, try service worker first, then direct fetch
-  if (!isDevelopment && typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
+  // In extension context, use service worker to proxy (avoids CORS in extension)
+  if (isExtension) {
+    if (!PERPLEXITY_API_KEY) {
+      throw new Error("PERPLEXITY_API_KEY is not configured.");
+    }
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(
         {
@@ -89,16 +88,10 @@ const callPerplexityAPI = async (
     });
   }
 
-  // Direct fetch: works in development (via Vite proxy) or as fallback
-  // In development, proxy handles auth. In production/extension, we need to send the key.
+  // Fetch via same-origin proxy (dev: Vite, prod: Vercel API). Proxy adds API key server-side.
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
-  
-  // Only add Authorization header if not using proxy (production/extension)
-  if (!isDevelopment) {
-    headers.Authorization = `Bearer ${PERPLEXITY_API_KEY}`;
-  }
 
   const response = await fetch(PERPLEXITY_API_URL, {
     method: "POST",
