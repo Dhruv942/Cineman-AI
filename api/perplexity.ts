@@ -29,9 +29,15 @@ export default async function handler(
     return;
   }
 
-  const apiKey = process.env.PERPLEXITY_API_KEY;
-  if (!apiKey) {
-    res.status(500).setHeader("Access-Control-Allow-Origin", corsHeaders["Access-Control-Allow-Origin"]).json({ error: "PERPLEXITY_API_KEY is not configured" });
+  const apiKey = process.env.PERPLEXITY_API_KEY?.trim();
+  if (!apiKey || !apiKey.startsWith("pplx-")) {
+    res.status(500)
+      .setHeader("Access-Control-Allow-Origin", corsHeaders["Access-Control-Allow-Origin"])
+      .setHeader("Content-Type", "application/json")
+      .json({
+        error: "PERPLEXITY_API_KEY is not configured on the server. Add it in Vercel → Project Settings → Environment Variables.",
+        code: "MISSING_API_KEY",
+      });
     return;
   }
 
@@ -47,6 +53,19 @@ export default async function handler(
     });
 
     const data = await response.json().catch(() => ({}));
+
+    // If Perplexity returns 401, the key is invalid or expired
+    if (response.status === 401) {
+      res.status(401)
+        .setHeader("Access-Control-Allow-Origin", corsHeaders["Access-Control-Allow-Origin"])
+        .setHeader("Content-Type", "application/json")
+        .json({
+          error: "Perplexity API key is invalid or expired. Update PERPLEXITY_API_KEY in Vercel → Settings → Environment Variables.",
+          code: "UNAUTHORIZED",
+        });
+      return;
+    }
+
     res.status(response.status)
       .setHeader("Access-Control-Allow-Origin", corsHeaders["Access-Control-Allow-Origin"])
       .setHeader("Content-Type", "application/json")
