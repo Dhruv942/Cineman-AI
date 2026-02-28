@@ -49,7 +49,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
       
       {/* Background Poster Grid */}
       <div className="poster-grid-background" aria-hidden="true">
-        {LANDING_PAGE_POSTERS.map((url, index) => <img key={index} src={url} alt="" />)}
+        {LANDING_PAGE_POSTERS.map((url, index) => <img key={index} src={url} alt="Decorative movie poster backdrop" />)}
       </div>
 
       {/* Hero Section */}

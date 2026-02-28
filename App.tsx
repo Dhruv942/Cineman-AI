@@ -452,11 +452,7 @@ const App: React.FC = () => {
       });
 
       if (!isExtensionMode) {
-        const storage =
-          typeof chrome !== "undefined" && chrome.storage
-            ? chrome.storage.local
-            : null;
-
+        // On web always use localStorage so dismiss state persists (chrome.storage is extension-only)
         const checkDismissal = (dismissedTimestamp: string | null) => {
           if (!dismissedTimestamp) {
             // Never dismissed before - show it
@@ -484,22 +480,10 @@ const App: React.FC = () => {
           }
         };
 
-        if (storage) {
-          storage.get(
-            [CINE_SUGGEST_EXTENSION_NUDGE_DISMISSED_KEY],
-            (result: any) => {
-              checkDismissal(
-                result[CINE_SUGGEST_EXTENSION_NUDGE_DISMISSED_KEY]
-              );
-            }
-          );
-        } else {
-          // Fallback to localStorage
-          const dismissedTimestamp = localStorage.getItem(
-            CINE_SUGGEST_EXTENSION_NUDGE_DISMISSED_KEY
-          );
-          checkDismissal(dismissedTimestamp);
-        }
+        const dismissedTimestamp = localStorage.getItem(
+          CINE_SUGGEST_EXTENSION_NUDGE_DISMISSED_KEY
+        );
+        checkDismissal(dismissedTimestamp);
       } else {
         console.log("Extension installed - nudge not shown");
       }
@@ -697,13 +681,14 @@ const App: React.FC = () => {
   const handleExtensionNudgeDismiss = () => {
     setShowExtensionNudge(false);
     const currentTimestamp = Date.now().toString();
-    const storage =
-      typeof chrome !== "undefined" && chrome.storage
-        ? chrome.storage.local
-        : null;
-
-    if (storage) {
-      storage.set({
+    // On web use localStorage; in extension use chrome.storage so state persists in both
+    const isExtensionMode =
+      typeof chrome !== "undefined" &&
+      chrome?.runtime &&
+      typeof chrome.runtime.id !== "undefined" &&
+      chrome.runtime.id != null;
+    if (isExtensionMode && typeof chrome !== "undefined" && chrome.storage?.local) {
+      chrome.storage.local.set({
         [CINE_SUGGEST_EXTENSION_NUDGE_DISMISSED_KEY]: currentTimestamp,
       });
     } else {

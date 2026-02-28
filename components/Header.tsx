@@ -53,9 +53,9 @@ export const Header: React.FC<HeaderProps> = ({ onEditPreferences, onShowMyAccou
             alt="CineMan AI logo"
             className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex-shrink-0"
           />
-          <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 whitespace-nowrap">
+          <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 whitespace-nowrap">
             CineMan AI
-          </h1>
+          </h2>
         </div>
         
         {/* Unscrolled Header Content (centered, absolute position) */}
@@ -70,9 +70,9 @@ export const Header: React.FC<HeaderProps> = ({ onEditPreferences, onShowMyAccou
               alt="CineMan AI logo"
               className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex-shrink-0"
             />
-            <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 whitespace-nowrap">
+            <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 whitespace-nowrap">
               CineMan AI
-            </h1>
+            </h2>
           </div>
 
           {/* Description centered below title - Responsive for all screens */}
