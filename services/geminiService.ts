@@ -625,32 +625,114 @@ const parseAndValidateResponse = <T>(
   responseText: string,
   isArray: boolean
 ): T => {
-  try {
-    let sanitizedText = responseText.trim();
-    if (sanitizedText.startsWith("```json")) {
-      sanitizedText = sanitizedText.substring(7);
-    }
-    if (sanitizedText.endsWith("```")) {
-      sanitizedText = sanitizedText.substring(0, sanitizedText.length - 3);
-    }
+  const cleanJSON = (text: string) => {
+    return text
+      .trim()
+      .replace(/^```json\s*/, "")
+      .replace(/```\s*$/, "")
+      .replace(/\/\/.*$/gm, "") // Remove single-line comments
+      .replace(/\/\*[\s\S]*?\*\//g, "") // Remove multi-line comments
+      .replace(/,\s*([\]}])/g, "$1") // Remove trailing commas
+      // Fix for common numeric field quote error (e.g., "year": 1997",)
+      .replace(
+        /"(year|durationMinutes|matchScore|page|count)":\s*(\d+)"/g,
+        '"$1": $2'
+      )
+      .replace(
+        /"(year|durationMinutes|matchScore|page|count)":\s*"(\d+)"/g,
+        '"$1": $2'
+      );
+  };
 
-    const parsed = JSON.parse(sanitizedText);
+  const tryParse = (text: string): T | null => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      try {
+        return JSON.parse(cleanJSON(text));
+      } catch {
+        return null;
+      }
+    }
+  };
 
+  // 1. First try parsing the whole thing (after cleaning)
+  let parsed = tryParse(responseText);
+  if (parsed) {
     if (isArray && !Array.isArray(parsed)) {
-      throw new Error("Expected a JSON array but received an object.");
+      // If it parsed as object but we wanted array, move on to extraction
+    } else if (!isArray && Array.isArray(parsed)) {
+      // If it parsed as array but we wanted object, move on to extraction
+    } else {
+      return parsed;
     }
-    if (!isArray && Array.isArray(parsed)) {
-      throw new Error("Expected a JSON object but received an array.");
+  }
+
+  // 2. Try to extract the first array or object if it's buried in text
+  if (isArray) {
+    const arrayMatch = responseText.match(/\[[\s\S]*\]/);
+    if (arrayMatch) {
+      const p = tryParse(arrayMatch[0]);
+      if (p && Array.isArray(p)) return p as unknown as T;
+    }
+  } else {
+    const objectMatch = responseText.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      const p = tryParse(objectMatch[0]);
+      if (p && !Array.isArray(p)) return p as unknown as T;
+    }
+  }
+
+  // 3. If it was supposed to be an array, try to extract objects one by one
+  if (isArray) {
+    const results: any[] = [];
+    let depth = 0;
+    let startPos = -1;
+    let inString = false;
+    let escape = false;
+
+    // Remove markdown code blocks before iterating to avoid issues
+    const textToScan = responseText.replace(/```json|```/g, "");
+
+    for (let i = 0; i < textToScan.length; i++) {
+      const char = textToScan[i];
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (char === "\\") {
+        escape = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = !inString;
+        continue;
+      }
+
+      if (!inString) {
+        if (char === "{") {
+          if (depth === 0) startPos = i;
+          depth++;
+        } else if (char === "}") {
+          depth--;
+          if (depth === 0 && startPos !== -1) {
+            const objStr = textToScan.substring(startPos, i + 1);
+            const obj = tryParse(objStr);
+            if (obj) results.push(obj);
+          }
+        }
+      }
     }
 
-    return parsed;
-  } catch (e) {
-    console.error("Failed to parse JSON response:", responseText);
-    if (e instanceof Error) {
-      throw new Error(`Invalid JSON response from API: ${e.message}`);
-    }
-    throw new Error("Received an unparsable JSON response from the API.");
+    if (results.length > 0) return results as unknown as T;
   }
+
+  // 4. Final attempt: show what it received in logs
+  console.error("Failed to parse JSON response after multiple strategies:", responseText);
+
+  throw new Error(
+    "Failed to extract valid JSON from the AI response. Please try refreshing or re-submitting your request."
+  );
 };
 
 export const getMovieRecommendations = async (
