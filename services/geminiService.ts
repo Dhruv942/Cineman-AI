@@ -28,15 +28,7 @@ import {
 } from "../constants";
 import { getAllFeedback } from "./feedbackService";
 
-// Get API key from Vite's injected environment variable
-// Vite's define option replaces process.env.PERPLEXITY_API_KEY with actual string at build time
-// This is a compile-time string replacement, not a runtime object access
-// Vite will replace "process.env.PERPLEXITY_API_KEY" with the actual value (e.g., "pplx-..." or "")
 const PERPLEXITY_API_KEY = (process.env.PERPLEXITY_API_KEY || "") as string;
-// Use same-origin proxy for all web (dev and prod) to avoid CORS
-// - Development: Vite proxy forwards /api/perplexity to Perplexity
-// - Production (e.g. cinemanai.com): Vercel serverless API forwards /api/perplexity to Perplexity
-// - Extension: uses chrome.runtime.sendMessage (service worker), not this URL
 const isExtension = typeof window !== "undefined" && typeof chrome !== "undefined" && chrome?.runtime?.sendMessage;
 const PERPLEXITY_API_URL = isExtension 
   ? "https://api.perplexity.ai/chat/completions" 
@@ -50,20 +42,13 @@ interface PerplexityResponse {
   }>;
 }
 
-/**
- * Helper function to call Perplexity API
- * Uses service worker to proxy the request and avoid CORS issues
- */
 const callPerplexityAPI = async (
   systemPrompt: string,
   userPrompt: string,
   maxTokens: number = 2000
 ): Promise<string> => {
-  // In extension context, use service worker to proxy (avoids CORS in extension)
   if (isExtension) {
-    if (!PERPLEXITY_API_KEY) {
-      throw new Error("PERPLEXITY_API_KEY is not configured.");
-    }
+    if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY is not configured.");
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(
         {
@@ -71,7 +56,7 @@ const callPerplexityAPI = async (
           systemPrompt,
           userPrompt,
           maxTokens,
-          apiKey: PERPLEXITY_API_KEY, // Pass API key to service worker
+          apiKey: PERPLEXITY_API_KEY,
         },
         (response: { success: boolean; data?: string; error?: string } | undefined) => {
           if (chrome.runtime.lastError) {
@@ -88,26 +73,12 @@ const callPerplexityAPI = async (
     });
   }
 
-  // Fetch via same-origin proxy (dev: Vite, prod: Vercel API). Proxy adds API key server-side.
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-
   const response = await fetch(PERPLEXITY_API_URL, {
     method: "POST",
-    headers,
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "sonar-pro",
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: userPrompt,
-        },
-      ],
+      model: "sonar",
+      messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
       temperature: 0.1,
       max_tokens: maxTokens,
     }),
@@ -115,18 +86,74 @@ const callPerplexityAPI = async (
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
-      `Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`
-    );
+    throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`);
   }
 
   const data: PerplexityResponse = await response.json();
+  if (!data.choices || data.choices.length === 0) throw new Error("No response from Perplexity API");
+  return data.choices[0].message.content;
+};
 
-  if (!data.choices || data.choices.length === 0) {
-    throw new Error("No response from Perplexity API");
+const parseAndValidateResponse = <T>(responseText: string, isArray: boolean): T => {
+  const cleanJSON = (text: string) => {
+    return text.trim()
+      .replace(/^```json\s*/, "").replace(/```\s*$/, "")
+      .replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/,\s*([\]}])/g, "$1")
+      .replace(/"(year|durationMinutes|matchScore|page|count)":\s*["']?(\d+)["']?/g, '"$1": $2');
+  };
+
+  const tryParse = (text: string): T | null => {
+    try { return JSON.parse(text); } catch {
+      try { return JSON.parse(cleanJSON(text)); } catch { return null; }
+    }
+  };
+
+  const parsed = tryParse(responseText);
+  if (parsed && (isArray === Array.isArray(parsed))) return parsed;
+
+  const match = responseText.match(isArray ? /\[[\s\S]*\]/ : /\{[\s\S]*\}/);
+  if (match) {
+    const p = tryParse(match[0]);
+    if (p && (isArray === Array.isArray(p))) return p as unknown as T;
   }
 
-  return data.choices[0].message.content;
+  if (isArray) {
+    const results: any[] = [];
+    let depth = 0, startPos = -1, inString = false, escape = false;
+    const textToScan = responseText.replace(/```json|```/g, "");
+
+    for (let i = 0; i < textToScan.length; i++) {
+      const char = textToScan[i];
+      if (escape) { escape = false; continue; }
+      if (char === "\\") { escape = true; continue; }
+      if (char === '"') { inString = !inString; continue; }
+      if (!inString) {
+        if (char === "{") { if (depth === 0) startPos = i; depth++; }
+        else if (char === "}") {
+          depth--;
+          if (depth === 0 && startPos !== -1) {
+            const obj = tryParse(textToScan.substring(startPos, i + 1));
+            if (obj) results.push(obj);
+          }
+        }
+      }
+    }
+    if (results.length > 0) return results as unknown as T;
+  }
+  console.error("Failed to parse JSON response:", responseText);
+  throw new Error("Failed to extract valid JSON from the AI response.");
+};
+
+const performAIRequest = async <T>(
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens: number = 2000,
+  isArray: boolean = true
+): Promise<T> => {
+  if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY is not configured.");
+  const responseText = await callPerplexityAPI(systemPrompt, userPrompt, maxTokens);
+  return parseAndValidateResponse<T>(responseText, isArray);
 };
 
 const getCurrentLanguageInfo = (): { code: string; name: string } => {
@@ -138,123 +165,61 @@ const getCurrentLanguageInfo = (): { code: string; name: string } => {
   };
 };
 
+const generateMovieId = (title: string, year: number | string): string => {
+  return `${title.toLowerCase().replace(/[^a-z0-9]/g, "")}${year}`;
+};
+
+async function getStorageData(keys: string[]): Promise<Record<string, any>> {
+  if (typeof chrome !== "undefined" && chrome.storage?.local) {
+    return new Promise((resolve) => { chrome.storage.local.get(keys, resolve); });
+  }
+  const result: Record<string, any> = {};
+  keys.forEach(key => {
+    const val = localStorage.getItem(key);
+    if (val) { try { result[key] = JSON.parse(val); } catch { result[key] = val; } }
+  });
+  return result;
+}
+
 export const getStablePreferencesAndFeedback = async (): Promise<{
   stablePreferences: StableUserPreferences;
   feedbackHistory: AppMovieFeedbackType[];
 }> => {
-  return new Promise((resolve) => {
-    const keys = [
-      CINE_SUGGEST_STABLE_PREFERENCES_KEY,
-      CINE_SUGGEST_MOVIE_FEEDBACK_KEY,
-    ];
-    if (
-      typeof chrome !== "undefined" &&
-      chrome.storage &&
-      chrome.storage.local
-    ) {
-      chrome.storage.local.get(keys, (result: any) => {
-        const stablePreferences =
-          result[CINE_SUGGEST_STABLE_PREFERENCES_KEY] || {};
-        const feedbackHistory = result[CINE_SUGGEST_MOVIE_FEEDBACK_KEY] || [];
-        resolve({ stablePreferences, feedbackHistory });
-      });
-    } else {
-      // Fallback for non-extension environment
-      const stablePreferences = JSON.parse(
-        localStorage.getItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY) || "{}"
-      );
-      const feedbackHistory = JSON.parse(
-        localStorage.getItem(CINE_SUGGEST_MOVIE_FEEDBACK_KEY) || "[]"
-      );
-      resolve({ stablePreferences, feedbackHistory });
-    }
-  });
+  const keys = [CINE_SUGGEST_STABLE_PREFERENCES_KEY, CINE_SUGGEST_MOVIE_FEEDBACK_KEY];
+  const data = await getStorageData(keys);
+  return {
+    stablePreferences: data[CINE_SUGGEST_STABLE_PREFERENCES_KEY] || {},
+    feedbackHistory: data[CINE_SUGGEST_MOVIE_FEEDBACK_KEY] || [],
+  };
 };
 
-export const getNumberOfRecommendationsSetting = async (): Promise<number> => {
-  return new Promise((resolve) => {
-    if (
-      typeof chrome !== "undefined" &&
-      chrome.storage &&
-      chrome.storage.local
-    ) {
-      chrome.storage.local.get(
-        [CINE_SUGGEST_APP_SETTINGS_KEY],
-        (result: any) => {
-          const settings = result[CINE_SUGGEST_APP_SETTINGS_KEY];
-          if (
-            settings &&
-            typeof settings.numberOfRecommendations === "number" &&
-            settings.numberOfRecommendations >= 1 &&
-            settings.numberOfRecommendations <= 10
-          ) {
-            resolve(settings.numberOfRecommendations);
-          } else {
-            resolve(6);
-          }
-        }
-      );
-    } else {
-      const settingsString = localStorage.getItem(
-        CINE_SUGGEST_APP_SETTINGS_KEY
-      );
-      if (settingsString) {
-        try {
-          const settings = JSON.parse(settingsString) as AppSettings;
-          if (
-            settings &&
-            typeof settings.numberOfRecommendations === "number"
-          ) {
-            resolve(settings.numberOfRecommendations);
-            return;
-          }
-        } catch {}
-      }
-      resolve(6);
+const getAppSetting = async <K extends keyof AppSettings>(
+  key: K,
+  defaultValue: AppSettings[K],
+  min?: number,
+  max?: number
+): Promise<AppSettings[K]> => {
+  const data = await getStorageData([CINE_SUGGEST_APP_SETTINGS_KEY]);
+  const settings = data[CINE_SUGGEST_APP_SETTINGS_KEY] as AppSettings;
+  if (settings && typeof settings[key] === typeof defaultValue) {
+    const val = settings[key];
+    if (typeof val === 'number' && typeof min === 'number' && typeof max === 'number') {
+      return (val >= min && val <= max) ? val : defaultValue;
     }
-  });
+    return val;
+  }
+  return defaultValue;
 };
 
-export const getNumberOfSimilarItemsSetting = async (): Promise<number> => {
-  return new Promise((resolve) => {
-    if (
-      typeof chrome !== "undefined" &&
-      chrome.storage &&
-      chrome.storage.local
-    ) {
-      chrome.storage.local.get(
-        [CINE_SUGGEST_APP_SETTINGS_KEY],
-        (result: any) => {
-          const settings = result[CINE_SUGGEST_APP_SETTINGS_KEY];
-          if (
-            settings &&
-            typeof settings.numberOfSimilarItems === "number" &&
-            settings.numberOfSimilarItems >= 1 &&
-            settings.numberOfSimilarItems <= 6
-          ) {
-            resolve(settings.numberOfSimilarItems);
-          } else {
-            resolve(3);
-          }
-        }
-      );
-    } else {
-      const settingsString = localStorage.getItem(
-        CINE_SUGGEST_APP_SETTINGS_KEY
-      );
-      if (settingsString) {
-        try {
-          const settings = JSON.parse(settingsString) as AppSettings;
-          if (settings && typeof settings.numberOfSimilarItems === "number") {
-            resolve(settings.numberOfSimilarItems);
-            return;
-          }
-        } catch {}
-      }
-      resolve(3);
-    }
-  });
-};
+export const getNumberOfRecommendationsSetting = () => getAppSetting("numberOfRecommendations", 6, 1, 10);
+export const getNumberOfSimilarItemsSetting = () => getAppSetting("numberOfSimilarItems", 3, 1, 6);
+
+const coreDirectives = (lang: { name: string; code: string }) => `
+**Core Directives & Quality Mandates**
+
+1.  **Language for Response (CRITICAL):** The user's preferred language is **${lang.name} (${lang.code})**. All user-facing text fields in your JSON response (specifically 'summary', 'availabilityNote', 'socialProofTag', and 'justification' if applicable) MUST be in **${lang.name}**.
+    -   **CRITICAL EXCEPTION:** Do NOT translate the actual movie/series titles in the 'title' and 'similarTo' fields. These must remain in their original language.
+`;
 
 function constructPrompt(
   preferences: UserPreferences,
@@ -265,19 +230,14 @@ function constructPrompt(
 ): string {
   const itemType = recommendationType === "series" ? "TV series" : "movie";
   const pluralItemType = recommendationType === "series" ? "series" : "movies";
-  const importedHistory = feedbackHistory.filter((f) =>
-    f.source?.includes("import")
-  );
+  const importedHistory = feedbackHistory.filter((f) => f.source?.includes("import"));
   const languageInfo = getCurrentLanguageInfo();
 
   let prompt = `You are a world-class ${itemType} recommendation expert AI. Your primary goal is to provide high-quality, personalized recommendations that make users excited to come back for more.
 Based on the user's detailed taste profile and current request, suggest ${numberOfRecommendations} unique ${pluralItemType}.
 
 ---
-**Core Directives & Quality Mandates**
-
-1.  **Language for Response (CRITICAL):** The user's preferred language is **${languageInfo.name} (${languageInfo.code})**. All user-facing text fields in your JSON response (specifically 'summary', 'availabilityNote', 'socialProofTag', and 'justification' if applicable) MUST be in **${languageInfo.name}**.
-    -   **CRITICAL EXCEPTION:** Do NOT translate the actual movie/series titles in the 'title' and 'similarTo' fields. These must remain in their original language.
+${coreDirectives(languageInfo)}
 
 2.  **Availability Accuracy (Highest Priority):** The user's primary concern is accurate streaming availability.
     -   For the 'availabilityNote', be as specific as possible. Differentiate between 'Included with [Service]', 'Available to rent/buy on [Service]', or 'Available with the [Channel] channel on [Service]'. Also identify and report if a title is "Currently unavailable" on a service.
@@ -305,26 +265,13 @@ Based on the user's detailed taste profile and current request, suggest ${number
 `;
 
   if (feedbackHistory.length > 0) {
-    const lovedItems = feedbackHistory
-      .filter((f) => f.feedback === "Loved it!")
-      .map((f) => `"${f.title} (${f.year})"`)
-      .join(", ");
-    const likedItems = feedbackHistory
-      .filter((f) => f.feedback === "Liked it")
-      .map((f) => `"${f.title} (${f.year})"`)
-      .join(", ");
-    const dislikedItems = feedbackHistory
-      .filter((f) => f.feedback === "Not my vibe")
-      .map((f) => `"${f.title} (${f.year})"`)
-      .join(", ");
+    const lovedItems = feedbackHistory.filter((f) => f.feedback === "Loved it!").map((f) => `"${f.title} (${f.year})"`).join(", ");
+    const likedItems = feedbackHistory.filter((f) => f.feedback === "Liked it").map((f) => `"${f.title} (${f.year})"`).join(", ");
+    const dislikedItems = feedbackHistory.filter((f) => f.feedback === "Not my vibe").map((f) => `"${f.title} (${f.year})"`).join(", ");
 
-    if (lovedItems)
-      prompt += `\n- **LOVED (High Priority Signal):** ${lovedItems}`;
+    if (lovedItems) prompt += `\n- **LOVED (High Priority Signal):** ${lovedItems}`;
     if (likedItems) prompt += `\n- **LIKED (General Taste):** ${likedItems}`;
-    if (importedHistory.length > 0)
-      prompt += `\n- **WATCHED (Implicitly Liked):** ${importedHistory
-        .map((f) => `"${f.title} (${f.year})"`)
-        .join(", ")}`;
+    if (importedHistory.length > 0) prompt += `\n- **WATCHED (Implicitly Liked):** ${importedHistory.map((f) => `"${f.title} (${f.year})"`).join(", ")}`;
     if (dislikedItems) {
       prompt += `\n- **DISLIKED (CRITICAL - Do NOT suggest these exact titles OR similar ones):** ${dislikedItems}`;
       prompt += `\n  - **IMPORTANT:** Do NOT suggest any of these exact movies/series again. Also avoid suggesting titles with similar characteristics (genre, tone, style, themes) to these disliked items.`;
@@ -333,23 +280,15 @@ Based on the user's detailed taste profile and current request, suggest ${number
     prompt += `\n- **CRITICAL NEW USER:** This user has no feedback history. It is VITAL that these initial recommendations are high-quality, popular, and critically acclaimed to build trust. Prioritize "safe bets".`;
   }
 
-  const country =
-    COUNTRIES.find((c) => c.code === preferences.country)?.name ||
-    "their country";
+  const country = COUNTRIES.find((c) => c.code === preferences.country)?.name || "their country";
   prompt += `
 
 ---
 **Current Search Request**
 
 -   **Country for Availability:** ${country}.
--   **Genres (Include):** ${
-    preferences.genres.length > 0 ? preferences.genres.join(", ") : "Any"
-  }.
--   **Genres (Exclude):** ${
-    preferences.excludedGenres && preferences.excludedGenres.length > 0
-      ? preferences.excludedGenres.join(", ")
-      : "None"
-  }.
+-   **Genres (Include):** ${preferences.genres.length > 0 ? preferences.genres.join(", ") : "Any"}.
+-   **Genres (Exclude):** ${preferences.excludedGenres && preferences.excludedGenres.length > 0 ? preferences.excludedGenres.join(", ") : "None"}.
 -   **Mood/Vibe/Plot:** ${preferences.mood || "Not specified"}.
 -   **Keywords:** ${preferences.keywords || "Not specified"}.
 
@@ -358,14 +297,8 @@ Based on the user's detailed taste profile and current request, suggest ${number
 
 -   **Viewing Frequency:** ${preferences.movieFrequency}.
 -   **Actor/Director Preference:** ${preferences.actorDirectorPreference}.
--   **Languages:** ${preferences.preferredLanguages
-    .map((code) => MOVIE_LANGUAGES.find((l) => l.code === code)?.name || code)
-    .join(", ")}.
--   **OTT Platforms:** ${
-    preferences.ottPlatforms.length > 0
-      ? preferences.ottPlatforms.join(", ")
-      : "Not specified"
-  }.
+-   **Languages:** ${preferences.preferredLanguages.map((code) => MOVIE_LANGUAGES.find((l) => l.code === code)?.name || code).join(", ")}.
+-   **OTT Platforms:** ${preferences.ottPlatforms.length > 0 ? preferences.ottPlatforms.join(", ") : "Not specified"}.
 -   **Era:** ${preferences.era.join(", ")}.
 -   **Movie Duration:** ${preferences.movieDuration.join(", ")}.
 -   **Series Length:** ${preferences.preferredNumberOfSeasons.join(", ")}.
@@ -373,9 +306,7 @@ Based on the user's detailed taste profile and current request, suggest ${number
 ---
 **Exclusions & Formatting**
 
--   **Do NOT suggest these exact titles (CRITICAL):** ${sessionExcludedItems
-    .map((m) => `"${m.title} (${m.year})"`)
-    .join(", ")}.
+-   **Do NOT suggest these exact titles (CRITICAL):** ${sessionExcludedItems.map((m) => `"${m.title} (${m.year})"`).join(", ")}.
     -   These titles must be completely excluded from your suggestions. Do not suggest them under any circumstances.
 -   **Response Format:** Your response MUST be a single, valid JSON array. Each object represents one recommendation. Do not add any text, comments, or markdown before or after the JSON array.
 
@@ -383,20 +314,14 @@ Based on the user's detailed taste profile and current request, suggest ${number
 {
   "title": "The ${itemType}'s Title (Original, NOT Translated)",
   "year": 1999,
-  "summary": "A concise, engaging, spoiler-free summary in ${
-    languageInfo.name
-  }.",
+  "summary": "A concise, engaging, spoiler-free summary in ${languageInfo.name}.",
   "genres": ["Genre1", "Genre2"],
   "similarTo": "A well-known ${itemType} it's similar to (Original Title, NOT Translated).",
   "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
   "youtubeTrailerId": "YouTube Video ID",
   "durationMinutes": 136,
-  "availabilityNote": "SPECIFIC availability info in ${
-    languageInfo.name
-  }. E.g., 'Included with Prime Video'.",
-  "socialProofTag": "A creative, Netflix-style social proof tag in ${
-    languageInfo.name
-  } (e.g., 'Critically Acclaimed', 'Award-Winning', 'Mind-Bending Thriller'). Avoid simple ratings.",
+  "availabilityNote": "SPECIFIC availability info in ${languageInfo.name}. E.g., 'Included with Prime Video'.",
+  "socialProofTag": "A creative, Netflix-style social proof tag in ${languageInfo.name} (e.g., 'Critically Acclaimed', 'Award-Winning', 'Mind-Bending Thriller'). Avoid simple ratings.",
   "matchScore": 95
 }
 `;
@@ -412,59 +337,30 @@ function constructSimilarItemsPrompt(
 ): string {
   const itemType = recommendationType === "series" ? "TV series" : "movie";
   const pluralItemType = recommendationType === "series" ? "series" : "movies";
-  const country =
-    COUNTRIES.find((c) => c.code === stablePreferences.country)?.name ||
-    "their country";
+  const country = COUNTRIES.find((c) => c.code === stablePreferences.country)?.name || "their country";
   const languageInfo = getCurrentLanguageInfo();
 
-  let prompt = `You are a ${itemType} recommendation expert. A user wants to find ${pluralItemType} similar to "${itemTitle}".
+  return `You are a ${itemType} recommendation expert. A user wants to find ${pluralItemType} similar to "${itemTitle}".
 
 Your task is to:
 1. Identify the most likely ${itemType} the user is referring to as "${itemTitle}".
 2. Find ${numberOfRecs} other compelling and unique ${pluralItemType} that are similar in theme, genre, tone, or style.
 3. Your suggestions MUST take into account the user's general taste profile to ensure it's a good fit for them personally.
-4. **CRITICAL:** The user's preferred language is **${languageInfo.name} (${
-    languageInfo.code
-  })**. All user-facing text fields in your JSON response ('summary', 'availabilityNote', 'socialProofTag') MUST be in **${
-    languageInfo.name
-  }**. Do NOT translate movie/series titles ('title', 'similarTo').
+4. ${coreDirectives(languageInfo)}
 5. **CRITICAL (Availability):** For the 'availabilityNote', be as specific as possible. Differentiate between 'Included with [Service]', 'Available to rent/buy on [Service]', or 'Available with the [Channel] channel on [Service]'. Also identify and report if a title is "Currently unavailable" on a service. Deboost titles that are unavailable or only for rent/purchase by giving them a lower \`matchScore\`.
-6. **Creative Social Proof (CRITICAL):** The 'socialProofTag' is vital. Generate a short, exciting, Netflix-style highlight tag in **${
-    languageInfo.name
-  }** (e.g., "Award-Winning", "Cult Classic"). Do NOT use simple ratings.
+6. **Creative Social Proof (CRITICAL):** The 'socialProofTag' is vital. Generate a short, exciting, Netflix-style highlight tag in **${languageInfo.name}** (e.g., "Award-Winning", "Cult Classic"). Do NOT use simple ratings.
 
 USER'S TASTE PROFILE:
 - This user generally watches ${stablePreferences.movieFrequency}.
-- They have a preference for ${
-    stablePreferences.actorDirectorPreference
-  } regarding known actors/directors.
+- They have a preference for ${stablePreferences.actorDirectorPreference} regarding known actors/directors.
 - They prefer ${itemType}s from these eras: ${stablePreferences.era.join(", ")}.
-- They subscribe to these streaming services: ${stablePreferences.ottPlatforms.join(
-    ", "
-  )}. Prioritize suggestions on these platforms if possible.
-- Their preferred languages are: ${stablePreferences.preferredLanguages
-    .map((code) => MOVIE_LANGUAGES.find((l) => l.code === code)?.name || code)
-    .join(", ")}.
+- They subscribe to these streaming services: ${stablePreferences.ottPlatforms.join(", ")}. Prioritize suggestions on these platforms if possible.
+- Their preferred languages are: ${stablePreferences.preferredLanguages.map((code) => MOVIE_LANGUAGES.find((l) => l.code === code)?.name || code).join(", ")}.
 - Country for content availability: ${country}.
 - Their viewing history and feedback (strongest indicator of taste):
-  - Loved: ${
-    feedbackHistory
-      .filter((f) => f.feedback === "Loved it!")
-      .map((f) => `"${f.title}"`)
-      .join(", ") || "None"
-  }
-  - Liked: ${
-    feedbackHistory
-      .filter((f) => f.feedback === "Liked it")
-      .map((f) => `"${f.title}"`)
-      .join(", ") || "None"
-  }
-  - Disliked (Do NOT suggest these exact titles OR similar ones): ${
-    feedbackHistory
-      .filter((f) => f.feedback === "Not my vibe")
-      .map((f) => `"${f.title}"`)
-      .join(", ") || "None"
-  }
+  - Loved: ${feedbackHistory.filter((f) => f.feedback === "Loved it!").map((f) => `"${f.title}"`).join(", ") || "None"}
+  - Liked: ${feedbackHistory.filter((f) => f.feedback === "Liked it").map((f) => `"${f.title}"`).join(", ") || "None"}
+  - Disliked (Do NOT suggest these exact titles OR similar ones): ${feedbackHistory.filter((f) => f.feedback === "Not my vibe").map((f) => `"${f.title}"`).join(", ") || "None"}
 
 RESPONSE FORMAT:
 Your response must be a single, valid JSON array containing ${numberOfRecs} objects. Do not add any text before or after the JSON.
@@ -474,22 +370,17 @@ Your JSON response MUST follow this exact schema per item (REMEMBER THE LANGUAGE
 {
   "title": "The Similar ${itemType}'s Title (NOT Translated)",
   "year": 2005,
-  "summary": "A concise, engaging, spoiler-free summary in ${
-    languageInfo.name
-  }.",
+  "summary": "A concise, engaging, spoiler-free summary in ${languageInfo.name}.",
   "genres": ["Genre1", "Genre2"],
   "similarTo": "${itemTitle} (NOT Translated)",
   "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
   "youtubeTrailerId": "YouTube Video ID",
   "durationMinutes": 115,
   "availabilityNote": "SPECIFIC availability info in ${languageInfo.name}.",
-  "socialProofTag": "A creative, Netflix-style social proof tag in ${
-    languageInfo.name
-  } (e.g., 'Critically Acclaimed', 'Award-Winning', 'Mind-Bending Thriller'). Avoid simple ratings.",
+  "socialProofTag": "A creative, Netflix-style social proof tag in ${languageInfo.name} (e.g., 'Critically Acclaimed', 'Award-Winning', 'Mind-Bending Thriller'). Avoid simple ratings.",
   "matchScore": 88
 }
 `;
-  return prompt;
 }
 
 function constructTasteCheckPrompt(
@@ -506,11 +397,7 @@ function constructTasteCheckPrompt(
 First, identify the most likely ${itemType} the user is referring to.
 Then, analyze this ${itemType}'s characteristics against the user's taste profile.
 
-**CRITICAL:** The user's preferred language is **${languageInfo.name} (${
-    languageInfo.code
-  })**. The 'justification' and 'summary' fields in your JSON response MUST be in **${
-    languageInfo.name
-  }**. Do NOT translate the movie/series 'title'.
+- ${coreDirectives(languageInfo)}
 
 User's Taste Profile:
 - General Preferences: ${JSON.stringify(stablePreferences)}
@@ -519,9 +406,7 @@ User's Taste Profile:
 Your task is to generate a JSON object with three main components:
 1. 'itemFound': A boolean indicating if you successfully identified the ${itemType}.
 2. 'identifiedItem': An object containing details of the found ${itemType}, including a 'matchScore' (0-100).
-3. 'justification': A concise, personalized paragraph (max 3-4 sentences, in **${
-    languageInfo.name
-  }**) explaining WHY the user might like or dislike this ${itemType}.
+3. 'justification': A concise, personalized paragraph (max 3-4 sentences, in **${languageInfo.name}**) explaining WHY the user might like or dislike this ${itemType}.
 
 Return a single, valid JSON object ONLY. Your entire response must strictly adhere to this format:
 {
@@ -534,18 +419,14 @@ Return a single, valid JSON object ONLY. Your entire response must strictly adhe
     "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
     "matchScore": 88
   },
-  "justification": "The justification for the match score, in ${
-    languageInfo.name
-  }."
+  "justification": "The justification for the match score, in ${languageInfo.name}."
 }
 
 CRITICAL: If you cannot identify the ${itemType} from the title "${itemTitle}", return this specific JSON object:
 {
   "itemFound": false,
   "identifiedItem": null,
-  "justification": "Could not identify a well-known ${itemType} with that exact title (This message should be in ${
-    languageInfo.name
-  })."
+  "justification": "Could not identify a well-known ${itemType} with that exact title (This message should be in ${languageInfo.name})."
 }
 Do not add any text, comments, or markdown before or after the JSON object.`;
 }
@@ -560,22 +441,16 @@ function constructSingleReplacementPrompt(
   const pluralItemType = recommendationType === "series" ? "series" : "movies";
   const languageInfo = getCurrentLanguageInfo();
 
-  let prompt = `You are a ${itemType} recommendation expert. Your task is to suggest just ONE ${itemType} based on the user's preferences.
+  return `You are a ${itemType} recommendation expert. Your task is to suggest just ONE ${itemType} based on the user's preferences.
 
 This suggestion must be unique and NOT be one of the ${pluralItemType} listed in the exclusion list.
 
-**CRITICAL:** The user's preferred language is **${languageInfo.name} (${
-    languageInfo.code
-  })**. All user-facing text fields in your JSON response ('summary', 'availabilityNote', 'socialProofTag') MUST be in **${
-    languageInfo.name
-  }**. Do NOT translate movie/series titles ('title', 'similarTo').
+- ${coreDirectives(languageInfo)}
 **CRITICAL (Availability):** For the 'availabilityNote', be as specific as possible. Differentiate between 'Included with [Service]', 'Available to rent/buy on [Service]', or 'Available with the [Channel] channel on [Service]'. Also identify and report if a title is "Currently unavailable" on a service. Deboost titles that are unavailable or only for rent/purchase by giving them a lower \`matchScore\`.
 
 USER PREFERENCES: ${JSON.stringify(preferences)}
 USER FEEDBACK HISTORY: ${JSON.stringify(feedbackHistory)}
-EXCLUSION LIST (DO NOT SUGGEST THESE): ${allExcludedItems
-    .map((m) => `"${m.title} (${m.year})"`)
-    .join(", ")}
+EXCLUSION LIST (DO NOT SUGGEST THESE): ${allExcludedItems.map((m) => `"${m.title} (${m.year})"`).join(", ")}
 
 RESPONSE FORMATTING:
 Your response must be a single, valid JSON object.
@@ -585,28 +460,21 @@ Your JSON response MUST follow this exact schema (REMEMBER THE LANGUAGE & AVAILA
 {
   "title": "The ${itemType}'s Title (NOT Translated)",
   "year": 1999,
-  "summary": "A concise, engaging, spoiler-free summary in ${
-    languageInfo.name
-  }.",
+  "summary": "A concise, engaging, spoiler-free summary in ${languageInfo.name}.",
   "genres": ["Genre1", "Genre2"],
   "similarTo": "A well-known ${itemType} it's similar to (Original Title, NOT Translated).",
   "posterUrl": "https://image.tmdb.org/t/p/w500/path.jpg",
   "youtubeTrailerId": "YouTube Video ID",
   "durationMinutes": 136,
   "availabilityNote": "SPECIFIC availability info in ${languageInfo.name}.",
-  "socialProofTag": "Social proof in ${
-    languageInfo.name
-  } like 'Critically Acclaimed' or 'Fan Favorite', not just ratings.",
+  "socialProofTag": "Social proof in ${languageInfo.name} like 'Critically Acclaimed' or 'Fan Favorite', not just ratings.",
   "matchScore": 95
 }
-
-Do not add any text, comments, or markdown before or after the JSON object. Your entire response must be the JSON object itself.
 `;
-  return prompt;
 }
 
 function constructEnrichHistoryPrompt(titles: string[]): string {
-  const prompt = `You are a film and TV series data enrichment expert. Given a list of titles, your task is to identify the most likely movie or TV series for each and return its title and year of release.
+  return `You are a film and TV series data enrichment expert. Given a list of titles, your task is to identify the most likely movie or TV series for each and return its title and year of release.
 The user's list may contain extra information like "Season 1" or be slightly inaccurate. Use your knowledge to find the correct canonical title and original release year.
 
 User's List:
@@ -618,173 +486,31 @@ Return a valid JSON array ONLY, with each object following this schema:
   { "title": "Corrected Title 2", "year": 1999 }
 ]
 Do not add any text before or after the JSON array.`;
-  return prompt;
 }
-
-const parseAndValidateResponse = <T>(
-  responseText: string,
-  isArray: boolean
-): T => {
-  const cleanJSON = (text: string) => {
-    return text
-      .trim()
-      .replace(/^```json\s*/, "")
-      .replace(/```\s*$/, "")
-      .replace(/\/\/.*$/gm, "") // Remove single-line comments
-      .replace(/\/\*[\s\S]*?\*\//g, "") // Remove multi-line comments
-      .replace(/,\s*([\]}])/g, "$1") // Remove trailing commas
-      // Fix for common numeric field quote error (e.g., "year": 1997",)
-      .replace(
-        /"(year|durationMinutes|matchScore|page|count)":\s*(\d+)"/g,
-        '"$1": $2'
-      )
-      .replace(
-        /"(year|durationMinutes|matchScore|page|count)":\s*"(\d+)"/g,
-        '"$1": $2'
-      );
-  };
-
-  const tryParse = (text: string): T | null => {
-    try {
-      return JSON.parse(text);
-    } catch {
-      try {
-        return JSON.parse(cleanJSON(text));
-      } catch {
-        return null;
-      }
-    }
-  };
-
-  // 1. First try parsing the whole thing (after cleaning)
-  let parsed = tryParse(responseText);
-  if (parsed) {
-    if (isArray && !Array.isArray(parsed)) {
-      // If it parsed as object but we wanted array, move on to extraction
-    } else if (!isArray && Array.isArray(parsed)) {
-      // If it parsed as array but we wanted object, move on to extraction
-    } else {
-      return parsed;
-    }
-  }
-
-  // 2. Try to extract the first array or object if it's buried in text
-  if (isArray) {
-    const arrayMatch = responseText.match(/\[[\s\S]*\]/);
-    if (arrayMatch) {
-      const p = tryParse(arrayMatch[0]);
-      if (p && Array.isArray(p)) return p as unknown as T;
-    }
-  } else {
-    const objectMatch = responseText.match(/\{[\s\S]*\}/);
-    if (objectMatch) {
-      const p = tryParse(objectMatch[0]);
-      if (p && !Array.isArray(p)) return p as unknown as T;
-    }
-  }
-
-  // 3. If it was supposed to be an array, try to extract objects one by one
-  if (isArray) {
-    const results: any[] = [];
-    let depth = 0;
-    let startPos = -1;
-    let inString = false;
-    let escape = false;
-
-    // Remove markdown code blocks before iterating to avoid issues
-    const textToScan = responseText.replace(/```json|```/g, "");
-
-    for (let i = 0; i < textToScan.length; i++) {
-      const char = textToScan[i];
-      if (escape) {
-        escape = false;
-        continue;
-      }
-      if (char === "\\") {
-        escape = true;
-        continue;
-      }
-      if (char === '"') {
-        inString = !inString;
-        continue;
-      }
-
-      if (!inString) {
-        if (char === "{") {
-          if (depth === 0) startPos = i;
-          depth++;
-        } else if (char === "}") {
-          depth--;
-          if (depth === 0 && startPos !== -1) {
-            const objStr = textToScan.substring(startPos, i + 1);
-            const obj = tryParse(objStr);
-            if (obj) results.push(obj);
-          }
-        }
-      }
-    }
-
-    if (results.length > 0) return results as unknown as T;
-  }
-
-  // 4. Final attempt: show what it received in logs
-  console.error("Failed to parse JSON response after multiple strategies:", responseText);
-
-  throw new Error(
-    "Failed to extract valid JSON from the AI response. Please try refreshing or re-submitting your request."
-  );
-};
 
 export const getMovieRecommendations = async (
   preferences: UserPreferences,
   recommendationType: RecommendationType,
   sessionExcludedItems: Movie[] = []
 ): Promise<Movie[]> => {
-  if (!PERPLEXITY_API_KEY)
-    throw new Error("PERPLEXITY_API_KEY is not configured.");
-
   const [feedbackHistory, numberOfRecommendations] = await Promise.all([
     getAllFeedback(),
     getNumberOfRecommendationsSetting(),
   ]);
 
-  // Add all "Not my vibe" movies to excluded items to prevent them from appearing again
   const notMyVibeMovies: Movie[] = feedbackHistory
     .filter((f) => f.feedback === "Not my vibe")
-    .map((f) => ({
-      id: `${f.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${f.year}`,
-      title: f.title,
-      year: f.year,
-      summary: "", // Not needed for exclusion, but required by Movie type
-      genres: [], // Not needed for exclusion, but required by Movie type
-    }));
+    .map((f) => ({ id: generateMovieId(f.title, f.year), title: f.title, year: f.year, summary: "", genres: [] }));
 
   const allExcludedItems = [...sessionExcludedItems, ...notMyVibeMovies];
-
-  const prompt = constructPrompt(
-    preferences,
-    recommendationType,
-    feedbackHistory,
-    allExcludedItems,
-    numberOfRecommendations + 3
-  ); // Fetch more to build a buffer
-
+  const prompt = constructPrompt(preferences, recommendationType, feedbackHistory, allExcludedItems, numberOfRecommendations + 3);
   const systemPrompt = `You are a world-class movie and TV series recommendation expert AI. Your primary goal is to provide high-quality, personalized recommendations. You MUST return ONLY valid JSON - no explanations, no markdown, just the JSON array.`;
 
-  const responseText = await callPerplexityAPI(systemPrompt, prompt, 4000);
-  const rawRecommendations: GeminiMovieRecommendation[] =
-    parseAndValidateResponse(responseText, true);
-
-  // Convert to Movie objects and filter out any "Not my vibe" movies (safety check)
+  const rawRecommendations = await performAIRequest<GeminiMovieRecommendation[]>(systemPrompt, prompt, 4000, true);
   const excludedIds = new Set(allExcludedItems.map((m) => m.id));
-  const movies = rawRecommendations
-    .map((rec) => ({
-      ...rec,
-      id: `${rec.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${rec.year}`,
-    }))
+  return rawRecommendations
+    .map((rec) => ({ ...rec, id: generateMovieId(rec.title, rec.year) }))
     .filter((movie) => !excludedIds.has(movie.id));
-
-  return movies;
 };
 
 export const findSimilarItems = async (
@@ -792,41 +518,18 @@ export const findSimilarItems = async (
   recommendationType: RecommendationType,
   stablePreferences: StableUserPreferences
 ): Promise<Movie[]> => {
-  if (!PERPLEXITY_API_KEY)
-    throw new Error("PERPLEXITY_API_KEY is not configured.");
-
   const [feedbackHistory, numberOfRecs] = await Promise.all([
     getAllFeedback(),
     getNumberOfSimilarItemsSetting(),
   ]);
 
-  // Get all "Not my vibe" movies to exclude
-  const notMyVibeIds = new Set(
-    feedbackHistory
-      .filter((f) => f.feedback === "Not my vibe")
-      .map((f) => `${f.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${f.year}`)
-  );
-
-  const prompt = constructSimilarItemsPrompt(
-    itemTitle,
-    recommendationType,
-    stablePreferences,
-    feedbackHistory,
-    numberOfRecs
-  );
-
+  const notMyVibeIds = new Set(feedbackHistory.filter((f) => f.feedback === "Not my vibe").map((f) => generateMovieId(f.title, f.year)));
+  const prompt = constructSimilarItemsPrompt(itemTitle, recommendationType, stablePreferences, feedbackHistory, numberOfRecs);
   const systemPrompt = `You are a movie and TV series recommendation expert. You MUST return ONLY valid JSON array - no explanations, no markdown, just the JSON array.`;
 
-  const responseText = await callPerplexityAPI(systemPrompt, prompt, 3000);
-  const rawRecommendations: GeminiMovieRecommendation[] =
-    parseAndValidateResponse(responseText, true);
-
-  // Filter out "Not my vibe" movies
+  const rawRecommendations = await performAIRequest<GeminiMovieRecommendation[]>(systemPrompt, prompt, 3000, true);
   return rawRecommendations
-    .map((rec) => ({
-      ...rec,
-      id: `${rec.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${rec.year}`,
-    }))
+    .map((rec) => ({ ...rec, id: generateMovieId(rec.title, rec.year) }))
     .filter((movie) => !notMyVibeIds.has(movie.id));
 };
 
@@ -835,37 +538,17 @@ export const checkTasteMatch = async (
   recommendationType: RecommendationType,
   stablePreferences: StableUserPreferences
 ): Promise<TasteCheckServiceResponse> => {
-  if (!PERPLEXITY_API_KEY)
-    throw new Error("PERPLEXITY_API_KEY is not configured.");
   const feedbackHistory = await getAllFeedback();
-  const prompt = constructTasteCheckPrompt(
-    itemTitle,
-    recommendationType,
-    stablePreferences,
-    feedbackHistory
-  );
-
+  const prompt = constructTasteCheckPrompt(itemTitle, recommendationType, stablePreferences, feedbackHistory);
   const systemPrompt = `You are a movie and series taste analysis expert. You MUST return ONLY valid JSON object - no explanations, no markdown, just the JSON object.`;
 
-  const responseText = await callPerplexityAPI(systemPrompt, prompt, 2000);
-  const result: TasteCheckGeminiResponse = parseAndValidateResponse(
-    responseText,
-    false
-  );
-
+  const result = await performAIRequest<TasteCheckGeminiResponse>(systemPrompt, prompt, 2000, false);
   if (!result.itemFound || !result.identifiedItem) {
-    return {
-      itemFound: false,
-      movie: null,
-      justification: null,
-      error: result.justification || "Item could not be identified.",
-    };
+    return { itemFound: false, movie: null, justification: null, error: result.justification || "Item could not be identified." };
   }
 
   const movie: Movie = {
-    id: `${result.identifiedItem.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "")}${result.identifiedItem.year}`,
+    id: generateMovieId(result.identifiedItem.title, result.identifiedItem.year),
     title: result.identifiedItem.title,
     year: result.identifiedItem.year,
     summary: result.identifiedItem.summary,
@@ -873,12 +556,7 @@ export const checkTasteMatch = async (
     posterUrl: result.identifiedItem.posterUrl,
     matchScore: result.identifiedItem.matchScore,
   };
-
-  return {
-    itemFound: true,
-    movie: movie,
-    justification: result.justification,
-  };
+  return { itemFound: true, movie, justification: result.justification };
 };
 
 export const getSingleReplacementRecommendation = async (
@@ -886,31 +564,13 @@ export const getSingleReplacementRecommendation = async (
   recommendationType: RecommendationType,
   allExcludedItems: Movie[]
 ): Promise<Movie | null> => {
-  if (!PERPLEXITY_API_KEY) {
-    console.error(
-      "PERPLEXITY_API_KEY not configured, cannot fetch replacement."
-    );
-    return null;
-  }
   const feedbackHistory = await getAllFeedback();
-  const prompt = constructSingleReplacementPrompt(
-    preferences,
-    recommendationType,
-    feedbackHistory,
-    allExcludedItems
-  );
+  const prompt = constructSingleReplacementPrompt(preferences, recommendationType, feedbackHistory, allExcludedItems);
 
   try {
     const systemPrompt = `You are a movie and TV series recommendation expert. You MUST return ONLY valid JSON object - no explanations, no markdown, just the JSON object.`;
-    const responseText = await callPerplexityAPI(systemPrompt, prompt, 2000);
-    const rawRecommendation: GeminiMovieRecommendation =
-      parseAndValidateResponse(responseText, false);
-    return {
-      ...rawRecommendation,
-      id: `${rawRecommendation.title.toLowerCase().replace(/[^a-z0-9]/g, "")}${
-        rawRecommendation.year
-      }`,
-    };
+    const rawRecommendation = await performAIRequest<GeminiMovieRecommendation>(systemPrompt, prompt, 2000, false);
+    return { ...rawRecommendation, id: generateMovieId(rawRecommendation.title, rawRecommendation.year) };
   } catch (error) {
     console.error("Failed to fetch single replacement recommendation:", error);
     return null;
@@ -925,9 +585,7 @@ export const getItemTitleSuggestions = async (
   if (!PERPLEXITY_API_KEY || query.length < 2) return [];
 
   const cacheKey = `${recommendationType}:${query}`;
-  if (autosuggestCache.has(cacheKey)) {
-    return autosuggestCache.get(cacheKey)!;
-  }
+  if (autosuggestCache.has(cacheKey)) return autosuggestCache.get(cacheKey)!;
 
   const itemType = recommendationType === "series" ? "TV series" : "movie";
   const prompt = `You are a movie and TV series title auto-completer. A user is typing a ${itemType} title. Based on the query "${query}", suggest up to 5 popular and relevant ${itemType} titles.
@@ -941,12 +599,8 @@ Do not add any text before or after the JSON array. If you have no suggestions, 
 
   try {
     const systemPrompt = `You are a movie and TV series title auto-completer. You MUST return ONLY valid JSON array - no explanations, no markdown, just the JSON array.`;
-    const responseText = await callPerplexityAPI(systemPrompt, prompt, 1000);
-    const suggestions: AppItemTitleSuggestion[] = parseAndValidateResponse(
-      responseText,
-      true
-    );
-    autosuggestCache.set(cacheKey, suggestions); // Store in cache
+    const suggestions = await performAIRequest<AppItemTitleSuggestion[]>(systemPrompt, prompt, 1000, true);
+    autosuggestCache.set(cacheKey, suggestions);
     return suggestions;
   } catch (error) {
     console.error("Error fetching title suggestions:", error);
@@ -954,23 +608,16 @@ Do not add any text before or after the JSON array. If you have no suggestions, 
   }
 };
 
-export const enrichViewingHistory = async (
-  titles: string[]
-): Promise<{ title: string; year: number }[]> => {
-  if (!PERPLEXITY_API_KEY || titles.length === 0)
-    return titles.map((t) => ({ title: t, year: new Date().getFullYear() }));
-
+export const enrichViewingHistory = async (titles: string[]): Promise<{ title: string; year: number }[]> => {
+  if (!PERPLEXITY_API_KEY || titles.length === 0) return titles.map((t) => ({ title: t, year: new Date().getFullYear() }));
   const prompt = constructEnrichHistoryPrompt(titles);
 
   try {
     const systemPrompt = `You are a film and TV series data enrichment expert. You MUST return ONLY valid JSON array - no explanations, no markdown, just the JSON array.`;
-    const responseText = await callPerplexityAPI(systemPrompt, prompt, 2000);
-    const enrichedItems: { title: string; year: number }[] =
-      parseAndValidateResponse(responseText, true);
+    const enrichedItems = await performAIRequest<{ title: string; year: number }[]>(systemPrompt, prompt, 2000, true);
     return enrichedItems;
   } catch (error) {
     console.error("Error enriching viewing history:", error);
-    // Fallback to original titles if enrichment fails
     return titles.map((t) => ({ title: t, year: new Date().getFullYear() }));
   }
 };

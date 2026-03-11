@@ -32,7 +32,7 @@ if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage)
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "sonar-pro",
+        model: "sonar",
         messages: [
           {
             role: "system",

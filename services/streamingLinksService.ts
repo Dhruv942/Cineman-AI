@@ -306,8 +306,7 @@ const extractStreamingLinks = (text: string): StreamingOption[] => {
  * Extracts streaming links from Perplexity search_results as fallback
  */
 const extractFromSearchResults = (
-  searchResults: Array<{ title: string; url: string; snippet?: string }>,
-  movieTitle: string
+  searchResults: Array<{ title: string; url: string; snippet?: string }>
 ): StreamingOption[] => {
   const links: StreamingOption[] = [];
 
@@ -420,7 +419,7 @@ SEARCH NOW and return the direct links.`;
   console.log("📝 [StreamingLinksService] Prompt:", prompt);
 
   const requestBody = {
-    model: "sonar-pro",
+    model: "sonar",
     messages: [
       {
         role: "system",
@@ -503,8 +502,7 @@ SEARCH NOW and return the direct links.`;
         "🔍 [StreamingLinksService] No links in content, trying to extract from search_results..."
       );
       const fallbackLinks = extractFromSearchResults(
-        data.search_results,
-        title
+        data.search_results
       );
       if (fallbackLinks.length > 0) {
         console.log(

@@ -130,7 +130,7 @@ If you find multiple trailers, return the official one. Always return the full U
   console.log("📝 [TrailerService] Prompt:", prompt);
 
   const requestBody = {
-    model: "sonar-pro",
+    model: "sonar",
     messages: [
       {
         role: "system",
