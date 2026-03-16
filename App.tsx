@@ -555,9 +555,9 @@ const App: React.FC = () => {
     );
     trackEvent("view_trailer", { title: movie.title, year: movie.year });
 
-    // Always fetch fresh trailer from Perplexity to ensure we get a working link
+    // Always fetch fresh trailer from Gemini to ensure we get a working link
     // Even if youtubeTrailerId exists, it might be unavailable/removed
-    console.log("🔍 [App] Fetching fresh trailer from Perplexity...");
+    console.log("🔍 [App] Fetching fresh trailer from Gemini...");
     setIsLoadingTrailer(true);
     try {
       const { getTrailerLinkCached } = await import(

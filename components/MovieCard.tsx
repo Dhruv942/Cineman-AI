@@ -91,7 +91,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     fetchFeedback();
   }, [movie.title, movie.year, onFeedback]);
 
-  // Always fetch streaming links from Prelixty API
+  // Always fetch streaming links from Gemini API
   useEffect(() => {
     const fetchStreamingLinks = async () => {
       console.log(
@@ -218,7 +218,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     const platformText = includedMatch[1].trim();
     const searchQuery = encodeURIComponent(movie.title);
 
-    // Use only Prelixty fetched streaming options
+    // Use only Gemini fetched streaming options
     const streamingOptions = fetchedStreamingOptions || [];
 
     // Detect platform and return info
@@ -573,7 +573,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             fetchedStreamingOptions
           );
 
-          // ONLY show button if we have actual streaming options from Perplexity API
+          // ONLY show button if we have actual streaming options from Gemini API
           // NO fallbacks - if not available, show nothing
           if (fetchedStreamingOptions && fetchedStreamingOptions.length > 0) {
             console.log(

@@ -1,17 +1,14 @@
 /**
- * Service to fetch exact streaming platform links using Perplexity API
+ * Service to fetch exact streaming platform links using Gemini API
  */
 
-interface PerplexityResponse {
-  choices: Array<{
-    message: {
-      content: string;
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
     };
-  }>;
-  search_results?: Array<{
-    title: string;
-    url: string;
-    snippet?: string;
   }>;
 }
 
@@ -27,7 +24,7 @@ interface StreamingOption {
  */
 const extractStreamingLinks = (text: string): StreamingOption[] => {
   console.log(
-    "🔍 [StreamingLinksService] Extracting streaming links from Perplexity response text"
+    "🔍 [StreamingLinksService] Extracting streaming links from Gemini response text"
   );
   console.log("📝 [StreamingLinksService] Full response text:", text);
   console.log("📝 [StreamingLinksService] Text type:", typeof text);
@@ -303,63 +300,7 @@ const extractStreamingLinks = (text: string): StreamingOption[] => {
 };
 
 /**
- * Extracts streaming links from Perplexity search_results as fallback
- */
-const extractFromSearchResults = (
-  searchResults: Array<{ title: string; url: string; snippet?: string }>
-): StreamingOption[] => {
-  const links: StreamingOption[] = [];
-
-  console.log(
-    "🔍 [StreamingLinksService] Extracting from search_results, count:",
-    searchResults.length
-  );
-
-  for (const result of searchResults) {
-    // Extract Netflix ID from uNoGS URLs
-    // Format: https://unogs.com/movie/70299275/whiplash
-    const netflixIdMatch = result.url.match(/unogs\.com\/movie\/(\d+)/i);
-    if (netflixIdMatch) {
-      const netflixId = netflixIdMatch[1];
-      const netflixUrl = `https://www.netflix.com/title/${netflixId}`;
-      console.log(
-        `✅ [StreamingLinksService] Found Netflix ID ${netflixId} from uNoGS URL: ${result.url}`
-      );
-      // Only add if not already added
-      if (!links.find((l) => l.service === "Netflix")) {
-        links.push({
-          service: "Netflix",
-          url: netflixUrl,
-        });
-      }
-    }
-
-    // Extract Netflix ID from Wikidata snippets
-    // Format: "Netflix ID · 80994899"
-    const wikidataNetflixMatch = result.snippet?.match(
-      /Netflix ID[^·]*·\s*(\d+)/i
-    );
-    if (wikidataNetflixMatch && !links.find((l) => l.service === "Netflix")) {
-      const netflixId = wikidataNetflixMatch[1];
-      const netflixUrl = `https://www.netflix.com/title/${netflixId}`;
-      console.log(
-        `✅ [StreamingLinksService] Found Netflix ID ${netflixId} from Wikidata snippet`
-      );
-      links.push({
-        service: "Netflix",
-        url: netflixUrl,
-      });
-    }
-  }
-
-  console.log(
-    `📊 [StreamingLinksService] Extracted ${links.length} links from search_results`
-  );
-  return links;
-};
-
-/**
- * Fetches streaming platform links for a movie/series using Perplexity API
+ * Fetches streaming platform links for a movie/series using Gemini API
  * @param title Movie/Series title
  * @param year Release year
  * @returns Array of streaming options with service name and exact URL
@@ -374,12 +315,12 @@ export const getStreamingLinks = async (
     year
   );
 
-  const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
-  const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-  if (!PERPLEXITY_API_KEY) {
+  if (!GEMINI_API_KEY) {
     console.error(
-      "❌ [StreamingLinksService] Perplexity API key is not configured."
+      "❌ [StreamingLinksService] Gemini API key is not configured."
     );
     return [];
   }
@@ -419,32 +360,28 @@ SEARCH NOW and return the direct links.`;
   console.log("📝 [StreamingLinksService] Prompt:", prompt);
 
   const requestBody = {
-    model: "sonar",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a streaming link finder. Your ONLY job is to SEARCH for and RETURN direct streaming URLs. You MUST use your search capabilities to actively find links. DO NOT explain why you cannot find links - SEARCH and FIND them. Return links in format: 'Platform: URL' (one per line). NEVER return search URLs, explanations, or text saying you cannot find links. Only return direct URLs or nothing.",
-      },
+    contents: [
       {
         role: "user",
-        content: prompt,
-      },
+        parts: [{ text: `You are a streaming link finder. Your ONLY job is to SEARCH for and RETURN direct streaming URLs. You MUST use your search capabilities to actively find links. DO NOT explain why you cannot find links - SEARCH and FIND them. Return links in format: 'Platform: URL' (one per line). NEVER return search URLs, explanations, or text saying you cannot find links. Only return direct URLs or nothing.\n\nUser Request: ${prompt}` }]
+      }
     ],
-    temperature: 0.1,
-    max_tokens: 800,
+    generationConfig: {
+      maxOutputTokens: 800,
+      temperature: 0.1,
+    }
   };
 
   console.log(
-    "📤 [StreamingLinksService] Sending request to Perplexity API..."
+    "📤 [StreamingLinksService] Sending request to Gemini API..."
   );
 
   try {
-    const response = await fetch(PERPLEXITY_API_URL, {
+    const url = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
       },
       body: JSON.stringify(requestBody),
     });
@@ -457,7 +394,7 @@ SEARCH NOW and return the direct links.`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ [StreamingLinksService] Perplexity API error:", {
+      console.error("❌ [StreamingLinksService] Gemini API error:", {
         status: response.status,
         statusText: response.statusText,
         body: errorText,
@@ -465,29 +402,35 @@ SEARCH NOW and return the direct links.`;
       return [];
     }
 
-    const data: PerplexityResponse = await response.json();
-    console.log("📥 [StreamingLinksService] Full Perplexity response received");
+    const data: GeminiResponse = await response.json();
+    console.log("📥 [StreamingLinksService] Full Gemini response received");
     console.log(
       "📥 [StreamingLinksService] Response data:",
       JSON.stringify(data, null, 2)
     );
 
-    if (!data.choices || data.choices.length === 0) {
+    if (!data.candidates || data.candidates.length === 0) {
       console.error(
-        "❌ [StreamingLinksService] No choices in Perplexity response"
+        "❌ [StreamingLinksService] No candidates in Gemini response"
       );
       console.error("❌ [StreamingLinksService] Full response:", data);
       return [];
     }
 
-    const content = data.choices[0].message.content;
+    const content = data.candidates[0].content?.parts?.[0]?.text;
+    if (!content) {
+      console.error(
+        "❌ [StreamingLinksService] No content text in Gemini response"
+      );
+      return [];
+    }
     console.log(
-      "📄 [StreamingLinksService] Perplexity content (raw):",
+      "📄 [StreamingLinksService] Gemini content (raw):",
       content
     );
     console.log(
       "📄 [StreamingLinksService] Content length:",
-      content?.length || 0
+      content.length
     );
 
     let streamingLinks = extractStreamingLinks(content);
@@ -495,23 +438,6 @@ SEARCH NOW and return the direct links.`;
       "🔍 [StreamingLinksService] After extraction from content, found links:",
       streamingLinks
     );
-
-    // Fallback: Extract IDs from search_results if Perplexity didn't return links
-    if (streamingLinks.length === 0 && data.search_results) {
-      console.log(
-        "🔍 [StreamingLinksService] No links in content, trying to extract from search_results..."
-      );
-      const fallbackLinks = extractFromSearchResults(
-        data.search_results
-      );
-      if (fallbackLinks.length > 0) {
-        console.log(
-          "✅ [StreamingLinksService] Found links in search_results:",
-          fallbackLinks
-        );
-        streamingLinks = fallbackLinks;
-      }
-    }
 
     if (streamingLinks.length > 0) {
       console.log(
@@ -530,12 +456,12 @@ SEARCH NOW and return the direct links.`;
     }
 
     console.warn(
-      `⚠️ [StreamingLinksService] Could not extract streaming links from Perplexity response for ${title}`
+      `⚠️ [StreamingLinksService] Could not extract streaming links from Gemini response for ${title}`
     );
     return [];
   } catch (error) {
     console.error(
-      "❌ [StreamingLinksService] Error fetching streaming links from Perplexity:",
+      "❌ [StreamingLinksService] Error fetching streaming links from Gemini:",
       error
     );
     if (error instanceof Error) {

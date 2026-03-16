@@ -1,6 +1,6 @@
 declare const chrome: any;
 // Type declaration for Vite's injected process.env
-declare const process: { env: { PERPLEXITY_API_KEY?: string } };
+declare const process: { env: { PERPLEXITY_API_KEY?: string; GEMINI_API_KEY?: string } };
 import type {
   UserPreferences,
   Movie,
@@ -28,35 +28,37 @@ import {
 } from "../constants";
 import { getAllFeedback } from "./feedbackService";
 
-const PERPLEXITY_API_KEY = (process.env.PERPLEXITY_API_KEY || "") as string;
+const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || "") as string;
 const isExtension = typeof window !== "undefined" && typeof chrome !== "undefined" && chrome?.runtime?.sendMessage;
-const PERPLEXITY_API_URL = isExtension 
-  ? "https://api.perplexity.ai/chat/completions" 
-  : "/api/perplexity";
+const GEMINI_API_URL = isExtension 
+  ? "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" 
+  : "/api/gemini";
 
-interface PerplexityResponse {
-  choices: Array<{
-    message: {
-      content: string;
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
     };
   }>;
 }
 
-const callPerplexityAPI = async (
+const callGeminiAPI = async (
   systemPrompt: string,
   userPrompt: string,
   maxTokens: number = 2000
 ): Promise<string> => {
   if (isExtension) {
-    if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY is not configured.");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured.");
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(
         {
-          type: "CALL_PERPLEXITY_API",
+          type: "CALL_GEMINI_API",
           systemPrompt,
           userPrompt,
           maxTokens,
-          apiKey: PERPLEXITY_API_KEY,
+          apiKey: GEMINI_API_KEY,
         },
         (response: { success: boolean; data?: string; error?: string } | undefined) => {
           if (chrome.runtime.lastError) {
@@ -73,74 +75,132 @@ const callPerplexityAPI = async (
     });
   }
 
-  const response = await fetch(PERPLEXITY_API_URL, {
+  const url = isExtension ? `${GEMINI_API_URL}?key=${GEMINI_API_KEY}` : GEMINI_API_URL;
+  const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "sonar",
-      messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-      temperature: 0.1,
-      max_tokens: maxTokens,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: `${systemPrompt}\n\nUser Request: ${userPrompt}` }]
+        }
+      ],
+      generationConfig: {
+        maxOutputTokens: maxTokens,
+        temperature: 0.1,
+        responseMimeType: "application/json",
+      },
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`);
+    throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
   }
 
-  const data: PerplexityResponse = await response.json();
-  if (!data.choices || data.choices.length === 0) throw new Error("No response from Perplexity API");
-  return data.choices[0].message.content;
+  const data: GeminiResponse = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("No response from Gemini API");
+  return text;
 };
 
 const parseAndValidateResponse = <T>(responseText: string, isArray: boolean): T => {
   const cleanJSON = (text: string) => {
-    return text.trim()
-      .replace(/^```json\s*/, "").replace(/```\s*$/, "")
+    const trimmed = text.trim()
+      .replace(/```json\s*|```\s*$/g, "")
       .replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/,\s*([\]}])/g, "$1")
       .replace(/"(year|durationMinutes|matchScore|page|count)":\s*["']?(\d+)["']?/g, '"$1": $2');
+    
+    // Final pass to escape newlines inside strings properly
+    let result = "";
+    let inStr = false;
+    let esc = false;
+    for (let i = 0; i < trimmed.length; i++) {
+      const char = trimmed[i];
+      if (esc) { result += char; esc = false; }
+      else if (char === "\\") { result += char; esc = true; }
+      else if (char === '"') { inStr = !inStr; result += char; }
+      else if (char === "\n" && inStr) { result += "\\n"; }
+      else { result += char; }
+    }
+    return result;
   };
 
-  const tryParse = (text: string): T | null => {
-    try { return JSON.parse(text); } catch {
-      try { return JSON.parse(cleanJSON(text)); } catch { return null; }
+  const tryParse = (text: string): any | null => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      try {
+        const cleaned = cleanJSON(text);
+        return JSON.parse(cleaned);
+      } catch (e) {
+        // Only warn for relatively complete-looking objects to avoid log spam
+        if (text.length > 50) console.warn("JSON parse attempt failed:", e);
+        return null;
+      }
     }
   };
 
-  const parsed = tryParse(responseText);
-  if (parsed && (isArray === Array.isArray(parsed))) return parsed;
-
-  const match = responseText.match(isArray ? /\[[\s\S]*\]/ : /\{[\s\S]*\}/);
-  if (match) {
-    const p = tryParse(match[0]);
-    if (p && (isArray === Array.isArray(p))) return p as unknown as T;
+  // 1. Try direct parse
+  let parsed = tryParse(responseText);
+  if (parsed) {
+    if (isArray && !Array.isArray(parsed)) parsed = [parsed];
+    if (!isArray && Array.isArray(parsed)) parsed = Array.isArray(parsed) ? parsed[0] : parsed;
+    return parsed as unknown as T;
   }
 
-  if (isArray) {
-    const results: any[] = [];
-    let depth = 0, startPos = -1, inString = false, escape = false;
-    const textToScan = responseText.replace(/```json|```/g, "");
+  // 2. Manual scanning with stack to repair truncation
+  const results: any[] = [];
+  let depth = 0, startPos = -1, inString = false, escape = false;
+  const stack: string[] = [];
+  const textToScan = responseText.replace(/```json|```/g, "");
 
-    for (let i = 0; i < textToScan.length; i++) {
-      const char = textToScan[i];
-      if (escape) { escape = false; continue; }
-      if (char === "\\") { escape = true; continue; }
-      if (char === '"') { inString = !inString; continue; }
-      if (!inString) {
-        if (char === "{") { if (depth === 0) startPos = i; depth++; }
-        else if (char === "}") {
+  for (let i = 0; i < textToScan.length; i++) {
+    const char = textToScan[i];
+    if (escape) { escape = false; continue; }
+    if (char === "\\") { escape = true; continue; }
+    if (char === '"') { inString = !inString; continue; }
+    if (!inString) {
+      if (char === "{" || char === "[") {
+        if (depth === 0) startPos = i;
+        depth++;
+        stack.push(char === "{" ? "}" : "]");
+      } else if (char === "}" || char === "]") {
+        if (stack.length > 0 && char === stack[stack.length - 1]) {
+          stack.pop();
           depth--;
           if (depth === 0 && startPos !== -1) {
-            const obj = tryParse(textToScan.substring(startPos, i + 1));
+            const rawObj = textToScan.substring(startPos, i + 1);
+            const obj = tryParse(rawObj);
             if (obj) results.push(obj);
+            startPos = -1;
           }
         }
       }
     }
-    if (results.length > 0) return results as unknown as T;
   }
+
+  // Handle truncation repair
+  if (depth > 0 && startPos !== -1) {
+    let repair = textToScan.substring(startPos);
+    if (inString) repair += '"';
+    // Append closing brackets in reverse order of stack
+    for (let j = stack.length - 1; j >= 0; j--) {
+      repair += stack[j];
+    }
+    const obj = tryParse(repair);
+    if (obj) {
+      if (Array.isArray(obj)) results.push(...obj);
+      else results.push(obj);
+    }
+  }
+
+  if (results.length > 0) {
+    return (isArray ? results : results[0]) as unknown as T;
+  }
+
   console.error("Failed to parse JSON response:", responseText);
   throw new Error("Failed to extract valid JSON from the AI response.");
 };
@@ -151,8 +211,11 @@ const performAIRequest = async <T>(
   maxTokens: number = 2000,
   isArray: boolean = true
 ): Promise<T> => {
-  if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY is not configured.");
-  const responseText = await callPerplexityAPI(systemPrompt, userPrompt, maxTokens);
+  if (!isExtension && !GEMINI_API_KEY && !process.env.GEMINI_API_KEY) {
+     // If we are server-side or in dev without extension, we might rely on the proxy
+     // but we should still check for the key if we're calling directly
+  }
+  const responseText = await callGeminiAPI(systemPrompt, userPrompt, maxTokens);
   return parseAndValidateResponse<T>(responseText, isArray);
 };
 
@@ -582,7 +645,7 @@ export const getItemTitleSuggestions = async (
   query: string,
   recommendationType: RecommendationType
 ): Promise<AppItemTitleSuggestion[]> => {
-  if (!PERPLEXITY_API_KEY || query.length < 2) return [];
+  if (query.length < 2) return [];
 
   const cacheKey = `${recommendationType}:${query}`;
   if (autosuggestCache.has(cacheKey)) return autosuggestCache.get(cacheKey)!;
@@ -609,7 +672,7 @@ Do not add any text before or after the JSON array. If you have no suggestions, 
 };
 
 export const enrichViewingHistory = async (titles: string[]): Promise<{ title: string; year: number }[]> => {
-  if (!PERPLEXITY_API_KEY || titles.length === 0) return titles.map((t) => ({ title: t, year: new Date().getFullYear() }));
+  if (titles.length === 0) return [];
   const prompt = constructEnrichHistoryPrompt(titles);
 
   try {

@@ -1,11 +1,13 @@
 /**
- * Service to fetch movie trailer links using Perplexity API
+ * Service to fetch movie trailer links using Gemini API
  */
 
-interface PerplexityResponse {
-  choices: Array<{
-    message: {
-      content: string;
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
     };
   }>;
 }
@@ -94,33 +96,21 @@ export const getTrailerLink = async (
 ): Promise<string | null> => {
   console.log("🎬 [TrailerService] Starting trailer fetch for:", title, year);
 
-  const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
-  const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-  if (!PERPLEXITY_API_KEY) {
+  if (!GEMINI_API_KEY) {
     console.error(
-      "❌ [TrailerService] Perplexity API key is not configured. " +
-        "Please set PERPLEXITY_API_KEY in your environment variables. " +
-        "For Render: Go to Environment tab and add PERPLEXITY_API_KEY"
+      "❌ [TrailerService] Gemini API key is not configured. " +
+        "Please set GEMINI_API_KEY in your environment variables."
     );
     return null;
   }
 
   console.log(
-    "🔑 [TrailerService] API Key status:",
-    PERPLEXITY_API_KEY ? "Configured" : "Missing"
+    "🔑 [TrailerService] Using Gemini API Key:",
+    GEMINI_API_KEY.substring(0, 10) + "..."
   );
-  console.log(
-    "🔑 [TrailerService] API Key prefix:",
-    PERPLEXITY_API_KEY.substring(0, 10) + "..."
-  );
-
-  console.log(
-    "🔑 [TrailerService] Using Perplexity API Key:",
-    PERPLEXITY_API_KEY.substring(0, 10) + "..."
-  );
-
-  console.log("✅ [TrailerService] API Key configured");
 
   const prompt = `Find the official YouTube trailer link for the movie "${title}" released in ${year}. 
 Return ONLY the complete YouTube URL (full link). Do NOT return just the video ID.
@@ -130,34 +120,30 @@ If you find multiple trailers, return the official one. Always return the full U
   console.log("📝 [TrailerService] Prompt:", prompt);
 
   const requestBody = {
-    model: "sonar",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a helpful assistant that finds YouTube trailer links for movies and TV shows. ALWAYS return the complete YouTube URL (full link like https://www.youtube.com/watch?v=VIDEO_ID), never return just the video ID. The URL must be complete and ready to use.",
-      },
+    contents: [
       {
         role: "user",
-        content: prompt,
-      },
+        parts: [{ text: prompt }]
+      }
     ],
-    temperature: 0.2,
-    max_tokens: 200,
+    generationConfig: {
+      maxOutputTokens: 200,
+      temperature: 0.2,
+    },
   };
 
-  console.log("📤 [TrailerService] Sending request to Perplexity API...");
+  console.log("📤 [TrailerService] Sending request to Gemini API...");
   console.log(
     "📤 [TrailerService] Request body:",
     JSON.stringify(requestBody, null, 2)
   );
 
   try {
-    const response = await fetch(PERPLEXITY_API_URL, {
+    const url = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
       },
       body: JSON.stringify(requestBody),
     });
@@ -170,7 +156,7 @@ If you find multiple trailers, return the official one. Always return the full U
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ [TrailerService] Perplexity API error:", {
+      console.error("❌ [TrailerService] Gemini API error:", {
         status: response.status,
         statusText: response.statusText,
         body: errorText,
@@ -178,19 +164,23 @@ If you find multiple trailers, return the official one. Always return the full U
       return null;
     }
 
-    const data: PerplexityResponse = await response.json();
+    const data: GeminiResponse = await response.json();
     console.log(
-      "📥 [TrailerService] Full Perplexity response:",
+      "📥 [TrailerService] Full Gemini response:",
       JSON.stringify(data, null, 2)
     );
 
-    if (!data.choices || data.choices.length === 0) {
-      console.error("❌ [TrailerService] No choices in Perplexity response");
+    if (!data.candidates || data.candidates.length === 0) {
+      console.error("❌ [TrailerService] No candidates in Gemini response");
       return null;
     }
 
-    const content = data.choices[0].message.content;
-    console.log("📄 [TrailerService] Perplexity content:", content);
+    const content = data.candidates[0].content?.parts?.[0]?.text;
+    if (!content) {
+      console.error("❌ [TrailerService] No content text in Gemini response");
+      return null;
+    }
+    console.log("📄 [TrailerService] Gemini content:", content);
 
     const trailerLink = extractYouTubeLink(content);
 
@@ -209,7 +199,7 @@ If you find multiple trailers, return the official one. Always return the full U
     return null;
   } catch (error) {
     console.error(
-      "❌ [TrailerService] Error fetching trailer from Perplexity:",
+      "❌ [TrailerService] Error fetching trailer from Gemini:",
       error
     );
     if (error instanceof Error) {

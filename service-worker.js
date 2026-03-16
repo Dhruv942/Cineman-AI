@@ -1,6 +1,6 @@
 const CACHE_NAME = "what-to-watch-cache-v5"; // Incremented version for updates
 // API key is passed in the request message, not hardcoded for security
-const PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 const urlsToCache = [
   "/", // Alias for index.html
@@ -14,7 +14,7 @@ const urlsToCache = [
 // Check if chrome API is available (extension context)
 if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request && request.type === "CALL_PERPLEXITY_API") {
+  if (request && request.type === "CALL_GEMINI_API") {
     const { systemPrompt, userPrompt, maxTokens, apiKey } = request;
     
     if (!apiKey) {
@@ -25,45 +25,44 @@ if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage)
       return true;
     }
     
-    fetch(PERPLEXITY_API_URL, {
+    const url = `${GEMINI_API_URL}?key=${apiKey}`;
+    fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "sonar",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt,
-          },
+        contents: [
           {
             role: "user",
-            content: userPrompt,
-          },
+            parts: [{ text: `${systemPrompt}\n\nUser Request: ${userPrompt}` }]
+          }
         ],
-        temperature: 0.1,
-        max_tokens: maxTokens || 2000,
+        generationConfig: {
+          maxOutputTokens: maxTokens || 2000,
+          temperature: 0.1,
+          responseMimeType: "application/json",
+        },
       }),
     })
       .then((response) => {
         if (!response.ok) {
           return response.text().then((text) => {
             throw new Error(
-              `Perplexity API error: ${response.status} ${response.statusText} - ${text}`
+              `Gemini API error: ${response.status} ${response.statusText} - ${text}`
             );
           });
         }
         return response.json();
       })
       .then((data) => {
-        if (!data.choices || data.choices.length === 0) {
-          throw new Error("No response from Perplexity API");
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+          throw new Error("No response from Gemini API");
         }
         sendResponse({
           success: true,
-          data: data.choices[0].message.content,
+          data: text,
         });
       })
       .catch((error) => {
@@ -122,13 +121,13 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // Handle Perplexity API calls (POST requests) - proxy through service worker to avoid CORS
-  if (requestUrl.hostname.includes("api.perplexity.ai")) {
+  // Handle Gemini API calls (POST requests) - proxy through service worker if needed
+  if (requestUrl.hostname.includes("generativelanguage.googleapis.com")) {
     event.respondWith(
       fetch(event.request.clone()).catch((error) => {
-        console.error("[Service Worker] Perplexity API error:", error);
+        console.error("[Service Worker] Gemini API error:", error);
         return new Response(
-          JSON.stringify({ error: "Failed to fetch from Perplexity API" }),
+          JSON.stringify({ error: "Failed to fetch from Gemini API" }),
           {
             status: 500,
             headers: { "Content-Type": "application/json" },

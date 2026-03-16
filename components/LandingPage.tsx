@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 import { LanguageSelector } from './LanguageSelector';
-import { LANDING_PAGE_POSTERS } from '../constants';
+import { LANDING_PAGE_POSTERS, CINE_SUGGEST_CHROME_STORE_URL } from '../constants';
 
 interface LandingPageProps {
   onStartOnboarding: () => void;
@@ -26,6 +26,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
   const handleStart = () => {
     setIsExiting(true);
     setTimeout(() => {
+      window.open(CINE_SUGGEST_CHROME_STORE_URL, '_blank', 'noopener,noreferrer');
+      // We still call onStartOnboarding to clean up the UI or handle any local state, 
+      // but the user will be redirected to the store in a new tab.
       onStartOnboarding();
     }, 500); // Match animation time
   };
