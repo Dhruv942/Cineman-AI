@@ -3,25 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CineMan AI: Smart Movie & TV Show Recommender</title>
+    <title>CineMan AI: Smart Movie & TV Show Recommender | Personalized Picks for Netflix, Prime & More</title>
     <link rel="canonical" href="https://www.cinemanai.com/" />
-    <meta name="description" content="Discover personalized movie &amp; TV recommendations powered by AI. Find what to watch instantly across Netflix, Prime, Hotstar and more." />
-    <meta property="og:title" content="CineMan AI - Smart Movie &amp; TV Recommender" />
-    <meta property="og:description" content="Stop endless scrolling. Get hyper-personalized movie &amp; TV recommendations powered by AI across your favorite OTT platforms." />
-    <meta property="og:image" content="https://www.cinemanai.com/icons/icon128.png" />
+
+    <!-- Core SEO Meta -->
+    <meta name="description" content="CineMan AI is a free Chrome extension that gives you personalized movie & TV show recommendations powered by AI. See IMDb & Rotten Tomatoes ratings on Netflix, Prime Video, Disney+ Hotstar. Find what to watch instantly." />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="author" content="CineMan AI" />
+    <meta name="keywords" content="movie recommendations, AI movie suggestions, what to watch, Netflix recommendations, Prime Video recommendations, streaming guide, IMDb ratings, Rotten Tomatoes, personalized movies, TV show recommender, CineMan AI, best movies to watch, movie finder, streaming companion" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="CineMan AI — Stop Scrolling, Start Watching" />
+    <meta property="og:description" content="Free AI-powered Chrome extension for personalized movie & TV recommendations. See IMDb & RT ratings on Netflix, Prime Video, Disney+ Hotstar. Find hidden gems instantly." />
+    <meta property="og:image" content="https://www.cinemanai.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:url" content="https://www.cinemanai.com/" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CineMan AI" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="CineMan AI - Smart Movie &amp; TV Recommender" />
-    <meta name="twitter:description" content="Your AI powered smart streaming companion. Personalized recommendations for Netflix, Prime, Hotstar and more." />
-    <meta name="twitter:image" content="https://www.cinemanai.com/icons/icon128.png" />
+    <meta name="twitter:title" content="CineMan AI — Stop Scrolling, Start Watching" />
+    <meta name="twitter:description" content="Free AI Chrome extension for personalized movie & TV recommendations. IMDb & RT ratings on Netflix, Prime Video, Disney+ Hotstar." />
+    <meta name="twitter:image" content="https://www.cinemanai.com/og-image.png" />
+
+    <!-- PWA & Icons -->
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#0f172a">
-    <link rel="icon" href="/icons/icon48.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="/icons/icon48.png" type="image/png" sizes="48x48">
+    <link rel="icon" href="/icons/icon32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/icons/icon128.png" />
 
+    <!-- DNS Prefetch for third-party resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+    <link rel="dns-prefetch" href="https://esm.sh" />
     <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <script type="importmap">
 {
   "imports": {
@@ -38,11 +59,10 @@
     height: 100%;
   }
   body {
-    margin: 0; /* Reset default body margin */
+    margin: 0;
     display: flex;
     flex-direction: column;
     font-family: 'Kumbh Sans', sans-serif;
-    /* bg-slate-900 is fallback if #root or app div doesn't cover */
   }
   #root {
     flex-grow: 1;
@@ -50,23 +70,21 @@
     flex-direction: column;
   }
 
-  /* Custom scrollbar for a more integrated feel */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #1e293b; /* slate-800 */
+    background: #1e293b;
   }
   ::-webkit-scrollbar-thumb {
-    background: #4c1d95; /* purple-700 */
+    background: #4c1d95;
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #5b21b6; /* purple-600 */
+    background: #5b21b6;
   }
 
-  /* Custom line-clamp utility */
   .line-clamp-4 {
     display: -webkit-box;
     -webkit-line-clamp: 4;
@@ -75,37 +93,36 @@
     text-overflow: ellipsis;
   }
 
-  /* Discovery View Card Stack Styles */
   .discovery-card-stack {
     position: relative;
-    width: 90vw; /* Use viewport width for responsiveness */
-    max-width: 360px; /* Max width of the card */
-    height: 75vh; /* Use viewport height for responsiveness */
-    max-height: 560px; /* Max height to avoid being too tall on long screens */
+    width: 90vw;
+    max-width: 360px;
+    height: 75vh;
+    max-height: 560px;
     margin: auto;
   }
 
   .discovery-card {
     position: absolute;
     width: 100%;
-    height: 100%; /* Card takes full height of stack */
-    background-color: #1e293b; /* slate-800 */
-    border-radius: 1rem; /* 16px */
+    height: 100%;
+    background-color: #1e293b;
+    border-radius: 1rem;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s ease;
     display: flex;
     flex-direction: column;
-    will-change: transform, opacity; /* Optimize for animations */
+    will-change: transform, opacity;
   }
 
   .discovery-card .card-poster-container {
     width: 100%;
-    height: 65%; /* Adjusted poster height for better balance on mobile */
+    height: 65%;
     overflow: hidden;
     position: relative;
   }
-  
+
   .discovery-card .card-poster {
     width: 100%;
     height: 100%;
@@ -114,52 +131,52 @@
   }
 
   .discovery-card .card-info {
-    padding: 0.75rem; /* Smaller base padding */
+    padding: 0.75rem;
     text-align: center;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center title and year */
+    justify-content: center;
   }
-  
+
   .discovery-card .card-title {
-    font-size: 1.1rem; /* Smaller base font size */
+    font-size: 1.1rem;
     line-height: 1.5rem;
-    font-weight: 600; /* semibold */
-    color: #c084fc; /* purple-400 */
-    margin-bottom: 0.25rem; /* 4px */
+    font-weight: 600;
+    color: #c084fc;
+    margin-bottom: 0.25rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .discovery-card .card-year {
-    font-size: 0.8rem; /* Smaller base font size */
-    color: #94a3b8; /* slate-400 */
-    margin-bottom: 0.5rem; /* 8px */
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
   }
 
   .discovery-card .card-actions {
-    padding: 0.5rem 0.75rem 0.75rem; /* Smaller base padding */
-    border-top: 1px solid #334155; /* slate-700 */
+    padding: 0.5rem 0.75rem 0.75rem;
+    border-top: 1px solid #334155;
     display: flex;
-    gap: 0.75rem; /* 12px */
-    justify-content: space-around; /* Distribute buttons */
+    gap: 0.75rem;
+    justify-content: space-around;
     align-items: center;
   }
-  
+
   .discovery-card .action-button {
-    padding: 0.5rem 0.5rem; /* Adjusted padding */
-    border-radius: 0.5rem; /* 8px */
-    font-weight: 500; /* medium */
-    font-size: 0.8rem; /* Adjusted font size */
+    padding: 0.5rem 0.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.8rem;
     transition: background-color 0.2s, transform 0.1s;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-grow: 1;
-    min-height: 36px; /* Slightly smaller min-height */
-    white-space: nowrap; /* Prevent text wrapping */
+    min-height: 36px;
+    white-space: nowrap;
   }
   .discovery-card .action-button:hover {
     transform: translateY(-1px);
@@ -168,7 +185,7 @@
     transform: translateY(0px);
   }
 
-  @media (min-width: 640px) { /* sm breakpoint */
+  @media (min-width: 640px) {
     .discovery-card .card-info {
       padding: 1rem;
     }
@@ -188,8 +205,6 @@
     }
   }
 
-
-  /* Card stacking visual effect */
   .discovery-card.is-next {
     transform: translateY(15px) scale(0.95);
     opacity: 0.7;
@@ -205,8 +220,7 @@
     opacity: 0;
     z-index: -3;
   }
-  
-  /* Animation states */
+
   .discovery-card.animating-out-left {
     animation: swipe-out-left 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
   }
@@ -220,57 +234,251 @@
      animation: card-enter 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
   }
 
-
   @keyframes swipe-out-left {
-    to {
-      transform: translateX(-150%) rotate(-15deg) scale(0.8);
-      opacity: 0;
-    }
+    to { transform: translateX(-150%) rotate(-15deg) scale(0.8); opacity: 0; }
   }
   @keyframes swipe-out-right {
-    to {
-      transform: translateX(150%) rotate(15deg) scale(0.8);
-      opacity: 0;
-    }
+    to { transform: translateX(150%) rotate(15deg) scale(0.8); opacity: 0; }
   }
   @keyframes swipe-out-up {
-    to {
-      transform: translateY(-150%) scale(0.8);
-      opacity: 0;
-    }
+    to { transform: translateY(-150%) scale(0.8); opacity: 0; }
   }
   @keyframes card-enter {
-    from {
-      transform: translateY(15px) scale(0.95);
-      opacity: 0.7;
-    }
-    to {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
+    from { transform: translateY(15px) scale(0.95); opacity: 0.7; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
   }
-
   @keyframes movie-card-fade-in {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-
   .movie-card-enter {
     animation: movie-card-fade-in 0.4s ease-out forwards;
   }
-  
   @keyframes fade-in-hero {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
   }
-
 </style>
 <link rel="stylesheet" href="/index.css">
+
+<!-- ============================================ -->
+<!-- STRUCTURED DATA (JSON-LD) for SEO + AEO      -->
+<!-- ============================================ -->
+
+<!-- 1. Organization -->
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"CineMan AI","applicationCategory":"BrowserApplication","operatingSystem":"Chrome","description":"AI powered movie and TV recommendation engine. Get personalized suggestions for Netflix, Prime Video, Hotstar and more.","url":"https://www.cinemanai.com/"}
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "CineMan AI",
+  "url": "https://www.cinemanai.com",
+  "logo": "https://www.cinemanai.com/icons/icon128.png",
+  "description": "AI-powered movie and TV show recommendation engine."
+}
 </script>
+
+<!-- 2. WebSite -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "CineMan AI",
+  "url": "https://www.cinemanai.com",
+  "description": "Stop scrolling, start watching. AI-powered personalized movie and TV show recommendations."
+}
+</script>
+
+<!-- 3. SoftwareApplication (expanded) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "CineMan AI",
+  "applicationCategory": "BrowserApplication",
+  "applicationSubCategory": "Entertainment",
+  "operatingSystem": "Chrome",
+  "browserRequirements": "Requires Google Chrome",
+  "softwareVersion": "3.4.10",
+  "description": "CineMan AI is a free Chrome extension that gives you personalized movie and TV show recommendations powered by AI. It overlays IMDb and Rotten Tomatoes ratings directly on Netflix, Prime Video, and Disney+ Hotstar. Features include taste profiling, hidden Netflix genres, playback speed control, auto-skip intros, and Picture-in-Picture.",
+  "url": "https://www.cinemanai.com/",
+  "downloadUrl": "https://chromewebstore.google.com/detail/cineman-ai-superpower-for/njcngpedlikhdhhakgippnpnhokgdjci",
+  "installUrl": "https://chromewebstore.google.com/detail/cineman-ai-superpower-for/njcngpedlikhdhhakgippnpnhokgdjci",
+  "screenshot": "https://www.cinemanai.com/og-image.png",
+  "featureList": [
+    "Personalized movie and TV show recommendations",
+    "IMDb and Rotten Tomatoes ratings on Netflix, Prime Video, Disney+ Hotstar",
+    "AI-powered taste profiling from viewing history",
+    "Find Similar — discover movies like ones you love",
+    "Taste Check — will I like this movie?",
+    "Hidden Netflix genre categories (120+ secret codes)",
+    "Playback speed control with keyboard shortcuts",
+    "Picture-in-Picture mode",
+    "Auto-skip intros on Netflix, Prime Video, Hotstar",
+    "Fade out low-rated titles",
+    "Works on Netflix, Prime Video, Disney+ Hotstar, JioCinema"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5.0",
+    "ratingCount": "15",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "CineMan AI",
+    "url": "https://www.cinemanai.com"
+  }
+}
+</script>
+
+<!-- 4. FAQPage Schema (AEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is CineMan AI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CineMan AI is a free Chrome browser extension that provides personalized movie and TV show recommendations powered by AI. It also overlays IMDb and Rotten Tomatoes ratings directly on Netflix, Prime Video, and Disney+ Hotstar browse pages, so you can instantly see what's worth watching without switching tabs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does CineMan AI recommend movies?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CineMan AI builds a taste profile from your viewing history on Netflix, Prime Video, and other platforms. It analyzes your preferences across genres, directors, actors, themes, and more. Then it uses this profile to score and rank new titles, giving you a personalized 'Taste Match' percentage for every recommendation."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What streaming platforms does CineMan AI support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CineMan AI works on Netflix, Amazon Prime Video, Disney+ Hotstar, and JioCinema. It overlays IMDb and Rotten Tomatoes ratings on title cards, shows a CineMan action icon for 'Find Similar' and 'Taste Check' features, and provides playback enhancements like speed control and auto-skip intros on all supported platforms."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is CineMan AI free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, CineMan AI is completely free. There are no subscriptions, no premium tiers, and no hidden costs. All features including personalized recommendations, IMDb/RT ratings overlay, hidden Netflix genres, playback speed control, and auto-skip intros are available for free."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the Taste Check feature work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Taste Check analyzes any movie or TV show against your personal taste profile and gives you a match percentage (0-100%). It tells you how likely you are to enjoy a title based on your viewing history, preferred genres, directors, and themes. You can use it by hovering over any title on Netflix or Prime Video and clicking 'Will I like this?' on the CineMan icon."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does CineMan AI collect my data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. CineMan AI stores all data locally on your device using Chrome's built-in storage. Your viewing history, taste profile, and preferences never leave your browser and are never sent to any server. Your privacy is fully protected."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are hidden Netflix genres in CineMan AI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Netflix has over 500 secret genre categories that aren't shown in the normal browse menu — like Oscar-Winning Films, Cult Classics, K-Drama, Cyberpunk, Spy Action, and more. CineMan AI unlocks 120+ of these hidden genres with a searchable dropdown button on Netflix, letting you browse content you'd never find otherwise."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install CineMan AI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Visit the Chrome Web Store, search for 'CineMan AI', and click 'Add to Chrome'. The extension installs in seconds. Then visit Netflix or Prime Video — you'll immediately see IMDb and Rotten Tomatoes ratings on every title card. Open the CineMan popup to set up your taste profile and get personalized recommendations."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- 5. HowTo Schema (AEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to get personalized movie recommendations with CineMan AI",
+  "description": "Find your next favorite movie or TV show in 3 easy steps using CineMan AI's free Chrome extension.",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "position": 1,
+      "name": "Tell Us Your Vibe",
+      "text": "Select your favorite genres, moods, and keywords, or tell CineMan AI a movie you already love. The AI learns your unique taste preferences."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 2,
+      "name": "AI Finds Your Perfect Match",
+      "text": "CineMan AI's taste engine analyzes thousands of titles, scoring each against your profile. It considers genres, directors, themes, runtime, and more to find your ideal matches."
+    },
+    {
+      "@type": "HowToStep",
+      "position": 3,
+      "name": "Watch and Enjoy",
+      "text": "Browse your personalized recommendations with taste match scores, IMDb ratings, Rotten Tomatoes scores, and streaming availability. Click to watch directly on Netflix, Prime Video, or Disney+ Hotstar."
+    }
+  ]
+}
+</script>
+
+<!-- 6. BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://www.cinemanai.com/"
+    }
+  ]
+}
+</script>
+
 </head>
   <body class="bg-slate-900 text-slate-100">
+    <!-- Noscript fallback for crawlers and non-JS browsers -->
+    <noscript>
+      <div style="background:#0f172a;color:#e2e8f0;padding:40px;text-align:center;font-family:sans-serif;">
+        <h1>CineMan AI: Smart Movie & TV Show Recommender</h1>
+        <p>CineMan AI is a free Chrome extension that gives you personalized movie and TV show recommendations powered by AI.</p>
+        <h2>Features</h2>
+        <ul style="text-align:left;max-width:600px;margin:0 auto;line-height:2;">
+          <li>IMDb & Rotten Tomatoes ratings on Netflix, Prime Video, Disney+ Hotstar</li>
+          <li>Personalized recommendations based on your taste profile</li>
+          <li>Find Similar — discover movies like ones you love</li>
+          <li>Taste Check — will you like this movie? Get a match percentage</li>
+          <li>Hidden Netflix genre categories (120+ secret codes)</li>
+          <li>Playback speed control, Picture-in-Picture, auto-skip intros</li>
+          <li>100% free, no data leaves your device</li>
+        </ul>
+        <p style="margin-top:20px;"><a href="https://chromewebstore.google.com/detail/cineman-ai-superpower-for/njcngpedlikhdhhakgippnpnhokgdjci" style="color:#a78bfa;">Install CineMan AI from Chrome Web Store</a></p>
+      </div>
+    </noscript>
+
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
