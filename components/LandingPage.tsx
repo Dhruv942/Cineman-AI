@@ -167,6 +167,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
 
       </main>
       <footer className="py-8 text-center z-10">
+        <div className="flex justify-center gap-6 mb-4">
+          <a href="/blogs/" className="text-slate-400 hover:text-purple-400 text-sm font-medium transition-colors">Blog</a>
+          <a href="/privacy" className="text-slate-400 hover:text-purple-400 text-sm font-medium transition-colors">Privacy</a>
+          <a href="/terms" className="text-slate-400 hover:text-purple-400 text-sm font-medium transition-colors">Terms</a>
+        </div>
         <p className="text-slate-400 text-sm">
           {t('footer_copyright', '© {year} CineMan AI. Powered by Gemini.', { year: new Date().getFullYear() })}
         </p>

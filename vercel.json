@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/blogs/(.*)", "destination": "/blogs/$1" },
+    { "source": "/((?!blogs|api|icons|assets|sitemap|robots|manifest|google).*)", "destination": "/index.html" }
+  ]
+}

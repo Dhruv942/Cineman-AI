@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Why Netflix Recommendations Are Wrong (And How to Actually Fix Them)</title>
+  <meta name="description" content="Netflix's algorithm isn't broken — it's just not designed to find your next favourite movie. Here's why, and what actually works.">
+  <meta name="keywords" content="netflix recommendations wrong, netflix algorithm bad, netflix suggestions not good, fix netflix recommendations">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.cinemanai.com/blogs/why-netflix-recommendations-are-wrong.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Why Netflix Recommendations Are Wrong (And How to Actually Fix Them)">
+  <meta property="og:description" content="Netflix's algorithm isn't broken — it's just not designed to find your next favourite movie. Here's why, and what actually works.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://www.cinemanai.com/blogs/why-netflix-recommendations-are-wrong.html">
+  <meta property="og:site_name" content="CineMan AI">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Why Netflix Recommendations Are Wrong (And How to Actually Fix Them)">
+  <meta name="twitter:description" content="Netflix's algorithm isn't broken — it's just not designed to find your next favourite movie. Here's why, and what actually works.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="blog.css">
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Why Netflix Recommendations Are Wrong (And How to Actually Fix Them)",
+        "description": "Netflix's algorithm isn't broken — it's just not designed to find your next favourite movie. Here's why, and what actually works.",
+        "url": "https://www.cinemanai.com/blogs/why-netflix-recommendations-are-wrong.html",
+        "datePublished": "2026-03-28",
+        "dateModified": "2026-03-28",
+        "author": {
+          "@type": "Organization",
+          "name": "CineMan AI",
+          "url": "https://www.cinemanai.com"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "CineMan AI",
+          "url": "https://www.cinemanai.com"
+        },
+        "mainEntityOfPage": "https://www.cinemanai.com/blogs/why-netflix-recommendations-are-wrong.html"
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Why does Netflix keep recommending things I don't like?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Netflix's algorithm optimises for engagement (clicks and watch time), not personal enjoyment. It also promotes Netflix originals more heavily to justify content spending. The result is recommendations that keep you watching, not necessarily recommendations you'll love."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is the Netflix percentage match accurate?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The percentage match predicts whether you'll watch a title, not whether you'll enjoy it. Netflix optimises for engagement metrics like click-through rate and initial viewing, which is why you sometimes get high match scores on content you end up disliking."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why did Netflix remove star ratings?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Netflix replaced its 5-star rating system with thumbs up/down in 2017. They reported that the switch led to 200% more rating activity. Critics argue the real motivation was that low star ratings on Netflix originals discouraged viewership, which hurt Netflix's content investment strategy."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How can I fix my Netflix recommendations?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Clean up your viewing history at netflix.com/viewingactivity to remove titles watched by others on your profile. Use the thumbs up/down buttons consistently. For better recommendations, install CineMan, a free Chrome extension that builds a local taste profile and gives each title a personalised score."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does CineMan work better than Netflix's own recommendations?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "CineMan optimises for your personal taste rather than engagement metrics. It uses weighted tag scoring based on your actual ratings to predict enjoyment, not watch probability. Because it has no business incentive to push specific content, its recommendations are purely based on what you're likely to love."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="blog-nav">
+    <div class="blog-nav-inner">
+      <a href="/" class="blog-nav-logo">
+        <img src="/icons/icon48.png" alt="CineMan AI icon" width="32" height="32">
+        CineMan AI
+      </a>
+      <div class="blog-nav-links">
+        <a href="/">Home</a>
+        <a href="/blogs/">Blog</a>
+        <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="/">Home</a> <span>&rsaquo;</span>
+    <a href="/blogs/">Blog</a> <span>&rsaquo;</span>
+    Why Netflix Recommendations Are Wrong
+  </div>
+
+  <!-- Article -->
+  <article class="blog-article">
+    <h1>Why Netflix Recommendations Are Wrong (And How to Actually Fix Them)</h1>
+    <div class="blog-meta">
+      <span>March 28, 2026</span>
+      <span>14 min read</span>
+    </div>
+
+    <!-- TL;DR -->
+    <div class="tldr-box">
+      <h3>TL;DR</h3>
+      <p>Netflix's algorithm optimises for engagement (will you click and watch?), not quality or personal fit (will you love this?). It also promotes Netflix originals disproportionately. The fix: clean your viewing history, use IMDb/RT ratings to gauge quality, and install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan</a> for personalised taste match scores that actually predict whether you'll enjoy something.</p>
+    </div>
+
+    <p>Netflix recommendations feel wrong because they are optimised for a different goal than the one you have. You want to find a movie you'll love. Netflix wants to find a movie you'll click on and watch for at least a few minutes. Those sound similar, but they produce very different results. The average person spends over seven minutes scrolling before choosing something to watch, and that number tells you everything about how well the current system is working.</p>
+
+    <p>Here's the uncomfortable truth: Netflix's recommendation algorithm isn't broken. It's working exactly as designed. The problem is that it's designed to serve Netflix's business objectives, not your movie night. Understanding this distinction is the first step toward actually fixing your recommendations.</p>
+
+    <h2>How Netflix's Algorithm Actually Works</h2>
+
+    <p>Netflix uses a sophisticated recommendation system built on several interconnected models. At its core, the system relies on collaborative filtering: it finds users who have similar viewing patterns to yours and recommends things they watched that you haven't.</p>
+
+    <p>But it goes much deeper than that. Netflix's algorithm considers:</p>
+
+    <ul>
+      <li><strong>What you watched</strong> and for how long (completion rate is a big signal)</li>
+      <li><strong>When you watched</strong> (time of day, day of week)</li>
+      <li><strong>What you searched for</strong> and what you clicked on from those search results</li>
+      <li><strong>What you paused, rewound, or fast-forwarded through</strong></li>
+      <li><strong>What device you're using</strong> (phone viewing habits differ from TV habits)</li>
+      <li><strong>How long you browse</strong> before selecting something</li>
+      <li><strong>What other people in your region and demographic watch</strong></li>
+    </ul>
+
+    <p>All of this data feeds into models that predict one thing: the probability that you'll engage with a given title. Not enjoy it. Not rate it highly. Engage with it.</p>
+
+    <h3>The Engagement Trap</h3>
+
+    <p>Netflix defines a "successful" recommendation as one that leads to a click and at least 70 seconds of watching. Think about how low that bar is. Seventy seconds. You could click on a movie, realise it's terrible, and turn it off after two minutes, and Netflix would still count that as a recommendation that worked.</p>
+
+    <p>This creates a systematic bias toward content that's easy to start watching. Familiar genres. Recognisable faces. Provocative thumbnails. Titles that trigger curiosity rather than titles that deliver satisfaction. The algorithm is essentially optimised for impulse, not taste.</p>
+
+    <h2>Why It Feels Wrong</h2>
+
+    <p>Now you can see why your Netflix homepage feels off. The algorithm isn't trying to find movies you'll rate five stars. It's trying to find movies you'll click on tonight.</p>
+
+    <h3>It Promotes Netflix Originals Disproportionately</h3>
+
+    <p>Netflix spends billions on original content. That content needs to justify its cost. So the algorithm gives Netflix originals a significant boost in recommendations. Not because they're better for you, but because Netflix makes more money when you watch content they own outright versus content they licence from other studios.</p>
+
+    <p>This is why your homepage is dominated by Netflix originals even if you consistently prefer licensed studio films. The algorithm knows what you like. It just has business reasons to steer you elsewhere.</p>
+
+    <h3>It Chases Short-Term Engagement Over Long-Term Satisfaction</h3>
+
+    <p>The things that make you click (a sensational thumbnail, a trending title, a familiar actor) aren't the same things that make you love a movie (original storytelling, great direction, emotional resonance). Netflix's algorithm is tuned to the first set of signals because they're easier to measure and more immediately profitable.</p>
+
+    <p>Long-term satisfaction is harder to quantify. Did you think about that movie days later? Did you recommend it to a friend? Did it become a favourite? Netflix doesn't track these things well, so the algorithm doesn't optimise for them.</p>
+
+    <h3>Shared Profiles Pollute Your Data</h3>
+
+    <p>If anyone else uses your Netflix profile, their viewing history is mixed into yours. Your partner's true crime binges, your kid's cartoon marathons, your friend who logged in that one time to watch a reality show: all of these become signals that shape your recommendations. The algorithm doesn't know which viewing sessions were actually yours.</p>
+
+    <h2>The Percentage Match Problem</h2>
+
+    <p>Netflix shows a percentage match next to most titles. You might see "97% Match" and think it means the algorithm is 97% confident you'll love the movie. That's not what it means at all.</p>
+
+    <p>The match percentage is a prediction of how likely you are to watch the title, weighted by engagement signals. A high match score means Netflix thinks you'll probably click on it and watch for more than a minute or two. It says nothing about whether you'll enjoy it, think it's well-made, or ever want to watch it again.</p>
+
+    <p>This is why you regularly see 95% matches on titles you end up hating, and why hidden gems with low match scores sometimes turn out to be your favourite movies. The percentage match is an engagement prediction dressed up as a quality signal. It's useful for Netflix's business, but it's misleading for your viewing decisions.</p>
+
+    <h2>Why Star Ratings Were Better (And Why Netflix Killed Them)</h2>
+
+    <p>Before 2017, Netflix used a five-star rating system. You'd rate movies from one to five stars, and Netflix would use those ratings to predict how many stars you'd give other movies. It was an imperfect system, but it was at least trying to predict quality, not just engagement.</p>
+
+    <p>Netflix replaced stars with a simple thumbs up or thumbs down in 2017. They publicly stated this led to 200% more rating activity, since clicking a thumb is easier than choosing a star rating.</p>
+
+    <p>But critics and former Netflix employees have pointed to a different motivation. The star system was brutally honest. When a Netflix original got an average 2.3-star predicted rating for a user, that user was unlikely to click on it. This was bad for Netflix's original content strategy. Low star predictions were directly suppressing viewership of shows and movies Netflix had spent millions producing.</p>
+
+    <p>The thumbs system solved this problem. There's no granularity to make something look bad. A title either has a thumbs up signal or it doesn't. And the percentage match system that replaced star predictions is far more opaque. You can't easily tell whether "93% Match" means "you'll think this is a masterpiece" or "you'll probably watch the first ten minutes."</p>
+
+    <p>The star system gave power to the viewer. The thumbs system gave power back to Netflix. Whatever the official explanation, the practical result is that you lost the ability to express nuanced opinions and receive nuanced predictions.</p>
+
+    <h2>What Actually Works: Taste-Based Recommendations</h2>
+
+    <p>If Netflix's algorithm is optimised for engagement, what would a system optimised for your actual taste look like?</p>
+
+    <p>It would need to understand not just what you watch, but how you feel about what you watch. Not just whether you clicked, but whether you'd recommend it to a friend. Not just genres you've consumed, but the specific elements within those genres that resonate with you.</p>
+
+    <p>A taste-based system would recognise that you might love psychological thrillers but hate slasher horror, even though Netflix groups both under "Thrillers." It would know that you appreciate sharp dialogue and atmospheric cinematography. It would understand that a 6.5-rated indie film might be a better match for you than an 8.0-rated blockbuster if the indie film hits your specific taste profile.</p>
+
+    <p>This is fundamentally different from what Netflix does. Netflix asks: "Will this user watch this?" A taste engine asks: "Will this user love this?"</p>
+
+    <h2>How CineMan Solves This</h2>
+
+    <p>CineMan is a free Chrome extension that takes a taste-first approach to recommendations. Here's how it works differently from Netflix's built-in system.</p>
+
+    <h3>Local Taste Engine</h3>
+
+    <p>CineMan builds a taste profile based on movies and shows you explicitly rate within the extension. Unlike Netflix, it uses your conscious evaluation of content, not passive behavioural signals. If you watched a bad movie because you were bored, Netflix counts that as a positive engagement signal. CineMan only counts it if you rate it positively.</p>
+
+    <p>This taste engine runs entirely in your browser. No data is sent to any server. Your taste profile is yours alone, and no business incentive can warp it.</p>
+
+    <h3>Weighted Tag Scoring</h3>
+
+    <p>Instead of broad genre categories, CineMan uses detailed tags to describe each title: tone, themes, pacing, visual style, narrative structure, and more. As you rate movies, it learns which tags you consistently rate highly and which you don't. It then scores unwatched titles based on how well their tag profiles match your preferences.</p>
+
+    <p>This is why CineMan can tell the difference between a psychological thriller you'd love and a slasher film you'd hate, even when both share the same genre label.</p>
+
+    <h3>No Business Agenda</h3>
+
+    <p>CineMan doesn't produce original content. It doesn't licence movies. It has no financial incentive to push specific titles over others. Its only job is to help you find things you'll genuinely enjoy. This alignment of incentives is fundamental to why its recommendations feel more honest than Netflix's.</p>
+
+    <h3>Taste Match Score (0-100)</h3>
+
+    <p>Every title gets a personalised score that represents CineMan's prediction of how much you'll enjoy it. Unlike Netflix's percentage match, this score is calibrated against your actual taste, not engagement probability. A score of 90 means CineMan is highly confident you'll love the movie. A score of 40 means it probably isn't for you, regardless of how popular it is.</p>
+
+    <h2>Practical Steps to Fix Your Netflix Experience</h2>
+
+    <p>Here's a concrete action plan, whether or not you install CineMan.</p>
+
+    <h3>Step 1: Install CineMan for Ratings and Taste Scores</h3>
+
+    <p>Add <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan from the Chrome Web Store</a>. Immediately, you'll see IMDb and Rotten Tomatoes scores on every Netflix title. Rate some movies you've seen to activate the taste match feature. The more you rate, the smarter it gets.</p>
+
+    <h3>Step 2: Clean Up Your Viewing History</h3>
+
+    <p>Go to <strong>netflix.com/viewingactivity</strong>. This page shows everything Netflix has recorded you watching. Remove titles that were watched by someone else on your profile, content you started and hated, and anything that doesn't reflect your actual taste. This directly improves Netflix's own recommendations by cleaning up the signal it uses.</p>
+
+    <h3>Step 3: Use Discovery Mode When You're Stuck</h3>
+
+    <p>When you find yourself in the dreaded scroll loop, switch to CineMan's Discovery Mode. It presents titles one at a time with full ratings and your taste match score. This breaks the paradox of choice by eliminating the overwhelming grid and letting you make one decision at a time: interested or not?</p>
+
+    <h3>Step 4: Use Similar Search for Targeted Discovery</h3>
+
+    <p>If you just watched something great, use CineMan's Similar Search. Enter the movie's name, and CineMan finds titles with similar taste profiles, ranked by your personal score. This is dramatically more useful than Netflix's "More Like This" section, which tends to surface generic genre matches rather than true tonal or thematic similarities.</p>
+
+    <h3>Step 5: Separate Profiles for Different Viewers</h3>
+
+    <p>If multiple people use your Netflix account, make sure everyone has their own profile. This is free and takes two minutes. Each profile builds its own recommendation history, so your data won't be contaminated by someone else's viewing.</p>
+
+    <h3>Step 6: Rate Consistently</h3>
+
+    <p>Use Netflix's thumbs up and down buttons, and rate movies within CineMan. The more signal both systems have about your actual preferences, the better their predictions will be. Be honest. Giving a thumbs up to something you thought was mediocre just muddles the data.</p>
+
+    <h2>The Bigger Picture</h2>
+
+    <p>The reason Netflix recommendations feel wrong isn't because of a technical failure. It's a misalignment of goals. Netflix is optimising for subscriber retention and content engagement. You're optimising for a great movie night. Those objectives overlap sometimes, but they conflict often enough to make the experience frustrating.</p>
+
+    <p>External tools like CineMan exist precisely to fill this gap. They can optimise purely for your taste because they don't have a content library to promote or engagement metrics to inflate. When the recommendation engine has no agenda other than helping you find movies you'll love, the results feel dramatically different.</p>
+
+    <p>You don't have to abandon Netflix's recommendations entirely. But layering an independent taste engine on top gives you the best of both worlds: Netflix's enormous catalogue with recommendations that actually serve your interests.</p>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+      <h2>Frequently Asked Questions</h2>
+
+      <div class="faq-item">
+        <h3>Why does Netflix keep recommending things I don't like?</h3>
+        <p>Netflix's algorithm optimises for engagement (clicks and viewing time), not personal enjoyment. It also promotes Netflix originals more heavily to justify its content spending. The result is recommendations that keep you browsing and watching, not necessarily recommendations you'll love.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Is the Netflix percentage match accurate?</h3>
+        <p>The percentage match predicts whether you'll watch a title, not whether you'll enjoy it. Netflix optimises for engagement metrics like click-through rate and initial viewing time. That's why you sometimes see high match percentages on content you end up disliking.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Why did Netflix remove star ratings?</h3>
+        <p>Netflix replaced its five-star system with thumbs up/down in 2017, citing 200% more rating activity. Critics argue the real motivation was that low star predictions on Netflix originals were discouraging viewership, which undermined Netflix's content investment strategy.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>How can I fix my Netflix recommendations?</h3>
+        <p>Start by cleaning your viewing history at netflix.com/viewingactivity to remove titles watched by others on your profile. Use thumbs up/down consistently. For better recommendations, install CineMan, a free Chrome extension that builds a local taste profile and gives each title a personalised match score based on your actual preferences.</p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Does CineMan work better than Netflix's own recommendations?</h3>
+        <p>CineMan optimises for your personal taste rather than engagement metrics. It uses weighted tag scoring based on your explicit ratings to predict enjoyment, not watch probability. Because it has no business incentive to push specific content, its recommendations are purely based on what you're likely to love.</p>
+      </div>
+    </section>
+
+    <!-- CTA Box -->
+    <div class="cta-box">
+      <h2>Take Back Your Recommendations</h2>
+      <p>Stop settling for what Netflix wants you to watch. Get personalised taste match scores, IMDb ratings, and real discovery tools with one free extension.</p>
+      <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; It's Free</a>
+    </div>
+
+    <!-- Related Posts -->
+    <section class="related-posts">
+      <h2>Related Posts</h2>
+      <div class="related-grid">
+        <a href="why-netflix-removed-star-ratings.html" class="related-card">
+          <h3>Why Netflix Removed Star Ratings (And What Replaced Them)</h3>
+          <p>The real reason Netflix killed its 5-star system and what the thumbs-up means for you.</p>
+        </a>
+        <a href="netflix-decision-fatigue-paradox-of-choice.html" class="related-card">
+          <h3>The Netflix Paradox: Why You Spend More Time Choosing Than Watching</h3>
+          <p>The psychology behind endless scrolling and practical ways to pick a movie faster.</p>
+        </a>
+        <a href="how-ai-movie-recommendations-work.html" class="related-card">
+          <h3>How AI-Powered Movie Recommendations Actually Work [2026 Guide]</h3>
+          <p>A plain-English look at collaborative filtering, taste profiles, and modern recommendation engines.</p>
+        </a>
+      </div>
+    </section>
+  </article>
+
+  <!-- Footer -->
+  <footer class="blog-footer">
+    <p>&copy; 2026 <a href="/">CineMan AI</a>. Free Chrome extension for smarter streaming.</p>
+  </footer>
+
+</body>
+</html>
