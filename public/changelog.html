@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMan Changelog — What's New</title>
+    <meta name="description" content="CineMan AI version history and release notes. See what's new in every update — taste match scores, IMDb overlays, discovery mode, and more.">
+    <meta name="keywords" content="cineman changelog, cineman updates, cineman version history, cineman release notes, cineman new features">
+    <link rel="canonical" href="https://www.cinemanai.com/changelog.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="CineMan Changelog — What's New">
+    <meta property="og:description" content="CineMan AI version history and release notes. See what's new in every update.">
+    <meta property="og:url" content="https://www.cinemanai.com/changelog.html">
+    <meta property="og:site_name" content="CineMan AI">
+    <meta property="og:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CineMan Changelog — What's New">
+    <meta name="twitter:description" content="CineMan AI version history and release notes. See what's new in every update.">
+    <meta name="twitter:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <link rel="icon" type="image/png" href="/icons/icon48.png">
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="blogs/blog.css">
+
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebPage",
+                "name": "CineMan Changelog — What's New",
+                "description": "CineMan AI version history and release notes.",
+                "url": "https://www.cinemanai.com/changelog.html",
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "CineMan AI",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://www.cinemanai.com/icons/icon128.png"
+                    }
+                },
+                "datePublished": "2026-03-30",
+                "dateModified": "2026-03-30",
+                "mainEntityOfPage": "https://www.cinemanai.com/changelog.html",
+                "breadcrumb": {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.cinemanai.com/" },
+                        { "@type": "ListItem", "position": 2, "name": "Changelog" }
+                    ]
+                }
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="blog-nav">
+        <div class="blog-nav-inner">
+            <a href="/" class="blog-nav-logo">
+                <img src="/icons/icon48.png" alt="CineMan AI">
+                CineMan AI
+            </a>
+            <div class="blog-nav-links">
+                <a href="/">Home</a>
+                <a href="/blogs/">Blog</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="/">Home</a> <span>&rsaquo;</span>
+        Changelog
+    </div>
+
+    <!-- Article -->
+    <article class="blog-article">
+        <h1>What's New in CineMan</h1>
+        <div class="blog-meta">
+            <span>Updated: March 30, 2026</span>
+        </div>
+
+        <p>A complete history of CineMan AI releases, from the initial launch to the latest update. Each version below includes the key changes, new features, and bug fixes shipped in that release.</p>
+
+        <!-- v3.7 -->
+        <section>
+            <h2>v3.7 &mdash; March 30, 2026</h2>
+            <p>The biggest update to CineMan's core recommendation engine. Taste match scores now appear directly on Netflix browse cards, and the entire TMDB enrichment pipeline has been rebuilt for accuracy.</p>
+
+            <h3>New Features</h3>
+            <ul>
+                <li><strong>Taste match scores on Netflix cards.</strong> Your personal taste match percentage now appears alongside IMDb and RT ratings on every Netflix title card as you browse. No need to hover or click &mdash; the score is visible at a glance.</li>
+                <li><strong>Full TMDB enrichment for accurate scoring.</strong> Every title in your history and recommendation pool is now enriched with the complete TMDB metadata set, including detailed genre tags, style descriptors, plot themes, mood indicators, keywords, cast and crew data, and production metadata. This produces significantly more accurate taste match scores compared to the previous partial enrichment.</li>
+                <li><strong>Background history processing.</strong> Netflix viewing history is now processed in the background while you continue browsing. Previously, the history import required you to wait on the import screen. Now it runs asynchronously without blocking the UI.</li>
+            </ul>
+
+            <h3>Improvements</h3>
+            <ul>
+                <li><strong>"Don't close" banner during sync.</strong> When CineMan is processing your history or enriching metadata in the background, a subtle banner reminds you to keep the tab open until processing completes. This prevents data loss from closing the tab mid-sync.</li>
+            </ul>
+        </section>
+
+        <!-- v3.5 -->
+        <section>
+            <h2>v3.5 &mdash; March 29, 2026</h2>
+            <p>Focused on overlay customization and in-page interaction improvements.</p>
+
+            <h3>New Features</h3>
+            <ul>
+                <li><strong>Separate IMDb and RT toggles.</strong> You can now independently enable or disable IMDb ratings and Rotten Tomatoes scores on the overlay. Show both, show one, or show neither &mdash; your choice.</li>
+                <li><strong>Bob card support.</strong> CineMan's ratings overlay now appears on Netflix's "bob cards" &mdash; the expanded preview cards that appear when you hover over a title. Ratings and taste match scores are displayed in the bob card alongside Netflix's own metadata.</li>
+                <li><strong>In-page popups for "More like this" and "Will I like this?"</strong> Two new interaction options appear on Netflix title overlays. "More like this" opens an in-page popup with <a href="/features/similar-search.html">similar movies ranked by your taste</a>. "Will I like this?" shows a detailed breakdown of why a title received its taste match score.</li>
+            </ul>
+
+            <h3>Bug Fixes</h3>
+            <ul>
+                <li><strong>Genre search fix.</strong> Resolved an issue where searching by genre on Netflix would sometimes fail to display overlay ratings on the results. Genre search results are now enriched and overlaid correctly.</li>
+            </ul>
+        </section>
+
+        <!-- v3.4.0 -->
+        <section>
+            <h2>v3.4.0 &mdash; March 2026</h2>
+            <p>Major onboarding overhaul and new browsing features.</p>
+
+            <h3>New Features</h3>
+            <ul>
+                <li><strong>All onboarding preferences filter recommendations.</strong> Genre preferences, era preferences, OTT platform selections, and duration preferences set during onboarding now actively filter and weight recommendations. Previously, some onboarding choices were stored but not used in scoring.</li>
+                <li><strong><a href="/features/trailer-previews.html">Trailer previews.</a></strong> Watch YouTube trailers directly on Netflix and Prime Video without opening a new tab. The trailer player embeds as an in-page popup.</li>
+                <li><strong>OTT platform filtering.</strong> Recommendations and similar movie results can now be filtered by streaming platform. If you only have Netflix and Disney+, you can hide results that are only on Prime Video.</li>
+                <li><strong>Era and duration preferences.</strong> New onboarding screens let you specify preferred movie eras (classic, modern, recent) and duration ranges (short, standard, long). These preferences feed into taste match calculations.</li>
+            </ul>
+        </section>
+
+        <!-- v3.3.0 -->
+        <section>
+            <h2>v3.3.0 &mdash; March 2026</h2>
+            <p>Performance improvements and smarter recommendation attribution.</p>
+
+            <h3>New Features</h3>
+            <ul>
+                <li><strong>Score caching.</strong> Taste match scores are now cached locally after first computation. Returning to a previously viewed title shows the score instantly without recomputation. Cache invalidation happens automatically when your taste profile updates.</li>
+                <li><strong>"Because you watched X" attribution.</strong> Recommendations now include a label explaining which title from your history most strongly influenced the recommendation. This makes the system transparent and helps you understand why a particular movie is being suggested.</li>
+                <li><strong>Rewatch detection.</strong> If you have watched a movie multiple times, CineMan detects it and gives it stronger positive weight in your taste profile. Rewatching signals genuine enjoyment more reliably than a single viewing.</li>
+                <li><strong>Diversity control.</strong> A new setting lets you adjust how much variety appears in your recommendations. At low diversity, results closely match your established preferences. At high diversity, CineMan surfaces more titles outside your comfort zone.</li>
+                <li><strong>Context-aware sorting.</strong> Recommendations are now sorted differently depending on context. Browse pages prioritize taste match, search results prioritize relevance, and "More like this" results prioritize similarity combined with taste.</li>
+            </ul>
+        </section>
+
+        <!-- v3.2.0 -->
+        <section>
+            <h2>v3.2.0 &mdash; March 2026</h2>
+            <p>The foundation of CineMan's taste engine. This release introduced the local recommendation system that powers all personalized features.</p>
+
+            <h3>New Features</h3>
+            <ul>
+                <li><strong>Local taste engine.</strong> The core tag-based taste profiling system. Analyzes your viewing patterns across <a href="/features/taste-match.html">10 tag categories</a> and produces personal taste match scores for any movie.</li>
+                <li><strong>Netflix history scraper.</strong> Imports your Netflix viewing history directly from the Netflix UI. Processes titles locally and builds your initial taste profile from your actual watching behavior.</li>
+                <li><strong>Tag-based taste profile.</strong> Your preferences are represented as weighted tags across genre, style, plot, mood, era, pacing, origin, production, keywords, and people. This representation enables nuanced matching that goes beyond simple genre filtering.</li>
+                <li><strong>TMDB enrichment pipeline.</strong> Every title is enriched with comprehensive metadata from TMDB, including tags, credits, keywords, and release information. This data powers both the taste engine and the ratings overlay.</li>
+            </ul>
+        </section>
+
+        <!-- v3.0.0 -->
+        <section>
+            <h2>v3.0.0 &mdash; February 2026</h2>
+            <p>The initial public release of CineMan AI.</p>
+
+            <h3>Features</h3>
+            <ul>
+                <li><strong><a href="/features/imdb-ratings-overlay.html">IMDb and Rotten Tomatoes overlay.</a></strong> See IMDb ratings and RT scores directly on Netflix, Prime Video, and Disney+ title cards as you browse. No tab-switching, no manual lookups.</li>
+                <li><strong>Basic recommendations.</strong> Initial recommendation engine based on genre matching and popularity. This was later replaced by the full taste engine in v3.2.0.</li>
+                <li><strong>Multi-platform support.</strong> Launch support for Netflix, Amazon Prime Video, and Disney+ Hotstar.</li>
+                <li><strong><a href="/features/privacy.html">Local-only architecture.</a></strong> All data stored in chrome.storage.local from day one. No accounts, no servers, no tracking.</li>
+            </ul>
+        </section>
+
+        <!-- CTA Box -->
+        <div class="cta-box">
+            <h2>Get the Latest Version</h2>
+            <p>CineMan updates automatically through the Chrome Web Store. Install it once and you always have the newest features.</p>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+        </div>
+
+        <!-- Related Posts -->
+        <section class="related-posts">
+            <h2>Explore Features</h2>
+            <div class="related-grid">
+                <a href="/features/imdb-ratings-overlay.html" class="related-card">
+                    <h3>IMDb Ratings Overlay</h3>
+                    <p>See IMDb and Rotten Tomatoes ratings on every title without leaving the streaming page.</p>
+                </a>
+                <a href="/features/taste-match.html" class="related-card">
+                    <h3>Personal Taste Match Score</h3>
+                    <p>A score that tells you how much YOU will enjoy a movie, based on your unique viewing history.</p>
+                </a>
+                <a href="/features/privacy.html" class="related-card">
+                    <h3>Privacy First</h3>
+                    <p>Your data stays on your device. No accounts, no servers, no tracking.</p>
+                </a>
+            </div>
+        </section>
+    </article>
+
+    <!-- Footer -->
+    <footer class="blog-footer">
+        <p>&copy; 2026 <a href="/">CineMan AI</a>. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

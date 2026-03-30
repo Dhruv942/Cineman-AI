@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy First — CineMan Keeps Your Data Local</title>
+    <meta name="description" content="CineMan stores all data locally on your device using chrome.storage.local. No accounts, no servers, no analytics on your viewing history. Your movie preferences stay private.">
+    <meta name="keywords" content="cineman privacy, chrome extension privacy, local data storage, no tracking movie extension, private movie recommendations">
+    <link rel="canonical" href="https://www.cinemanai.com/features/privacy.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Privacy First — CineMan Keeps Your Data Local">
+    <meta property="og:description" content="CineMan stores all data locally on your device. No accounts, no servers, no analytics on your viewing history.">
+    <meta property="og:url" content="https://www.cinemanai.com/features/privacy.html">
+    <meta property="og:site_name" content="CineMan AI">
+    <meta property="og:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Privacy First — CineMan Keeps Your Data Local">
+    <meta name="twitter:description" content="CineMan stores all data locally on your device. No accounts, no servers, no analytics.">
+    <meta name="twitter:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <link rel="icon" type="image/png" href="/icons/icon48.png">
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../blogs/blog.css">
+
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebPage",
+                "name": "Privacy First — CineMan Keeps Your Data Local",
+                "description": "CineMan stores all data locally on your device using chrome.storage.local. No accounts, no servers, no analytics on your viewing history.",
+                "url": "https://www.cinemanai.com/features/privacy.html",
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "CineMan AI",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://www.cinemanai.com/icons/icon128.png"
+                    }
+                },
+                "datePublished": "2026-03-30",
+                "dateModified": "2026-03-30",
+                "mainEntityOfPage": "https://www.cinemanai.com/features/privacy.html",
+                "breadcrumb": {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.cinemanai.com/" },
+                        { "@type": "ListItem", "position": 2, "name": "Features", "item": "https://www.cinemanai.com/features/" },
+                        { "@type": "ListItem", "position": 3, "name": "Privacy" }
+                    ]
+                }
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "Does CineMan collect my data?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "No. CineMan does not collect, transmit, or store any user data on external servers. All data — including your viewing history, taste profile, ratings, and preferences — is stored exclusively in chrome.storage.local on your own device. There is no backend database, no user accounts, and no analytics tracking."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Does CineMan require an account or login?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "No. CineMan has no account system. You install the extension and it works immediately. There is no sign-up form, no email collection, no login screen, and no password to remember. The extension identifies you only by the data stored locally in your browser."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What data does CineMan store on my device?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "CineMan stores your taste profile (tag weights across 10 categories), cached movie metadata and ratings from TMDB, your Netflix viewing history (if you choose to import it), Discovery Mode ratings, onboarding preferences, and score caches. All of this is stored in chrome.storage.local and never transmitted anywhere."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can CineMan see what I watch on Netflix?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "CineMan can read your Netflix viewing history page if you explicitly choose to import your history. This data is processed entirely in your browser and stored locally. It is never sent to any server. If you prefer not to share your history, you can skip the import and build your taste profile through Discovery Mode instead."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How does CineMan compare to other movie extensions on privacy?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Most movie recommendation and rating extensions require account creation and store user data on their servers. CineMan is architecturally different: it has no server-side user data storage at all. Your taste profile, viewing history, and preferences exist only on your device. If you uninstall the extension, all data is deleted. There is nothing to request deletion of because nothing was ever transmitted."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What happens to my data if I uninstall CineMan?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "When you uninstall CineMan, Chrome automatically deletes all data in chrome.storage.local associated with the extension. Your taste profile, cached metadata, viewing history, and all other data are permanently removed from your device. Since no data was ever stored on an external server, there is nothing else to clean up."
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="blog-nav">
+        <div class="blog-nav-inner">
+            <a href="/" class="blog-nav-logo">
+                <img src="/icons/icon48.png" alt="CineMan AI">
+                CineMan AI
+            </a>
+            <div class="blog-nav-links">
+                <a href="/">Home</a>
+                <a href="/blogs/">Blog</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="/">Home</a> <span>&rsaquo;</span>
+        <a href="/features/">Features</a> <span>&rsaquo;</span>
+        Privacy
+    </div>
+
+    <!-- Article -->
+    <article class="blog-article">
+        <h1>Your Data Stays on Your Device. Period.</h1>
+        <div class="blog-meta">
+            <span>Updated: March 30, 2026</span>
+            <span>7 min read</span>
+        </div>
+
+        <!-- TL;DR -->
+        <div class="tldr-box">
+            <h3>TL;DR</h3>
+            <p>CineMan has no servers, no accounts, and no analytics. Everything &mdash; your taste profile, viewing history, ratings, and preferences &mdash; lives in <code>chrome.storage.local</code> on your device. When you uninstall, it is gone. There is nothing stored anywhere else to worry about.</p>
+        </div>
+
+        <p>Privacy policies are usually long documents full of legal hedging that amount to "we collect your data but promise to be responsible with it." CineMan's approach is different. We do not promise to be responsible with your data. We never have it in the first place.</p>
+
+        <p>CineMan is built on a local-only architecture. There is no backend server that stores user data. There is no database of taste profiles. There is no analytics pipeline tracking what you watch. The entire system runs in your browser, on your device, and your data never leaves it. This is not a policy decision. It is an architectural one. The capability to collect your data does not exist.</p>
+
+        <h2>The Local-Only Architecture</h2>
+
+        <p>Every piece of data CineMan generates or processes is stored in <code>chrome.storage.local</code>, which is a sandboxed storage area that Chrome provides to extensions. This storage is tied to your browser profile and cannot be accessed by websites, other extensions, or remote servers. Here is what the architecture looks like in practice:</p>
+
+        <ul>
+            <li><strong>Your taste profile</strong> (tag weights, category scores, maturity tier) is computed in your browser and stored locally.</li>
+            <li><strong>Your Netflix viewing history</strong> (if you choose to import it) is scraped from Netflix's UI, processed in your browser, and stored locally. Netflix's servers are never contacted by CineMan directly.</li>
+            <li><strong>Your Discovery Mode ratings</strong> (likes, dislikes, skips) are stored locally and used to update your local taste profile.</li>
+            <li><strong>Cached movie metadata</strong> (TMDB data, IMDb scores, Rotten Tomatoes ratings) is fetched from public APIs and cached locally to reduce redundant network requests.</li>
+            <li><strong>Your onboarding preferences</strong> (genre preferences, era preferences, platform selections) are stored locally.</li>
+            <li><strong>Score caches</strong> (pre-computed taste match scores for titles you have encountered) are stored locally for performance.</li>
+        </ul>
+
+        <p>None of this data is ever transmitted to a CineMan server because there is no CineMan server to transmit it to. The extension's code runs locally. The only network requests CineMan makes are to public APIs (TMDB for metadata, YouTube for trailers) to fetch information about movies. These requests do not include any user-identifying information.</p>
+
+        <h2>No Accounts. No Sign-Up. No Email.</h2>
+
+        <p>CineMan has no account system. There is no registration form, no login page, no email field, and no password. You install the extension from the Chrome Web Store and it works immediately. Your identity, as far as CineMan is concerned, is the data stored in your local browser. There is no user ID, no session token, and no way to link your activity across devices or browsers.</p>
+
+        <p>This means you cannot sync your taste profile across multiple computers. That is a deliberate trade-off. Syncing would require a server, a server would require user accounts, and user accounts would mean storing your data externally. We chose not to build that.</p>
+
+        <h2>No Analytics on Viewing History</h2>
+
+        <p>Some extensions that claim to respect privacy still run analytics on aggregated user behavior. They might not track you individually, but they collect anonymized data about what users watch, which titles are popular, or how the extension is used. CineMan does not do this either.</p>
+
+        <p>There is no analytics SDK in the extension. No Google Analytics, no Mixpanel, no Amplitude, no custom telemetry. CineMan does not know how many active users it has through its own code. It does not know which movies are popular among its users. It does not know how often Discovery Mode is used. The only usage data that exists is what the Chrome Web Store itself reports (install counts, Chrome version distribution), which is standard for all Chrome extensions and not controlled by CineMan.</p>
+
+        <h2>What IS Stored (All Local)</h2>
+
+        <p>For full transparency, here is a complete list of everything CineMan stores on your device:</p>
+
+        <div style="overflow-x:auto;">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Purpose</th>
+                    <th>Storage Location</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Taste profile</td>
+                    <td>Tag weights across 10 categories for computing taste match scores</td>
+                    <td>chrome.storage.local</td>
+                </tr>
+                <tr>
+                    <td>Netflix history</td>
+                    <td>Titles you have watched, used to build your taste profile</td>
+                    <td>chrome.storage.local</td>
+                </tr>
+                <tr>
+                    <td>Discovery ratings</td>
+                    <td>Your like/dislike/skip responses from Discovery Mode</td>
+                    <td>chrome.storage.local</td>
+                </tr>
+                <tr>
+                    <td>Movie metadata cache</td>
+                    <td>TMDB data, IMDb/RT scores cached to avoid redundant API calls</td>
+                    <td>chrome.storage.local</td>
+                </tr>
+                <tr>
+                    <td>Score cache</td>
+                    <td>Pre-computed taste match scores for faster display</td>
+                    <td>chrome.storage.local</td>
+                </tr>
+                <tr>
+                    <td>Onboarding preferences</td>
+                    <td>Genre, era, platform, and duration preferences from setup</td>
+                    <td>chrome.storage.local</td>
+                </tr>
+                <tr>
+                    <td>Extension settings</td>
+                    <td>Toggle states for IMDb/RT display, UI preferences</td>
+                    <td>chrome.storage.local</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <h2>What Is NOT Stored (Anywhere)</h2>
+
+        <p>For equal transparency, here is what CineMan does NOT store, collect, or transmit:</p>
+
+        <ul>
+            <li><strong>No personal information.</strong> No name, email, age, gender, location, or any identifying data.</li>
+            <li><strong>No browsing history.</strong> CineMan does not track which pages you visit, how long you spend on Netflix, or what you search for on any platform.</li>
+            <li><strong>No viewing behavior telemetry.</strong> CineMan does not record when you start watching a movie, how long you watch, whether you finish it, or when you pause.</li>
+            <li><strong>No cross-site tracking.</strong> CineMan operates only on supported streaming platforms (Netflix, Prime Video, Disney+). It does not monitor activity on any other website.</li>
+            <li><strong>No server-side data.</strong> There is no CineMan database, no user table, no analytics warehouse, and no backup of your data on any remote system.</li>
+            <li><strong>No third-party data sharing.</strong> Because CineMan has no user data on its servers, there is nothing to share with advertisers, partners, or anyone else.</li>
+        </ul>
+
+        <h2>How CineMan Compares to Alternatives</h2>
+
+        <p>Most movie recommendation tools and rating extensions follow a client-server model. They require you to create an account, which means your viewing history and preferences are stored on their servers. Here is how CineMan's approach differs:</p>
+
+        <div style="overflow-x:auto;">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>CineMan</th>
+                    <th>Typical Alternatives</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Account required</td>
+                    <td>No</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <td>Data storage</td>
+                    <td>Local only (chrome.storage.local)</td>
+                    <td>Remote servers</td>
+                </tr>
+                <tr>
+                    <td>Viewing history sent to server</td>
+                    <td>Never</td>
+                    <td>Usually yes</td>
+                </tr>
+                <tr>
+                    <td>Analytics tracking</td>
+                    <td>None</td>
+                    <td>Google Analytics, Mixpanel, etc.</td>
+                </tr>
+                <tr>
+                    <td>Data deletion on uninstall</td>
+                    <td>Automatic and complete</td>
+                    <td>Must request account deletion</td>
+                </tr>
+                <tr>
+                    <td>Cross-device sync</td>
+                    <td>Not available (by design)</td>
+                    <td>Available via server-stored profile</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <p>The trade-off is clear. CineMan sacrifices cross-device sync and collaborative filtering (recommendations based on what similar users like) in exchange for absolute privacy. Your data is yours. No one else can see it, analyze it, sell it, or lose it in a data breach.</p>
+
+        <h2>What Happens When You Uninstall</h2>
+
+        <p>When you remove CineMan from Chrome, the browser automatically deletes all data in <code>chrome.storage.local</code> associated with the extension. Your taste profile, viewing history, ratings, cached metadata, and preferences are permanently erased from your device. Since no data was ever sent to a server, there is nothing else to clean up. You do not need to email anyone, submit a deletion request, or worry about residual data. It is gone.</p>
+
+        <p>If you reinstall CineMan later, you start fresh with no profile. There is no way to recover previous data because it existed only on your device and was deleted with the extension.</p>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <h3>Does CineMan collect my data?</h3>
+                <p>No. CineMan does not collect, transmit, or store any user data on external servers. All data &mdash; including your viewing history, taste profile, ratings, and preferences &mdash; is stored exclusively in chrome.storage.local on your own device. There is no backend database, no user accounts, and no analytics tracking.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Does CineMan require an account or login?</h3>
+                <p>No. CineMan has no account system. You install the extension and it works immediately. There is no sign-up form, no email collection, no login screen, and no password to remember.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>What data does CineMan store on my device?</h3>
+                <p>CineMan stores your taste profile (tag weights across 10 categories), cached movie metadata and ratings from TMDB, your Netflix viewing history (if you choose to import it), Discovery Mode ratings, onboarding preferences, and score caches. All of this is stored in chrome.storage.local and never transmitted anywhere.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Can CineMan see what I watch on Netflix?</h3>
+                <p>CineMan can read your Netflix viewing history page if you explicitly choose to import your history. This data is processed entirely in your browser and stored locally. It is never sent to any server. If you prefer not to share your history, you can skip the import and build your taste profile through Discovery Mode instead.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>How does CineMan compare to other movie extensions on privacy?</h3>
+                <p>Most movie recommendation and rating extensions require account creation and store user data on their servers. CineMan is architecturally different: it has no server-side user data storage at all. Your taste profile, viewing history, and preferences exist only on your device.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>What happens to my data if I uninstall CineMan?</h3>
+                <p>When you uninstall CineMan, Chrome automatically deletes all data in chrome.storage.local associated with the extension. Your taste profile, cached metadata, viewing history, and all other data are permanently removed. Since no data was ever stored on an external server, there is nothing else to clean up.</p>
+            </div>
+        </section>
+
+        <!-- CTA Box -->
+        <div class="cta-box">
+            <h2>Movie Recommendations That Respect Your Privacy</h2>
+            <p>IMDb ratings, taste match scores, and personalized recommendations &mdash; all without creating an account or sharing your data. Free forever.</p>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+        </div>
+
+        <!-- Related Posts -->
+        <section class="related-posts">
+            <h2>More Features</h2>
+            <div class="related-grid">
+                <a href="/features/imdb-ratings-overlay.html" class="related-card">
+                    <h3>IMDb Ratings Overlay</h3>
+                    <p>See IMDb and Rotten Tomatoes ratings on every title without leaving the streaming page.</p>
+                </a>
+                <a href="/features/taste-match.html" class="related-card">
+                    <h3>Personal Taste Match Score</h3>
+                    <p>A score that tells you how much YOU will enjoy a movie, based on your unique viewing history.</p>
+                </a>
+                <a href="/features/discovery-mode.html" class="related-card">
+                    <h3>Discovery Mode</h3>
+                    <p>Swipe through movies, rate them, and build your taste profile faster.</p>
+                </a>
+            </div>
+        </section>
+    </article>
+
+    <!-- Footer -->
+    <footer class="blog-footer">
+        <p>&copy; 2026 <a href="/">CineMan AI</a>. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

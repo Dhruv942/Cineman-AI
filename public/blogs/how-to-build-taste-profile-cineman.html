@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Build Your Movie Taste Profile in CineMan [Step-by-Step]</title>
+    <meta name="description" content="CineMan builds a personal taste profile from your Netflix history. Here's exactly how to set it up and start getting recommendations that actually match you.">
+    <meta name="keywords" content="cineman taste profile, how to use cineman, cineman setup guide, movie taste profile, cineman tutorial">
+    <link rel="canonical" href="https://www.cinemanai.com/blogs/how-to-build-taste-profile-cineman.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="How to Build Your Movie Taste Profile in CineMan [Step-by-Step]">
+    <meta property="og:description" content="CineMan builds a personal taste profile from your Netflix history. Here's exactly how to set it up and start getting recommendations that actually match you.">
+    <meta property="og:url" content="https://www.cinemanai.com/blogs/how-to-build-taste-profile-cineman.html">
+    <meta property="og:site_name" content="CineMan AI">
+    <meta property="og:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="How to Build Your Movie Taste Profile in CineMan [Step-by-Step]">
+    <meta name="twitter:description" content="CineMan builds a personal taste profile from your Netflix history. Here's exactly how to set it up and start getting recommendations that actually match you.">
+    <meta name="twitter:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <link rel="icon" type="image/png" href="/icons/icon48.png">
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="blog.css">
+
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Article",
+                "headline": "How to Build Your Movie Taste Profile in CineMan [Step-by-Step]",
+                "description": "CineMan builds a personal taste profile from your Netflix history. Here's exactly how to set it up and start getting recommendations that actually match you.",
+                "author": {
+                    "@type": "Organization",
+                    "name": "CineMan AI"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "CineMan AI",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://www.cinemanai.com/icons/icon128.png"
+                    }
+                },
+                "datePublished": "2026-03-29",
+                "dateModified": "2026-03-29",
+                "mainEntityOfPage": "https://www.cinemanai.com/blogs/how-to-build-taste-profile-cineman.html",
+                "url": "https://www.cinemanai.com/blogs/how-to-build-taste-profile-cineman.html"
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How long does it take to build a taste profile?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "The initial history scrape takes about 30-60 seconds depending on how much you have watched. TMDB enrichment happens in the background and completes within a few minutes. You will start seeing taste-match scores on streaming titles almost immediately after the scrape finishes."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Does CineMan access my Netflix password?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "No. CineMan never sees your Netflix credentials. It reads your viewing activity page (netflix.com/viewingactivity) only when you are already logged in and have navigated to that page yourself. The extension reads the page content — it does not log into anything on your behalf."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What if my Netflix history has shows I did not actually like?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "CineMan uses signal weighting to reduce the impact of titles you only watched briefly or did not finish. Titles you watched completely, rewatched, or watched multiple seasons of receive stronger weight. You can also use the thumbs-down feedback button on any recommendation to actively train the profile away from content you dislike."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I use CineMan without Netflix history?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. The history scrape gives CineMan the richest data to work with, but you can also build a profile through the onboarding quiz and by using feedback buttons (thumbs up/down) on recommendations. The profile improves over time regardless of how you start."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is my viewing data shared with anyone?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "No. Your taste profile data is stored locally on your device and in your personal CineMan account. It is never sold, shared with third parties, or used for advertising. CineMan's business model does not depend on selling user data."
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="blog-nav">
+        <div class="blog-nav-inner">
+            <a href="/" class="blog-nav-logo">
+                <img src="/icons/icon48.png" alt="CineMan AI">
+                CineMan AI
+            </a>
+            <div class="blog-nav-links">
+                <a href="/">Home</a>
+                <a href="/blogs/">Blog</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="/">Home</a> <span>&rsaquo;</span>
+        <a href="/blogs/">Blog</a> <span>&rsaquo;</span>
+        How to Build Your Taste Profile in CineMan
+    </div>
+
+    <!-- Article -->
+    <article class="blog-article">
+        <h1>How to Build Your Movie Taste Profile in CineMan [Step-by-Step]</h1>
+        <div class="blog-meta">
+            <span>Updated: March 29, 2026</span>
+            <span>13 min read</span>
+        </div>
+
+        <!-- TL;DR -->
+        <div class="tldr-box">
+            <h3>TL;DR</h3>
+            <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>, complete the short onboarding, then visit netflix.com/viewingactivity to trigger the history scrape. CineMan enriches your watch history with TMDB metadata, extracts taste signals (genres, themes, directors, decades, tones), and builds a profile that produces personal taste-match scores on every streaming title. The whole process takes about two minutes.</p>
+        </div>
+
+        <p>Every streaming platform claims to give you personalized recommendations. And every streaming platform gets it wrong in the same way: they recommend what is popular, what they are promoting, or what is superficially similar to what you last watched. They do not actually know your taste. They know your recent behavior, which is a very different thing.</p>
+
+        <p>CineMan takes a fundamentally different approach. Instead of tracking what you click on today, it builds a comprehensive taste profile from your entire viewing history and uses that profile to score every title you encounter. The result is a personal taste-match percentage that tells you, at a glance, how well a film aligns with your actual preferences &mdash; not just your recent algorithm-influenced browsing.</p>
+
+        <p>This guide walks you through every step of building that profile, from installation to your first recommendations. It takes about two minutes, and the payoff is immediate.</p>
+
+        <h2>Step 1: Install CineMan</h2>
+
+        <p>Head to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">Chrome Web Store</a> and click "Add to Chrome." The extension is free, requires minimal permissions, and installs in about ten seconds. You will see the CineMan icon appear in your browser toolbar. That is it for this step.</p>
+
+        <p>CineMan works on any Chromium-based browser: Google Chrome, Brave, Arc, Edge, and Opera. If you are using Firefox or Safari, you will need to switch to a Chromium browser for now.</p>
+
+        <h2>Step 2: Complete the Onboarding</h2>
+
+        <p>When you first click the CineMan icon, you will be taken through a short onboarding flow. This asks you to select genres you enjoy, rate a handful of well-known films, and indicate any strong preferences or dislikes. The onboarding takes about 60 seconds and gives CineMan an initial baseline to work from before it has any viewing history data.</p>
+
+        <p>Be honest during onboarding. If you secretly love cheesy action movies but rate them low because you think you should prefer art-house cinema, the profile will be miscalibrated from the start. CineMan does not judge. It just wants to know what you actually enjoy watching, not what you think you should enjoy.</p>
+
+        <h2>Step 3: Trigger the History Scrape</h2>
+
+        <p>This is the most important step and the one that separates CineMan from simpler rating overlays. Navigate to <strong>netflix.com/viewingactivity</strong> in your browser. This is Netflix's viewing history page, which lists every title you have watched on the platform.</p>
+
+        <p>When CineMan detects that you are on this page, it reads the page content and extracts your viewing history. This is not a login. CineMan does not access your Netflix credentials or make any API calls to Netflix. It simply reads the content of a page you have already navigated to while logged into your own account. The scrape takes 30-60 seconds depending on how extensive your history is.</p>
+
+        <p>If you have been using Netflix for several years, your history might include hundreds or even thousands of titles. That is ideal &mdash; more data means a more accurate profile. Even titles you did not finish or did not enjoy are useful, because CineMan uses completion signals to weight their influence appropriately.</p>
+
+        <h2>Step 4: Your Profile Is Built</h2>
+
+        <p>Once the history scrape completes, CineMan does several things in the background:</p>
+
+        <h3>TMDB Enrichment</h3>
+
+        <p>Every title from your Netflix history is matched against TMDB (The Movie Database), one of the most comprehensive movie and TV databases available. This enrichment pulls in structured metadata that Netflix's viewing history page does not include: genre classifications, cast and crew, release year, runtime, production country, keywords, and audience ratings. This transforms a flat list of titles into a rich dataset that CineMan can analyze for patterns.</p>
+
+        <h3>Tag Extraction</h3>
+
+        <p>From the enriched data, CineMan extracts taste-relevant tags across multiple dimensions:</p>
+
+        <ul>
+            <li><strong>Genres and subgenres:</strong> Not just "drama" but "psychological thriller" or "coming-of-age drama" or "dark comedy."</li>
+            <li><strong>Themes and motifs:</strong> Revenge, identity, found family, isolation, redemption, time travel, and hundreds more.</li>
+            <li><strong>Directorial style:</strong> If you have watched multiple films by the same director, that signals a preference for their aesthetic.</li>
+            <li><strong>Era and origin:</strong> Do you gravitate toward 1990s American indies? 2010s Korean thrillers? 1970s European art films?</li>
+            <li><strong>Tonal patterns:</strong> Dark versus light. Fast-paced versus meditative. Dialogue-heavy versus visually driven.</li>
+        </ul>
+
+        <h3>Signal Weighting</h3>
+
+        <p>Not every title in your history gets equal weight. CineMan applies a weighting system based on engagement signals:</p>
+
+        <ul>
+            <li><strong>Completed films</strong> receive more weight than titles you abandoned after 20 minutes.</li>
+            <li><strong>Rewatched titles</strong> receive significant weight, since rewatching is one of the strongest signals of genuine enjoyment.</li>
+            <li><strong>Multi-season shows</strong> that you watched through signal a strong affinity for that content type.</li>
+            <li><strong>Recent watches</strong> are weighted slightly more than titles from five years ago, since taste evolves over time.</li>
+        </ul>
+
+        <p>The result is a multi-dimensional taste fingerprint that captures not just what genres you like, but the specific combination of qualities that define your preferences. Two people who both like "thrillers" might have radically different taste profiles &mdash; one prefers slow-burn psychological tension while the other prefers fast-paced action thrillers. CineMan captures that distinction. For more on the concept, read our deep dive on <a href="/blogs/what-is-a-taste-profile.html">what a taste profile actually is</a>.</p>
+
+        <h2>Step 5: Get Your First Recommendations</h2>
+
+        <p>With your profile built, go to Netflix (or Prime Video, or Disney+) and browse normally. You will notice something new: every title now displays a taste-match score alongside its standard ratings. This percentage tells you how well the film aligns with your profile.</p>
+
+        <p>A 90%+ taste match means the film hits multiple dimensions of your taste profile &mdash; genre, tone, themes, era, and directorial style all align with patterns in your viewing history. A 60% match means some elements align but others do not. A 40% match means the film is outside your usual comfort zone, which is not necessarily bad &mdash; it just means it is a risk.</p>
+
+        <p>The taste-match score is not a quality score. A film can be objectively great (high IMDb, high RT) but have a low taste match for you personally, because it is not the kind of film you tend to enjoy. Conversely, a film with modest critical scores might have a 95% taste match because it nails your specific preferences. Both pieces of information are useful, and CineMan gives you both.</p>
+
+        <h2>Step 6: Refine with Discovery Mode</h2>
+
+        <p>CineMan's Discovery Mode is designed for when you do not know what you want to watch. Instead of browsing the streaming interface (which is designed to push promoted content), you can open Discovery Mode from the extension popup and get recommendations generated entirely from your taste profile.</p>
+
+        <p>Discovery Mode prioritizes films you have not seen that score highly on both your taste match and critical reception. It is especially good at surfacing films you would never find through normal browsing &mdash; older titles, foreign films, indie releases, and catalog deep cuts that streaming algorithms bury in favor of new releases and originals.</p>
+
+        <p>Think of it as the difference between walking into a bookstore and having a knowledgeable friend recommend exactly the right book. The streaming interface is the bookstore. Discovery Mode is the friend.</p>
+
+        <h2>Step 7: Use Feedback Buttons</h2>
+
+        <p>Every recommendation CineMan shows you includes feedback buttons: thumbs up and thumbs down. Using these actively trains the profile in real time. Thumbing up a recommendation tells CineMan to weight more heavily the qualities that film shares with your history. Thumbing down tells it to deprioritize those qualities.</p>
+
+        <p>Feedback is especially valuable for edge cases. Maybe you love sci-fi in general but cannot stand time-travel plots. Or maybe you enjoy dark comedies but not crude humor. These nuances are hard to extract from viewing history alone, but a few targeted thumbs-down signals teach the profile quickly.</p>
+
+        <p>The more feedback you give, the sharper the profile becomes. Users who actively use feedback buttons typically see noticeably improved recommendations within a week of regular use.</p>
+
+        <h2>What Your Taste Profile Knows About You</h2>
+
+        <p>After the profile is built and you have given it some feedback, CineMan's taste engine has a surprisingly detailed understanding of your preferences. Here is what it tracks:</p>
+
+        <ul>
+            <li><strong>Your core genres:</strong> The two or three genres that dominate your viewing history. For some people this is thriller/drama/sci-fi. For others it is comedy/romance/animation. The profile knows.</li>
+            <li><strong>Your comfort zone boundaries:</strong> How far outside your core genres you are willing to venture. Some viewers are adventurous. Some are loyal to a narrow range. Both are valid, and the profile adapts accordingly.</li>
+            <li><strong>Your pacing preferences:</strong> Do you gravitate toward fast-paced, tightly plotted films or slower, more meditative ones? The profile detects this from the runtime, genre, and directorial patterns in your history.</li>
+            <li><strong>Your era preferences:</strong> Many viewers have a strong unconscious preference for films from a specific decade. The profile identifies this and factors it into scoring.</li>
+            <li><strong>Your tolerance for intensity:</strong> Violence, psychological horror, emotional heaviness &mdash; the profile learns how much of these qualities you seek out versus avoid.</li>
+            <li><strong>Your directorial affinities:</strong> If you have watched three Christopher Nolan films and two Denis Villeneuve films, the profile infers a preference for visually ambitious, concept-driven filmmaking.</li>
+        </ul>
+
+        <p>None of this is shared with anyone. Your taste profile is yours alone, stored locally and in your personal CineMan account. It exists solely to make your streaming experience better.</p>
+
+        <h2>Tips for Getting the Best Results</h2>
+
+        <ul>
+            <li><strong>Do not skip the history scrape.</strong> The onboarding quiz gives CineMan a starting point, but the history scrape is what makes the profile genuinely accurate. Two minutes of setup saves hours of bad recommendations.</li>
+            <li><strong>Use feedback consistently.</strong> Every thumbs up or thumbs down makes the profile smarter. Even two or three feedback signals per browsing session make a measurable difference over time.</li>
+            <li><strong>Do not game it.</strong> Rate what you actually enjoy, not what you think you should enjoy. CineMan's value is in reflecting your real taste, not your aspirational taste.</li>
+            <li><strong>Revisit Discovery Mode weekly.</strong> As your profile evolves and new titles become available on streaming platforms, Discovery Mode will surface fresh picks that you would otherwise miss.</li>
+        </ul>
+
+        <p>Ready to build your profile? <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">Install CineMan AI</a> and get started in under two minutes. Once your profile is built, you might want to explore CineMan's other key feature: <a href="/blogs/how-to-find-similar-movies-cineman.html">Similar Search</a>, which lets you find films like any title you have loved.</p>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <h3>How long does it take to build a taste profile?</h3>
+                <p>The initial history scrape takes about 30-60 seconds depending on how much you have watched. TMDB enrichment happens in the background and completes within a few minutes. You will start seeing taste-match scores on streaming titles almost immediately after the scrape finishes.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Does CineMan access my Netflix password?</h3>
+                <p>No. CineMan never sees your Netflix credentials. It reads your viewing activity page (netflix.com/viewingactivity) only when you are already logged in and have navigated to that page yourself. The extension reads the page content &mdash; it does not log into anything on your behalf.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>What if my Netflix history has shows I did not actually like?</h3>
+                <p>CineMan uses signal weighting to reduce the impact of titles you only watched briefly or did not finish. Titles you watched completely, rewatched, or watched multiple seasons of receive stronger weight. You can also use the thumbs-down feedback button on any recommendation to actively train the profile away from content you dislike.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Can I use CineMan without Netflix history?</h3>
+                <p>Yes. The history scrape gives CineMan the richest data to work with, but you can also build a profile through the onboarding quiz and by using feedback buttons (thumbs up/down) on recommendations. The profile improves over time regardless of how you start.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Is my viewing data shared with anyone?</h3>
+                <p>No. Your taste profile data is stored locally on your device and in your personal CineMan account. It is never sold, shared with third parties, or used for advertising. CineMan's business model does not depend on selling user data.</p>
+            </div>
+        </section>
+
+        <!-- CTA Box -->
+        <div class="cta-box">
+            <h2>Build Your Taste Profile in Two Minutes</h2>
+            <p>Personal taste-match scores, IMDb ratings, and Rotten Tomatoes on every streaming title. Free forever.</p>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+        </div>
+
+        <!-- Related Posts -->
+        <section class="related-posts">
+            <h2>Related Posts</h2>
+            <div class="related-grid">
+                <a href="/blogs/what-is-a-taste-profile.html" class="related-card">
+                    <h3>What Is a Taste Profile? How CineMan Maps Your Movie Preferences</h3>
+                    <p>The concept behind CineMan's recommendation engine &mdash; and why it beats generic algorithms.</p>
+                </a>
+                <a href="/blogs/how-to-find-similar-movies-cineman.html" class="related-card">
+                    <h3>How to Find Movies Similar to Any Title You Loved &mdash; Using CineMan</h3>
+                    <p>Paste any movie title and get similar picks ranked by your personal taste, not generic popularity.</p>
+                </a>
+                <a href="/blogs/how-to-check-if-movie-is-worth-watching.html" class="related-card">
+                    <h3>How to Check If a Movie Is Worth Watching (Without Spoilers)</h3>
+                    <p>Quickly check ratings, reviews, and personal taste fit before committing two hours.</p>
+                </a>
+            </div>
+        </section>
+    </article>
+
+    <!-- Footer -->
+    <footer class="blog-footer">
+        <p>&copy; 2026 <a href="/">CineMan AI</a>. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

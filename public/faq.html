@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMan FAQ — Everything You Need to Know</title>
+    <meta name="description" content="Frequently asked questions about CineMan AI: installation, IMDb ratings on Netflix, taste match scores, privacy, troubleshooting, and more.">
+    <meta name="keywords" content="CineMan AI FAQ, CineMan help, IMDb ratings Netflix FAQ, movie recommendations FAQ, taste match explained">
+    <link rel="canonical" href="https://www.cinemanai.com/faq">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="CineMan FAQ — Everything You Need to Know">
+    <meta property="og:description" content="Answers to every question about CineMan AI: ratings, recommendations, privacy, troubleshooting, and more.">
+    <meta property="og:url" content="https://www.cinemanai.com/faq">
+    <meta property="og:site_name" content="CineMan AI">
+    <meta property="og:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CineMan FAQ — Everything You Need to Know">
+    <meta name="twitter:description" content="Answers to every question about CineMan AI: ratings, recommendations, privacy, troubleshooting, and more.">
+    <meta name="twitter:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <link rel="icon" type="image/png" href="/icons/icon48.png">
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/blogs/blog.css">
+
+    <style>
+        .faq-page-section { margin: 48px 0 0; }
+        .faq-page-section h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--cm-purple-light);
+            margin: 0 0 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(147, 51, 234, 0.3);
+        }
+        .faq-page-item {
+            border: 1px solid var(--cm-border);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .faq-page-item h3 {
+            margin: 0;
+            padding: 16px 20px;
+            background: var(--cm-bg-card);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--cm-text-heading);
+            cursor: default;
+        }
+        .faq-page-item p {
+            padding: 0 20px 16px;
+            margin: 0;
+            font-size: 15px;
+            color: var(--cm-text-muted);
+            line-height: 1.7;
+        }
+        .faq-page-item p:first-of-type { padding-top: 4px; }
+        .faq-page-item a { color: var(--cm-link); text-decoration: underline; }
+        .faq-page-item a:hover { color: var(--cm-link-hover); }
+    </style>
+
+    <!-- FAQPage JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "name": "CineMan FAQ — Everything You Need to Know",
+        "description": "Frequently asked questions about CineMan AI: installation, IMDb ratings on Netflix, taste match scores, privacy, troubleshooting, and more.",
+        "url": "https://www.cinemanai.com/faq",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is CineMan AI?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI is a free Chrome extension that overlays IMDb and Rotten Tomatoes ratings on Netflix, Prime Video, Disney+, and Hotstar. It also provides personalised movie and TV show recommendations powered by a local AI taste engine that learns what you like."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is CineMan AI free?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, CineMan AI is completely free. There are no subscriptions, no premium tiers, and no hidden costs. Every feature — ratings overlay, taste match, Find Similar, hidden Netflix genres — is available at no charge."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I install CineMan AI?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Visit the Chrome Web Store, search for CineMan AI (or go to https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci), and click Add to Chrome. The extension installs in seconds. Then open Netflix or Prime Video and you will see ratings on every title card immediately."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does CineMan AI work on Firefox, Safari, or Edge?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI is currently available only on Google Chrome. Firefox, Safari, and Edge versions are not available yet, but may be considered in the future based on demand."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Do I need to create an account to use CineMan AI?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. CineMan AI works immediately after installation with zero sign-up. There are no accounts, no logins, and no email required. Everything runs locally in your browser."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I see IMDb ratings directly on Netflix?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. Once installed, CineMan AI overlays the IMDb rating on every Netflix title card as you browse. You never need to switch tabs or search manually — the score appears right on the thumbnail."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Which streaming platforms does CineMan AI support?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI works on Netflix, Amazon Prime Video, Disney+, Hotstar, and JioCinema. Ratings overlays and the CineMan action icon appear on all supported platforms."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Where do the ratings come from?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI fetches ratings from IMDb and Rotten Tomatoes. The data is pulled from public sources and updated regularly so you always see current scores."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does CineMan AI show Rotten Tomatoes scores?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. CineMan AI shows both the Tomatometer (critics score) and Audience Score from Rotten Tomatoes alongside the IMDb rating on every title card."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does CineMan AI show Metacritic scores?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. CineMan AI currently displays IMDb and Rotten Tomatoes ratings. Metacritic is not included at this time."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How does CineMan AI recommend movies?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI builds a taste profile from your viewing history on Netflix, Prime Video, and other platforms. It analyses your preferences across genres, directors, actors, and themes, then scores every title with a personalised Taste Match percentage so you know how likely you are to enjoy it."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is a taste match score?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "A taste match score is a 0-100% number that tells you how well a movie or show fits your personal preferences. It is calculated by CineMan AI's local taste engine based on your viewing history, favourite genres, directors, themes, and more."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How is the taste match different from Netflix's percentage match?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Netflix's percentage match is designed to promote Netflix originals and keep you on the platform. CineMan AI's taste match is purely preference-based — it has no content to promote. It analyses your actual viewing patterns across all platforms and scores titles solely on how well they align with your taste."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How does CineMan AI build my taste profile?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI reads your viewing history from your streaming platforms (with your permission) and analyses patterns in what you watch — genres, directors, actors, themes, runtime, release years, and more. All processing happens locally in your browser."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How many movies do I need to watch before recommendations are accurate?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI can start generating useful recommendations after about 10-15 watched titles. The more you watch, the more refined your taste profile becomes. You can also manually select favourite genres and moods to speed up the process."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I reset my taste profile?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. You can reset your taste profile at any time from the CineMan AI extension popup settings. This clears all learned preferences and lets you start fresh."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What does 'Because you watched' mean in CineMan AI?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "'Because you watched' shows you which specific title in your history triggered a particular recommendation. It makes the recommendation transparent — you can see exactly why CineMan AI thinks you will enjoy a suggested movie."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does CineMan AI collect my data?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. CineMan AI stores all data locally on your device using Chrome's built-in storage. Your viewing history, taste profile, and preferences never leave your browser and are never sent to any external server."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is my viewing history sent to a server?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. Your viewing history is processed entirely on your device. CineMan AI's taste engine runs locally in your browser. Nothing is uploaded to any server."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What data does CineMan AI store?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI stores your taste profile, viewing history, and extension preferences (like display settings) in Chrome's local storage on your device. This data is never transmitted externally."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I delete my CineMan AI data?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. You can clear all stored data from the extension's settings, or simply uninstall the extension to remove everything. Since data is stored locally, removing the extension deletes all traces."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does CineMan AI track me across websites?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. CineMan AI only activates on supported streaming platforms (Netflix, Prime Video, Disney+, Hotstar, JioCinema). It does not run on other websites and does not track your browsing activity anywhere else."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Ratings are not showing on Netflix. What should I do?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "First, make sure the CineMan AI extension is enabled in chrome://extensions. Then refresh the Netflix page. If ratings still do not appear, try disabling other Netflix extensions that might conflict, clear your browser cache, or reinstall CineMan AI from the Chrome Web Store."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "My taste match scores seem wrong. How do I fix them?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Taste match accuracy improves with more data. If scores feel off, try syncing your viewing history again from the extension popup, or manually rate a few titles you have strong opinions about. You can also reset your profile and rebuild it."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "CineMan AI says a movie is not available for streaming in my country. Why?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Streaming catalogues vary by country. A title may be on Netflix in the US but not in India, or vice versa. CineMan AI shows availability based on the catalogue accessible from your current location."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "The extension slows down my browser. What can I do?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "CineMan AI is designed to be lightweight. If you experience slowness, check if other extensions are conflicting. You can also try disabling features you do not use (like playback speed control) in the extension settings to reduce overhead."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How is CineMan AI different from Trim (the Netflix extension)?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Trim shows IMDb ratings on Netflix only. CineMan AI works on Netflix, Prime Video, Disney+, and Hotstar, and adds Rotten Tomatoes scores alongside IMDb. CineMan AI also provides personalised taste match scores, AI-powered recommendations, Find Similar, hidden Netflix genres, and playback enhancements — features Trim does not offer."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Why should I use CineMan AI instead of just checking IMDb manually?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Checking IMDb manually means switching tabs for every single title. CineMan AI overlays ratings directly on your streaming platform so you never leave the page. It also adds personalised taste match scores, which IMDb cannot provide, and lets you discover similar movies with one click."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What is the Find Similar feature?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Find Similar lets you pick any movie or show and instantly discover titles with a similar vibe. CineMan AI analyses genre, themes, tone, director style, and more to surface the closest matches available on your streaming platforms."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does CineMan AI work on mobile or smart TVs?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No. CineMan AI is a Chrome desktop extension and requires the Chrome browser on a computer. It does not work on mobile browsers, tablets, or smart TV apps."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How often are ratings updated?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Ratings are fetched and cached regularly. When you browse a streaming platform, CineMan AI checks for updated scores so you always see reasonably current IMDb and Rotten Tomatoes data."
+                }
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+
+    <!-- Nav -->
+    <nav class="blog-nav">
+        <div class="blog-nav-inner">
+            <a href="/" class="blog-nav-logo">CineMan AI</a>
+            <div class="blog-nav-links">
+                <a href="/">Home</a>
+                <a href="/blogs/">Blog</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="/">Home</a><span>/</span>FAQ
+    </div>
+
+    <!-- Article -->
+    <article class="blog-article">
+        <h1>CineMan FAQ — Everything You Need to Know</h1>
+        <div class="blog-meta">
+            <span>Last updated: March 2026</span>
+        </div>
+
+        <div class="tldr-box">
+            <h3>Quick Answer</h3>
+            <p>CineMan AI is a free Chrome extension that shows IMDb and Rotten Tomatoes ratings on Netflix, Prime Video, Disney+, and Hotstar, plus gives you personalised movie recommendations powered by a local AI taste engine. No account required, no data leaves your device.</p>
+        </div>
+
+        <!-- ======== GENERAL ======== -->
+        <div class="faq-page-section">
+            <h2>General</h2>
+
+            <div class="faq-page-item">
+                <h3>What is CineMan AI?</h3>
+                <p>CineMan AI is a free Chrome extension that overlays IMDb and Rotten Tomatoes ratings on Netflix, Prime Video, Disney+, and Hotstar. It also provides personalised movie and TV show recommendations powered by a local AI taste engine that learns what you like. All processing happens in your browser — no server, no account needed.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Is CineMan AI free?</h3>
+                <p>Yes, completely free. There are no subscriptions, no premium tiers, and no hidden costs. Every feature — ratings overlay, taste match, Find Similar, hidden Netflix genres, playback enhancements — is available at no charge.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>How do I install CineMan AI?</h3>
+                <p>Visit the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">Chrome Web Store listing</a> and click "Add to Chrome." The extension installs in seconds. Then open Netflix or Prime Video and you will see ratings appear on every title card immediately.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Does CineMan AI work on Firefox, Safari, or Edge?</h3>
+                <p>CineMan AI is currently available only on Google Chrome. Firefox, Safari, and Edge versions are not available yet but may be considered in the future based on demand.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Do I need to create an account?</h3>
+                <p>No. CineMan AI works immediately after installation with zero sign-up. There are no accounts, no logins, and no email required. Everything runs locally in your browser.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Does CineMan AI work on mobile or smart TVs?</h3>
+                <p>No. CineMan AI is a Chrome desktop extension and requires the Chrome browser on a computer. It does not work on mobile browsers, tablets, or smart TV apps.</p>
+            </div>
+        </div>
+
+        <!-- ======== RATINGS ======== -->
+        <div class="faq-page-section">
+            <h2>Ratings</h2>
+
+            <div class="faq-page-item">
+                <h3>Can I see IMDb ratings directly on Netflix?</h3>
+                <p>Yes. Once installed, CineMan AI overlays the IMDb rating on every Netflix title card as you browse. You never need to switch tabs or search manually — the score appears right on the thumbnail.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Which streaming platforms are supported?</h3>
+                <p>CineMan AI works on Netflix, Amazon Prime Video, Disney+, Hotstar, and JioCinema. Ratings overlays and the CineMan action icon appear on all supported platforms.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Where do the ratings come from?</h3>
+                <p>CineMan AI fetches ratings from IMDb and Rotten Tomatoes. The data is pulled from public sources and updated regularly so you always see current scores.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Does CineMan AI show Rotten Tomatoes scores?</h3>
+                <p>Yes. CineMan AI shows both the Tomatometer (critics score) and the Audience Score from Rotten Tomatoes alongside the IMDb rating on every title card.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Does CineMan AI show Metacritic scores?</h3>
+                <p>No. CineMan AI currently displays IMDb and Rotten Tomatoes ratings. Metacritic is not included at this time.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>How often are ratings updated?</h3>
+                <p>Ratings are fetched and cached regularly. When you browse a streaming platform, CineMan AI checks for updated scores so you always see reasonably current IMDb and Rotten Tomatoes data.</p>
+            </div>
+        </div>
+
+        <!-- ======== RECOMMENDATIONS ======== -->
+        <div class="faq-page-section">
+            <h2>Recommendations</h2>
+
+            <div class="faq-page-item">
+                <h3>How does CineMan AI recommend movies?</h3>
+                <p>CineMan AI builds a taste profile from your viewing history on Netflix, Prime Video, and other platforms. It analyses your preferences across genres, directors, actors, and themes, then scores every title with a personalised Taste Match percentage so you know how likely you are to enjoy it.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>What is a taste match score?</h3>
+                <p>A taste match score is a 0-100% number that tells you how well a movie or show fits your personal preferences. It is calculated by CineMan AI's local taste engine based on your viewing history, favourite genres, directors, themes, and more.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>How is the taste match different from Netflix's percentage match?</h3>
+                <p>Netflix's percentage match is designed partly to promote Netflix originals and keep you on the platform. CineMan AI's taste match is purely preference-based — it has no content to promote. It analyses your actual viewing patterns across all platforms and scores titles solely on how well they align with your taste.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>How does CineMan AI build my taste profile?</h3>
+                <p>CineMan AI reads your viewing history from your streaming platforms (with your permission) and analyses patterns in what you watch — genres, directors, actors, themes, runtime, release years, and more. All processing happens locally in your browser.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>How many movies do I need to watch before recommendations are accurate?</h3>
+                <p>CineMan AI can start generating useful recommendations after about 10-15 watched titles. The more you watch, the more refined your taste profile becomes. You can also manually select favourite genres and moods to speed up the process.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Can I reset my taste profile?</h3>
+                <p>Yes. You can reset your taste profile at any time from the CineMan AI extension popup settings. This clears all learned preferences and lets you start fresh.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>What does "Because you watched" mean?</h3>
+                <p>"Because you watched" shows you which specific title in your history triggered a particular recommendation. It makes the recommendation transparent — you can see exactly why CineMan AI thinks you will enjoy a suggested movie.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>What is the Find Similar feature?</h3>
+                <p>Find Similar lets you pick any movie or show and instantly discover titles with a similar vibe. CineMan AI analyses genre, themes, tone, director style, and more to surface the closest matches available on your streaming platforms.</p>
+            </div>
+        </div>
+
+        <!-- ======== PRIVACY ======== -->
+        <div class="faq-page-section">
+            <h2>Privacy</h2>
+
+            <div class="faq-page-item">
+                <h3>Does CineMan AI collect my data?</h3>
+                <p>No. CineMan AI stores all data locally on your device using Chrome's built-in storage. Your viewing history, taste profile, and preferences never leave your browser and are never sent to any external server.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Is my viewing history sent to a server?</h3>
+                <p>No. Your viewing history is processed entirely on your device. CineMan AI's taste engine runs locally in your browser. Nothing is uploaded to any server.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>What data does CineMan AI store?</h3>
+                <p>CineMan AI stores your taste profile, viewing history, and extension preferences (like display settings) in Chrome's local storage on your device. This data is never transmitted externally.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Can I delete my CineMan AI data?</h3>
+                <p>Yes. You can clear all stored data from the extension's settings, or simply uninstall the extension to remove everything. Since data is stored locally, removing the extension deletes all traces.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Does CineMan AI track me across websites?</h3>
+                <p>No. CineMan AI only activates on supported streaming platforms (Netflix, Prime Video, Disney+, Hotstar, JioCinema). It does not run on other websites and does not track your browsing activity anywhere else.</p>
+            </div>
+        </div>
+
+        <!-- ======== TROUBLESHOOTING ======== -->
+        <div class="faq-page-section">
+            <h2>Troubleshooting</h2>
+
+            <div class="faq-page-item">
+                <h3>Ratings are not showing on Netflix. What should I do?</h3>
+                <p>First, make sure the CineMan AI extension is enabled in chrome://extensions. Then refresh the Netflix page. If ratings still do not appear, try disabling other Netflix extensions that might conflict, clear your browser cache, or reinstall CineMan AI from the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">Chrome Web Store</a>.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>My taste match scores seem wrong. How do I fix them?</h3>
+                <p>Taste match accuracy improves with more data. If scores feel off, try syncing your viewing history again from the extension popup, or manually rate a few titles you have strong opinions about. You can also reset your profile and rebuild it from the settings.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>A movie is listed as "not available for streaming in my country." Why?</h3>
+                <p>Streaming catalogues vary by country. A title may be on Netflix in the US but not in India, or vice versa. CineMan AI shows availability based on the catalogue accessible from your current location.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>The extension slows down my browser. What can I do?</h3>
+                <p>CineMan AI is designed to be lightweight. If you experience slowness, check if other extensions are conflicting. You can also try disabling features you do not use (like playback speed control) in the extension settings to reduce overhead.</p>
+            </div>
+        </div>
+
+        <!-- ======== COMPARISON ======== -->
+        <div class="faq-page-section">
+            <h2>Comparison</h2>
+
+            <div class="faq-page-item">
+                <h3>How is CineMan AI different from Trim (the Netflix extension)?</h3>
+                <p>Trim shows IMDb ratings on Netflix only. CineMan AI works on Netflix, Prime Video, Disney+, and Hotstar, and adds Rotten Tomatoes scores alongside IMDb. CineMan AI also provides personalised taste match scores, AI-powered recommendations, Find Similar, hidden Netflix genres, and playback enhancements — features Trim does not offer. See our <a href="/blogs/trim-vs-cineman-netflix-extension-comparison.html">detailed comparison</a> for a full breakdown.</p>
+            </div>
+
+            <div class="faq-page-item">
+                <h3>Why should I use CineMan AI instead of just checking IMDb manually?</h3>
+                <p>Checking IMDb manually means switching tabs for every single title. CineMan AI overlays ratings directly on your streaming platform so you never leave the page. It also adds personalised taste match scores, which IMDb cannot provide, and lets you discover similar movies with one click.</p>
+            </div>
+        </div>
+
+        <!-- CTA Box -->
+        <div class="cta-box">
+            <h2>Try CineMan AI Free</h2>
+            <p>See IMDb and Rotten Tomatoes ratings on Netflix, Prime Video, and Disney+. Get personalised recommendations powered by AI.</p>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome — It's Free</a>
+        </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="blog-footer">
+        <p>&copy; 2026 <a href="/">CineMan AI</a>. Free Chrome extension for smarter streaming.</p>
+    </footer>
+
+</body>
+</html>

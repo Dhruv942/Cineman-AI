@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 Allow: /blogs/
+Allow: /faq
 Disallow: /api/
+Disallow: /_next/
 
 Sitemap: https://www.cinemanai.com/sitemap.xml
