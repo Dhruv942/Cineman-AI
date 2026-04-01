@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 import { LanguageSelector } from './LanguageSelector';
-import { LANDING_PAGE_POSTERS, CINE_SUGGEST_CHROME_STORE_URL } from '../constants';
+import { LANDING_PAGE_POSTERS, CINE_SUGGEST_CHROME_STORE_URL, ICONS } from '../constants';
 
 interface LandingPageProps {
   onStartOnboarding: () => void;
@@ -51,14 +51,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
   ];
 
   const genres = [
-    { name: 'Sci-Fi', emoji: '\u{1F680}', href: '/genre/sci-fi.html' },
-    { name: 'Thriller', emoji: '\u{1F52A}', href: '/genre/thriller.html' },
-    { name: 'Comedy', emoji: '\u{1F602}', href: '/genre/comedy.html' },
-    { name: 'Drama', emoji: '\u{1F3AD}', href: '/genre/drama.html' },
-    { name: 'Horror', emoji: '\u{1F47B}', href: '/genre/horror.html' },
-    { name: 'Action', emoji: '\u{1F4A5}', href: '/genre/action.html' },
-    { name: 'Romance', emoji: '\u{2764}\u{FE0F}', href: '/genre/romance.html' },
-    { name: 'Animation', emoji: '\u{2728}', href: '/genre/animation.html' },
+    { name: 'Action', icon: ICONS.action, href: '/genre/action.html' },
+    { name: 'Sci-Fi', icon: ICONS.scifi, href: '/genre/sci-fi.html' },
+    { name: 'Thriller', icon: ICONS.thriller, href: '/genre/thriller.html' },
+    { name: 'Comedy', icon: ICONS.comedy, href: '/genre/comedy.html' },
+    { name: 'Drama', icon: ICONS.drama, href: '/genre/drama.html' },
+    { name: 'Horror', icon: ICONS.horror, href: '/genre/horror.html' },
+    { name: 'Romance', icon: ICONS.romance, href: '/genre/romance.html' },
+    { name: 'Animation', icon: ICONS.animation, href: '/genre/animation.html' },
   ];
 
   const blogPosts = [
@@ -317,7 +317,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
                 href={genre.href}
                 className="group bg-slate-800/60 rounded-lg p-5 text-center border border-slate-700/50 hover:border-purple-500 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/10"
               >
-                <span className="text-3xl block mb-2">{genre.emoji}</span>
+                <span className="block mb-2 [&_svg]:w-8 [&_svg]:h-8 [&_svg]:mx-auto [&_img]:w-8 [&_img]:h-8 [&_img]:mx-auto" dangerouslySetInnerHTML={{ __html: genre.icon }} />
                 <span className="text-sm font-semibold text-slate-200 group-hover:text-purple-300 transition-colors">{genre.name}</span>
               </a>
             ))}
