@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best AI Movie & TV Show Recommender — Free Chrome Extension | CineMan</title>
+    <meta name="description" content="Tired of scrolling Netflix for 30 minutes? CineMan's AI recommender learns your taste and suggests movies you'll actually love. Free Chrome extension — works on Netflix, Prime, Disney+.">
+    <meta name="keywords" content="ai movie recommender, ai tv show recommender, ai movie recommendation engine, best movie recommender ai, personalized movie recommendations ai">
+    <link rel="canonical" href="https://www.cinemanai.com/ai-movie-recommender.html">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Best AI Movie & TV Show Recommender — Free Chrome Extension | CineMan">
+    <meta property="og:description" content="Tired of scrolling Netflix for 30 minutes? CineMan's AI recommender learns your taste and suggests movies you'll actually love. Free Chrome extension — works on Netflix, Prime, Disney+.">
+    <meta property="og:url" content="https://www.cinemanai.com/ai-movie-recommender.html">
+    <meta property="og:site_name" content="CineMan AI">
+    <meta property="og:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Best AI Movie & TV Show Recommender — Free Chrome Extension | CineMan">
+    <meta name="twitter:description" content="Tired of scrolling Netflix for 30 minutes? CineMan's AI recommender learns your taste and suggests movies you'll actually love. Free Chrome extension — works on Netflix, Prime, Disney+.">
+    <meta name="twitter:image" content="https://www.cinemanai.com/icons/icon128.png">
+
+    <link rel="icon" type="image/png" href="/icons/icon48.png">
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="blogs/blog.css">
+
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "SoftwareApplication",
+                "name": "CineMan AI",
+                "applicationCategory": "BrowserApplication",
+                "operatingSystem": "Chrome",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                },
+                "description": "AI-powered movie and TV show recommender Chrome extension that shows IMDb and Rotten Tomatoes ratings on Netflix, Prime Video, Disney+, and JioHotstar. Builds a taste profile from your viewing history to deliver personalized recommendations.",
+                "url": "https://www.cinemanai.com/ai-movie-recommender.html",
+                "installUrl": "https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci",
+                "screenshot": "https://www.cinemanai.com/icons/icon128.png",
+                "softwareVersion": "1.0",
+                "author": {
+                    "@type": "Organization",
+                    "name": "CineMan AI"
+                },
+                "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "5",
+                    "ratingCount": "12",
+                    "bestRating": "5"
+                }
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "What is the best AI movie recommender?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "CineMan AI is a free Chrome extension that builds a multi-dimensional taste profile from your streaming history and recommends movies and TV shows with a transparent taste-match score. Unlike generic recommendation engines, CineMan analyzes 10 taste dimensions including genre, style, mood, director, and era to deliver highly personalized suggestions that work across Netflix, Prime Video, Disney+, and JioHotstar."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How does CineMan AI recommend movies?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "CineMan syncs your viewing history from Netflix, Prime Video, and other streaming platforms to build a taste profile across 10 dimensions: genre, style, plot, cast, director, keywords, mood, origin, era, and audience. It then scores every title against your profile and ranks recommendations by how well they match your specific taste. The scoring is fully transparent — you can see exactly why a movie scored high or low."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is CineMan's AI movie recommender free?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes, CineMan AI is completely free. There is no subscription, no account required, and no hidden fees. Install it from the Chrome Web Store and it works immediately. Your data stays local in your browser and is never sold or shared."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Does CineMan work on Netflix?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. CineMan works on Netflix, Amazon Prime Video, Disney+, and JioHotstar. It overlays IMDb and Rotten Tomatoes ratings directly on every title as you browse, and provides personalized taste-match scores across all supported platforms."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is CineMan better than Netflix recommendations?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "CineMan and Netflix optimize for different things. Netflix's algorithm is designed to maximize engagement and watch time, which means it promotes content that keeps you clicking — often its own originals — rather than content you will rate highly after watching. CineMan focuses on quality match by scoring movies against your actual taste profile, and its scoring is transparent so you can see why each title was recommended. CineMan also works across multiple streaming platforms, so you are not limited to one library."
+                        }
+                    }
+                ]
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": "https://www.cinemanai.com/"
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": "AI Movie Recommender",
+                        "item": "https://www.cinemanai.com/ai-movie-recommender.html"
+                    }
+                ]
+            }
+        ]
+    }
+    </script>
+
+    <style>
+        /* Landing page specific styles */
+        .landing-hero {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+        .landing-hero h1 {
+            font-size: 2.4rem;
+            line-height: 1.2;
+            max-width: 700px;
+            margin: 0 auto 24px;
+        }
+        .landing-hero .hero-sub {
+            font-size: 1.15rem;
+            color: var(--cm-text-muted);
+            max-width: 600px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+        .hero-cta {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--cm-purple), var(--cm-pink));
+            color: #fff;
+            padding: 16px 36px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(147, 51, 234, 0.4);
+            color: #fff;
+        }
+        .hero-cta-note {
+            display: block;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--cm-text-muted);
+        }
+
+        /* Steps grid */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+        .step-card {
+            background: var(--cm-bg-card);
+            border: 1px solid var(--cm-border);
+            border-radius: 12px;
+            padding: 28px 20px;
+            text-align: center;
+        }
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cm-purple), var(--cm-pink));
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.2rem;
+            margin-bottom: 14px;
+        }
+        .step-card h3 {
+            font-size: 1rem;
+            color: var(--cm-text-heading);
+            margin-bottom: 8px;
+        }
+        .step-card p {
+            font-size: 0.9rem;
+            color: var(--cm-text-muted);
+            line-height: 1.5;
+        }
+
+        /* Comparison grid */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 28px 0;
+        }
+        .compare-col {
+            background: var(--cm-bg-card);
+            border: 1px solid var(--cm-border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .compare-col.highlight {
+            border-color: var(--cm-purple);
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.15);
+        }
+        .compare-col h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--cm-text-heading);
+        }
+        .compare-col ul {
+            list-style: none;
+            padding: 0;
+        }
+        .compare-col ul li {
+            padding: 8px 0;
+            font-size: 0.92rem;
+            color: var(--cm-text-muted);
+            border-bottom: 1px solid var(--cm-border);
+        }
+        .compare-col ul li:last-child {
+            border-bottom: none;
+        }
+        .compare-col ul li::before {
+            margin-right: 8px;
+            font-weight: 700;
+        }
+        .compare-col.netflix ul li::before {
+            content: "\2717";
+            color: var(--cm-red);
+        }
+        .compare-col.highlight ul li::before {
+            content: "\2713";
+            color: var(--cm-green);
+        }
+
+        /* Feature list */
+        .feature-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 28px 0;
+        }
+        .feature-item {
+            background: var(--cm-bg-card);
+            border: 1px solid var(--cm-border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .feature-item h3 {
+            font-size: 0.95rem;
+            color: var(--cm-text-heading);
+            margin-bottom: 6px;
+        }
+        .feature-item p {
+            font-size: 0.88rem;
+            color: var(--cm-text-muted);
+            line-height: 1.5;
+        }
+
+        /* Platform badges */
+        .platform-badges {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 28px 0;
+        }
+        .platform-badge {
+            background: var(--cm-bg-card);
+            border: 1px solid var(--cm-border);
+            border-radius: 10px;
+            padding: 16px 28px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--cm-text-heading);
+        }
+
+        /* Bottom CTA */
+        .landing-cta {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.12), rgba(236, 72, 153, 0.12));
+            border: 1px solid var(--cm-purple);
+            border-radius: 16px;
+            padding: 48px 32px;
+            margin: 48px 0 32px;
+        }
+        .landing-cta h2 {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+        .landing-cta p {
+            color: var(--cm-text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 24px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 640px) {
+            .landing-hero h1 { font-size: 1.7rem; }
+            .compare-grid { grid-template-columns: 1fr; }
+            .feature-list { grid-template-columns: 1fr; }
+            .hero-cta { padding: 14px 28px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="blog-nav">
+        <div class="blog-nav-inner">
+            <a href="/" class="blog-nav-logo">
+                <img src="/icons/icon48.png" alt="CineMan AI">
+                CineMan AI
+            </a>
+            <div class="blog-nav-links">
+                <a href="/">Home</a>
+                <a href="/blogs/">Blog</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <a href="/">Home</a> <span>&rsaquo;</span>
+        AI Movie Recommender
+    </div>
+
+    <!-- Article / Landing Content -->
+    <article class="blog-article">
+
+        <!-- Hero -->
+        <div class="landing-hero">
+            <h1>AI Movie &amp; TV Show Recommender That Actually Understands Your Taste</h1>
+            <p class="hero-sub">Stop scrolling through hundreds of titles you will never watch. CineMan uses AI to learn what you love and surfaces the movies and shows you will actually enjoy &mdash; across every streaming platform.</p>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="hero-cta" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <span class="hero-cta-note">Free forever. No account required. Works on Netflix, Prime, Disney+.</span>
+        </div>
+
+        <div class="blog-meta">
+            <span>Updated: April 9, 2026</span>
+        </div>
+
+        <!-- TL;DR -->
+        <div class="tldr-box">
+            <h3>TL;DR</h3>
+            <p>CineMan is a free Chrome extension that uses AI to learn your taste from your Netflix, Prime Video, and Disney+ viewing history. It builds a multi-dimensional taste profile and recommends movies and TV shows you will actually love &mdash; with a transparent score that explains why each title was picked for you. It also overlays IMDb and Rotten Tomatoes ratings on every title as you browse.</p>
+        </div>
+
+        <p>Here is a familiar scene: you open Netflix after a long day, browse for 25 minutes, and either settle for something mediocre or give up and rewatch The Office. You are not alone. The average streaming subscriber spends over 20 minutes per session just deciding what to watch. That is not a you problem &mdash; it is a recommendation problem. Streaming platforms are not optimizing for your satisfaction. They are optimizing for their own content.</p>
+
+        <p>CineMan AI takes a fundamentally different approach. Instead of guessing based on what you clicked last, it builds a deep profile of your taste across 10 dimensions and scores every available title against it. The result: fewer nights wasted scrolling, more nights spent watching something you genuinely enjoy.</p>
+
+        <!-- How It Works -->
+        <h2>How It Works</h2>
+        <p>Getting started takes less than a minute. There is nothing to configure and no account to create.</p>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Install for Free</h3>
+                <p>Add CineMan from the Chrome Web Store. One click, zero configuration.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Browse as Normal</h3>
+                <p>Open Netflix, Prime Video, or Disney+. CineMan overlays IMDb and Rotten Tomatoes ratings on every title automatically.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Build Your Taste Profile</h3>
+                <p>Sync your viewing history and CineMan analyzes your preferences across 10 taste dimensions.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Get Personalized Picks</h3>
+                <p>Every title gets a taste-match score showing how well it fits your profile. No more guessing.</p>
+            </div>
+        </div>
+
+        <!-- Why CineMan vs Netflix -->
+        <h2>Why CineMan vs Netflix's Algorithm</h2>
+        <p>Netflix has spent billions on its recommendation engine. So why does it still feel like it never really knows what you want? Because Netflix and you have different goals.</p>
+
+        <div class="compare-grid">
+            <div class="compare-col netflix">
+                <h3>Netflix's Algorithm</h3>
+                <ul>
+                    <li>Optimizes for engagement and clicks, not your satisfaction after watching</li>
+                    <li>Promotes Netflix Originals over better third-party content</li>
+                    <li>Scoring is a black box &mdash; you never know why something was recommended</li>
+                    <li>Locked to one platform &mdash; cannot see across your other subscriptions</li>
+                </ul>
+            </div>
+            <div class="compare-col highlight">
+                <h3>CineMan AI</h3>
+                <ul>
+                    <li>Optimizes for taste match &mdash; recommends movies you will rate highly after watching</li>
+                    <li>Platform-agnostic &mdash; ranks all content equally regardless of who made it</li>
+                    <li>Transparent scoring &mdash; see exactly why a movie scored high or low for you</li>
+                    <li>Works across Netflix, Prime Video, Disney+, and JioHotstar simultaneously</li>
+                </ul>
+            </div>
+        </div>
+
+        <p>Netflix wants you watching Netflix content. CineMan wants you watching great content, wherever it lives. That is the core difference, and it changes the quality of every recommendation you receive.</p>
+
+        <!-- What Makes CineMan Different -->
+        <h2>What Makes CineMan Different</h2>
+        <p>Most movie recommendation tools ask you to rate a few films and then spit out generic suggestions. CineMan goes deeper.</p>
+
+        <div class="feature-list">
+            <div class="feature-item">
+                <h3>10-Dimension Taste Profile</h3>
+                <p>Genre, style, plot structure, cast, director, keywords, mood, country of origin, era, and target audience. Your taste is complex &mdash; your recommender should be too.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Cross-Platform Intelligence</h3>
+                <p>Works on Netflix, Prime Video, Disney+, and JioHotstar. One taste profile, every streaming library.</p>
+            </div>
+            <div class="feature-item">
+                <h3>IMDb + RT Ratings Everywhere</h3>
+                <p>See IMDb scores and Rotten Tomatoes percentages overlaid directly on streaming pages. No more opening new tabs to check ratings.</p>
+            </div>
+            <div class="feature-item">
+                <h3>100% Free, No Account Required</h3>
+                <p>Install and use immediately. No sign-up, no email, no subscription, no data collection. Your taste profile stays in your browser.</p>
+            </div>
+        </div>
+
+        <p>Privacy matters. CineMan runs entirely in your browser. Your viewing history, your taste profile, your data &mdash; none of it leaves your machine. There are no servers logging what you watch and no ad networks buying your preferences. This is not a compromise; it is a design choice. A movie recommender that truly works for you should not also work against you by monetizing your behavior.</p>
+
+        <!-- Supported Platforms -->
+        <h2>Supported Streaming Platforms</h2>
+        <p>CineMan integrates directly with the streaming services you already use. Ratings and taste-match scores appear automatically as you browse.</p>
+
+        <div class="platform-badges">
+            <div class="platform-badge">Netflix</div>
+            <div class="platform-badge">Amazon Prime Video</div>
+            <div class="platform-badge">Disney+</div>
+            <div class="platform-badge">JioHotstar</div>
+        </div>
+
+        <p>Whether you are comparing options across platforms or deep-browsing a single service, CineMan gives you the same consistent ratings and personalized scores everywhere. No more wondering if that Prime Video original is actually good or just heavily promoted.</p>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <h3>What is the best AI movie recommender?</h3>
+                <p>CineMan AI is a free Chrome extension that builds a multi-dimensional taste profile from your streaming history and recommends movies and TV shows with a transparent taste-match score. Unlike generic recommendation engines, CineMan analyzes 10 taste dimensions including genre, style, mood, director, and era to deliver highly personalized suggestions across Netflix, Prime Video, Disney+, and JioHotstar.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>How does CineMan AI recommend movies?</h3>
+                <p>CineMan syncs your viewing history from your streaming platforms to build a taste profile across 10 dimensions: genre, style, plot, cast, director, keywords, mood, origin, era, and audience. It then scores every available title against your profile and ranks recommendations by how well they match your specific preferences. The scoring is fully transparent &mdash; you can see exactly why a movie scored high or low for you.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Is CineMan's AI movie recommender free?</h3>
+                <p>Yes, completely free. There is no subscription, no account required, and no hidden fees. Install it from the Chrome Web Store and it works immediately. Your data stays local in your browser and is never sold or shared with anyone.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Does CineMan work on Netflix?</h3>
+                <p>Yes. CineMan works on Netflix, Amazon Prime Video, Disney+, and JioHotstar. It overlays IMDb and Rotten Tomatoes ratings directly on every title as you browse and provides personalized taste-match scores across all supported platforms.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Is CineMan better than Netflix recommendations?</h3>
+                <p>CineMan and Netflix optimize for different things. Netflix's algorithm maximizes engagement and watch time, which means it promotes content that keeps you clicking &mdash; often its own originals &mdash; rather than content you will rate highly after watching. CineMan focuses on quality match by scoring movies against your actual taste profile, and its scoring is transparent so you can see the reasoning behind each recommendation. CineMan also works across multiple streaming platforms, so you are not limited to a single library.</p>
+            </div>
+        </section>
+
+        <!-- Bottom CTA -->
+        <div class="landing-cta">
+            <h2>Stop Scrolling, Start Watching</h2>
+            <p>Join thousands of viewers who spend less time choosing and more time enjoying. Free forever, installs in seconds.</p>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="hero-cta" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+        </div>
+
+        <!-- Related Posts -->
+        <section class="related-posts">
+            <h2>Related Posts</h2>
+            <div class="related-grid">
+                <a href="/blogs/how-ai-movie-recommendations-work.html" class="related-card">
+                    <h3>How AI Movie Recommendations Work</h3>
+                    <p>A deep dive into the technology behind modern movie recommendation engines and taste profiling.</p>
+                </a>
+                <a href="/blogs/why-netflix-recommendations-are-wrong.html" class="related-card">
+                    <h3>Why Netflix Recommendations Are Wrong</h3>
+                    <p>The real reasons Netflix's algorithm misses the mark and what you can do about it.</p>
+                </a>
+                <a href="/blogs/what-is-a-taste-profile.html" class="related-card">
+                    <h3>What Is a Taste Profile?</h3>
+                    <p>How CineMan builds a multi-dimensional map of your movie and TV show preferences.</p>
+                </a>
+            </div>
+        </section>
+    </article>
+
+    <!-- Footer -->
+    <footer class="blog-footer">
+        <p>&copy; 2026 <a href="/">CineMan AI</a>. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

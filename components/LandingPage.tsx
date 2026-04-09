@@ -174,7 +174,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
                 {t('landing_subtitle', 'Stop Scrolling, Start Watching.')}
             </p>
             <p className="max-w-2xl text-md sm:text-lg text-slate-200 mb-10" style={{ textShadow: '0 1px 5px rgba(0,0,0,0.5)' }}>
-                {t('landing_description', "Tired of endless browsing? Let our advanced AI learn your unique taste and find your next favorite movie or series in seconds.")}
+                {t('landing_description', "The best AI movie & TV show recommender. See IMDb & Rotten Tomatoes ratings on Netflix, Prime Video, and Disney+ — plus get personalized recommendations that actually match your taste.")}
             </p>
             <button
                 onClick={handleStart}
@@ -358,6 +358,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartOnboarding }) =
             <a href="/blogs/" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
               Read more on the blog &rarr;
             </a>
+          </div>
+        </Section>
+
+        {/* FAQ Section — visible on page for SEO + AEO */}
+        <Section className="section-animate-in">
+          <SectionTitle>Frequently Asked Questions</SectionTitle>
+          <div className="max-w-3xl mx-auto space-y-6 text-left">
+            <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700/50">
+              <h3 className="text-lg font-semibold text-purple-300 mb-2">What is CineMan AI?</h3>
+              <p className="text-slate-400 text-sm">CineMan AI is a free Chrome extension that overlays IMDb and Rotten Tomatoes ratings directly on streaming platforms like Netflix, Prime Video, and Disney+. It also provides AI-powered personalized movie and TV show recommendations based on your taste profile — the best AI movie and TV show recommender available.</p>
+            </div>
+            <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700/50">
+              <h3 className="text-lg font-semibold text-purple-300 mb-2">How do I see IMDb ratings on Netflix?</h3>
+              <p className="text-slate-400 text-sm">Install the CineMan AI Chrome extension for free. Once installed, you will see IMDb and Rotten Tomatoes ratings overlaid directly on every movie and show while browsing Netflix — no tab-switching needed. CineMan also works on Prime Video, Disney+, and other streaming platforms.</p>
+            </div>
+            <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700/50">
+              <h3 className="text-lg font-semibold text-purple-300 mb-2">Is CineMan AI free?</h3>
+              <p className="text-slate-400 text-sm">Yes, CineMan AI is completely free. Install it from the Chrome Web Store and start seeing IMDb ratings on your streaming platforms immediately. There are no premium tiers or hidden costs.</p>
+            </div>
+            <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700/50">
+              <h3 className="text-lg font-semibold text-purple-300 mb-2">What streaming platforms does CineMan support?</h3>
+              <p className="text-slate-400 text-sm">CineMan AI shows IMDb and Rotten Tomatoes ratings on Netflix, Amazon Prime Video, Disney+, JioHotstar, and other major streaming platforms. It also provides personalized AI recommendations across all supported services.</p>
+            </div>
+            <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700/50">
+              <h3 className="text-lg font-semibold text-purple-300 mb-2">How does CineMan AI recommend movies?</h3>
+              <p className="text-slate-400 text-sm">CineMan AI builds a local taste profile based on your viewing history and ratings. It uses a tag-based scoring engine that runs entirely in your browser — no data is sent to any server. It matches your taste against genre, themes, director style, cast preferences, and audience reception to find movies you will love.</p>
+            </div>
           </div>
         </Section>
 

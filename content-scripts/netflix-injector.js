@@ -4,6 +4,7 @@
   const CINEMAN_MODAL_ID = 'cineman-ai-modal';
   let currentTitle = null;
   let currentType = 'movie'; // Default, we'll try to detect
+  let injectionTimer = null; // Debounce timer for injection
 
   function cleanTitle(title) {
     // Remove "Limited Series", season indicators, etc.
@@ -186,8 +187,25 @@
     if (existingPanel) {
       existingPanel.remove();
     }
-    
-    const titleNode = document.querySelector('.previewModal--player-title-logo');
+
+    // Only inject into the full detail modal, not the mini hover preview.
+    // The full modal has the class 'detail-modal' or is larger than 500px wide.
+    const modalContainer = document.querySelector('[data-uia="previewModal--container"]');
+    if (!modalContainer) {
+      console.log("CineMan AI: Modal container not found.");
+      return;
+    }
+
+    // Skip mini/hover previews — they are small and lack the full detail view
+    const isFullModal = modalContainer.querySelector('.previewModal--detailsMetadata-left') ||
+                        modalContainer.querySelector('[data-uia="previewModal--section-header"]') ||
+                        modalContainer.offsetWidth > 500;
+    if (!isFullModal) {
+      console.log("CineMan AI: Skipping mini preview.");
+      return;
+    }
+
+    const titleNode = modalContainer.querySelector('.previewModal--player-title-logo');
     if (!titleNode) {
         console.log("CineMan AI: Title node not found.");
         return;
@@ -196,7 +214,8 @@
     currentTitle = cleanTitle(titleNode.alt);
     currentType = detectType();
 
-    const targetNode = document.querySelector('.button-layer.button-layer-left');
+    // Scope the target query to within the modal to avoid matching elements elsewhere
+    const targetNode = modalContainer.querySelector('.button-layer.button-layer-left');
     if (targetNode) {
       const cinemanPanel = createCinemanPanel();
       targetNode.insertAdjacentElement('afterend', cinemanPanel);
@@ -212,9 +231,14 @@
           if (node.nodeType === Node.ELEMENT_NODE) {
             const modal = node.querySelector('[data-uia="previewModal--details-container"]') || node.matches('[data-uia="previewModal--details-container"]');
             if (modal) {
-              // Use a short timeout to ensure all modal content is rendered
-              setTimeout(injectPanel, 500);
-              return; // Found the modal, no need to observe further for now
+              // Debounce: clear any pending injection and schedule a new one.
+              // This prevents duplicate injections when multiple mutations fire rapidly.
+              if (injectionTimer) clearTimeout(injectionTimer);
+              injectionTimer = setTimeout(() => {
+                injectionTimer = null;
+                injectPanel();
+              }, 500);
+              return;
             }
           }
         }
