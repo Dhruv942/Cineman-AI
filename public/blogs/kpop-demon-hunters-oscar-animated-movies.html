@@ -308,5 +308,15 @@
         <p>&copy; 2026 <a href="/">CineMan AI</a>. All rights reserved.</p>
     </footer>
 
+<script>
+(function(){
+  var W="https://script.google.com/macros/s/AKfycbyNN9SKE9zUaR-fYWef-UVBQdSIk1pCr5r1sln66RNL2n6sh-CUuy26JUCclqzdEryprQ/exec";
+  if(W.indexOf("ANALYTICS_WEBHOOK")>-1)return;
+  var u=new URLSearchParams(location.search);
+  function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
+  send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
+  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+})();
+</script>
 </body>
 </html>
