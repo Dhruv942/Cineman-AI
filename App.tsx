@@ -59,7 +59,6 @@ import { importExternalFeedback } from "./services/feedbackService";
 import { storeChromeHistory } from "./services/chromeHistoryService";
 import { useLanguage } from "./hooks/useLanguage";
 import { MovieCard } from "./components/MovieCard";
-import { Analytics } from "@vercel/analytics/react";
 type AppView =
   | "loading"
   | "landing"
@@ -1798,7 +1797,6 @@ const App: React.FC = () => {
     <>
       <GlobalLoadingOverlay />
       {renderContent()}
-      <Analytics />
     </>
   );
 };
