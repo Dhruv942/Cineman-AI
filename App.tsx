@@ -351,7 +351,7 @@ const App: React.FC = () => {
           CINE_SUGGEST_ONBOARDING_COMPLETE_KEY
         );
         if (!onboardingComplete) {
-          setView("onboarding");
+          setView("landing");
         } else {
           const currentPrefs = await getEnsuredStablePreferences();
           if (!stablePreferences) {
