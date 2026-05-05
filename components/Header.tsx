@@ -104,7 +104,11 @@ export const Header: React.FC<HeaderProps> = ({ onEditPreferences, onShowMyAccou
           </button>
           
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 sm:w-56 origin-top-right bg-slate-800 border border-slate-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none py-1 z-50">
+            <div
+              role="menu"
+              aria-orientation="vertical"
+              className="absolute right-0 mt-2 w-48 sm:w-56 origin-top-right bg-slate-800 border border-slate-700 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none py-1 z-50"
+            >
               <button
                 onClick={() => handleDropdownItemClick(onEditPreferences)}
                 className="block w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-slate-200 hover:bg-purple-600 hover:text-white transition-colors duration-150"

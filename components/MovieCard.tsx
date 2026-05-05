@@ -56,11 +56,18 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     const fetchPoster = async () => {
       try {
         setPosterUrl(null);
+        // Routes through our /api/omdb Cloudflare Pages proxy — no client-side key.
+        // In extension context, the proxy is on cinemanai.com; in web context,
+        // a relative path works because the function is co-located with the site.
+        const isExtension =
+          typeof chrome !== "undefined" && !!chrome.runtime?.id;
+        const base = isExtension ? "https://www.cinemanai.com" : "";
         const response = await fetch(
-          `https://www.omdbapi.com/?t=${encodeURIComponent(movie.title)}&y=${
-            movie.year
-          }&apikey=eb2a7002`
+          `${base}/api/omdb?t=${encodeURIComponent(
+            movie.title
+          )}&y=${encodeURIComponent(movie.year || "")}`
         );
+        if (!response.ok) return;
         const data = await response.json();
         if (isActive && data?.Poster && data.Poster !== "N/A") {
           setPosterUrl(data.Poster);
@@ -91,57 +98,42 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     fetchFeedback();
   }, [movie.title, movie.year, onFeedback]);
 
-  // Always fetch streaming links from Gemini API
+  // Streaming links fetch (Gemini-backed). Three states are surfaced:
+  //   null      → not yet attempted / in-flight (the UI shows a subtle skeleton)
+  //   []        → fetched but no providers found (UI hides the row)
+  //   T[]       → fetched and rendered
+  // Errors are swallowed here but tracked via state so we can show a small
+  // "Couldn't load where to watch — retry" affordance instead of a blank row.
+  const [streamingFetchError, setStreamingFetchError] = useState<boolean>(
+    false
+  );
   useEffect(() => {
+    let isActive = true;
+    setStreamingFetchError(false);
     const fetchStreamingLinks = async () => {
-      console.log(
-        `🎬 [MovieCard] ========== FETCHING STREAMING LINKS ==========`
-      );
-      console.log(`🎬 [MovieCard] Movie: ${movie.title} (${movie.year})`);
       try {
-        console.log(`📞 [MovieCard] Calling getStreamingLinksCached...`);
         const links = await getStreamingLinksCached(movie.title, movie.year);
-        console.log(`📦 [MovieCard] Received response from API`);
-        console.log(`📦 [MovieCard] Links type:`, typeof links);
-        console.log(`📦 [MovieCard] Links is array:`, Array.isArray(links));
-        console.log(`📦 [MovieCard] Links length:`, links?.length || 0);
-        console.log(`📦 [MovieCard] Full links object:`, links);
-
+        if (!isActive) return;
         if (links && Array.isArray(links) && links.length > 0) {
-          console.log("✅ [MovieCard] Links found! Total:", links.length);
-          console.log(
-            "🔍 [MovieCard] All links received:",
-            JSON.stringify(links, null, 2)
-          );
-          links.forEach((link: any, index: number) => {
-            console.log(
-              `  [${index + 1}] Service: "${link?.service}", URL: "${
-                link?.url
-              }"`
-            );
-            console.log(`  [${index + 1}] Full link object:`, link);
-          });
           setFetchedStreamingOptions(links);
-          console.log("✅ [MovieCard] Set fetchedStreamingOptions state");
         } else {
-          console.log(
-            "⚠️ [MovieCard] No streaming links found or invalid format"
-          );
-          console.log("⚠️ [MovieCard] Links value:", links);
           setFetchedStreamingOptions(null);
         }
       } catch (error) {
-        console.error("❌ [MovieCard] Error fetching streaming links:", error);
-        console.error(
-          "❌ [MovieCard] Error stack:",
-          error instanceof Error ? error.stack : "No stack"
-        );
+        if (!isActive) return;
+        if (process.env.NODE_ENV !== "production") {
+          // eslint-disable-next-line no-console
+          console.error("[MovieCard] streaming links failed", error);
+        }
         setFetchedStreamingOptions(null);
+        setStreamingFetchError(true);
       }
-      console.log(`🎬 [MovieCard] ========== FETCH COMPLETE ==========`);
     };
 
     fetchStreamingLinks();
+    return () => {
+      isActive = false;
+    };
   }, [movie.title, movie.year]);
 
   useEffect(() => {

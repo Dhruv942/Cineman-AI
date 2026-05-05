@@ -102,6 +102,17 @@
     margin: auto;
   }
 
+  /* Extension popup: give Chrome a stable width so the discovery card fits.
+     Chrome's default popup auto-sizes from content; without a min-width the
+     360px discovery card can clip on first paint. */
+  html.cineman-popup,
+  html.cineman-popup body {
+    min-width: 380px;
+  }
+  html.cineman-popup .discovery-card-stack {
+    max-width: 340px;
+  }
+
   .discovery-card {
     position: absolute;
     width: 100%;
