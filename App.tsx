@@ -422,6 +422,74 @@ const App: React.FC = () => {
     view,
   ]);
 
+  // Standalone review/referral prompt trigger that doesn't depend on the user
+  // fetching recommendations. Fires shortly after the popup mounts on the main
+  // view if growth state and usage thresholds say so. This catches users whose
+  // primary usage is the rating-overlay on Netflix/Prime/Hotstar (they never
+  // hit "Get Recommendations" so the original trigger never fires for them).
+  useEffect(() => {
+    if (view !== "main") return;
+    if (promptTriggeredThisSession) return;
+
+    const storage =
+      typeof chrome !== "undefined" && chrome.storage
+        ? chrome.storage.local
+        : null;
+
+    const evaluate = (
+      growthState: GrowthPromptState,
+      overlayImpressions: number
+    ) => {
+      const currentSession = sessionCountRef.current;
+      // Either: 2+ sessions, OR enough rating-overlay impressions even on session 1.
+      // Cooldown: 3 sessions since last prompt.
+      const meetsUsage = currentSession >= 2 || overlayImpressions >= 30;
+      const cooldownPassed =
+        currentSession >= (growthState.lastPromptSession || 0) + 3;
+      if (!meetsUsage || !cooldownPassed) return;
+
+      let promptType: "review" | "referral" | null = null;
+      if (!growthState.hasRated) promptType = "review";
+      else if (!growthState.hasShared) promptType = "referral";
+      if (!promptType) return;
+
+      const t = setTimeout(() => {
+        setPromptToShow(promptType);
+        trackEvent(`${promptType}_prompt_view`, { source: "popup_mount" });
+      }, 2500);
+      setPromptTriggeredThisSession(true);
+      return () => clearTimeout(t);
+    };
+
+    if (storage) {
+      storage.get(
+        [
+          CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY,
+          "cineman_rating_overlay_impressions",
+        ],
+        (result: any) => {
+          const growthState = result[CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY] || {
+            lastPromptSession: 0,
+            hasRated: false,
+            hasShared: false,
+          };
+          const overlayImpressions =
+            Number(result.cineman_rating_overlay_impressions) || 0;
+          evaluate(growthState, overlayImpressions);
+        }
+      );
+    } else {
+      const growthStateString = localStorage.getItem(
+        CINE_SUGGEST_GROWTH_PROMPT_STATE_KEY
+      );
+      const growthState: GrowthPromptState = growthStateString
+        ? JSON.parse(growthStateString)
+        : { lastPromptSession: 0, hasRated: false, hasShared: false };
+      evaluate(growthState, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, promptTriggeredThisSession]);
+
   // Check if extension nudge should be shown
   useEffect(() => {
     // Reset nudge state when switching tabs
@@ -797,8 +865,11 @@ const App: React.FC = () => {
         if (!promptTriggeredThisSession && items.length > 0) {
           const showPrompt = (growthState: GrowthPromptState) => {
             const currentSession = sessionCountRef.current;
+            // Lowered threshold: prompt can appear from session 2+ instead of 4+,
+            // with a 3-session cooldown after dismissal. Same growthState is shared
+            // with the rating-overlay-driven popup-mount check below.
             const canShowAnyPrompt =
-              currentSession > 3 &&
+              currentSession >= 2 &&
               currentSession >= (growthState.lastPromptSession || 0) + 3;
             if (canShowAnyPrompt) {
               let promptType: "review" | "referral" | null = null;
