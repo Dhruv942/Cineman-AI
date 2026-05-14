@@ -64,7 +64,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-apple-tv-plus-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -84,7 +84,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Apple TV+ has the smallest catalog of the major streamers but the highest average critic score. Top picks for May 2026: <strong>CODA</strong>, <strong>Killers of the Flower Moon</strong>, <strong>Napoleon</strong>, <strong>Argylle</strong>, and <strong>The Greatest Showman</strong>. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and Rotten Tomatoes ratings on every Apple TV+ title.</p>
+            <p>Apple TV+ has the smallest catalog of the major streamers but the highest average critic score. Top picks for May 2026: <strong>CODA</strong>, <strong>Killers of the Flower Moon</strong>, <strong>Napoleon</strong>, <strong>Argylle</strong>, and <strong>The Greatest Showman</strong>. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-apple-tv-plus-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and Rotten Tomatoes ratings on every Apple TV+ title.</p>
         </div>
 
         <p>Apple TV+ is the prestige boutique of streaming. The catalog is small &mdash; roughly 200 films at any given time versus Netflix's 4,000-plus &mdash; but Apple has been deliberate about every acquisition. Their original films aim for awards categories, and their licensed library is curated rather than dumped. The result: a much higher percentage of films with 7.5+ IMDb scores than any other major streamer. Here are the 15 best movies on Apple TV+ in May 2026.</p>
@@ -139,7 +139,7 @@
 
         <h2>How to See IMDb Ratings on Apple TV+</h2>
 
-        <p>Apple TV+'s in-app interface is the cleanest of the major streamers but does not display third-party ratings. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb scores, Rotten Tomatoes percentages, and a personal taste-match score on every Apple TV+ title in your browser. No more opening five tabs to compare ratings.</p>
+        <p>Apple TV+'s in-app interface is the cleanest of the major streamers but does not display third-party ratings. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-apple-tv-plus-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb scores, Rotten Tomatoes percentages, and a personal taste-match score on every Apple TV+ title in your browser. No more opening five tabs to compare ratings.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -168,7 +168,7 @@
         <div class="cta-box">
             <h2>See IMDb Scores on Every Apple TV+ Title</h2>
             <p>Real ratings and a personal taste match overlaid on the app. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-apple-tv-plus-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -201,7 +201,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

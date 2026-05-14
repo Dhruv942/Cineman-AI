@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=one-piece-season-2-review-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>One Piece Season 2 has earned a perfect 100% on Rotten Tomatoes and an 8.4 on IMDb, improving on Season 1 across the board. It pulled 16.8 million views in its first four days and is already Netflix's biggest premiere of 2026. If you want to check ratings on Netflix titles instantly, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> for free.</p>
+            <p>One Piece Season 2 has earned a perfect 100% on Rotten Tomatoes and an 8.4 on IMDb, improving on Season 1 across the board. It pulled 16.8 million views in its first four days and is already Netflix's biggest premiere of 2026. If you want to check ratings on Netflix titles instantly, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=one-piece-season-2-review-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> for free.</p>
         </div>
 
         <p>One Piece Season 2 landed on Netflix on March 27, 2026, and it did not take long for the internet to lose its collective mind. The live-action adaptation of Eiichiro Oda's legendary manga had already proven the skeptics wrong with a strong first season, but Season 2 has gone further. A perfect Rotten Tomatoes score, a higher IMDb rating than its predecessor, and viewership numbers that shattered Netflix records &mdash; this is the rare sequel that genuinely outperforms the original.</p>
@@ -238,7 +238,7 @@
 
         <p>One of the biggest frustrations with Netflix is that it does not show you IMDb or Rotten Tomatoes ratings. You see a title, it looks interesting, and then you have to open a new tab, search for the show, and check three different sites before deciding whether to watch it. That friction kills momentum.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> solves this by overlaying IMDb scores, Rotten Tomatoes percentages, and a personal taste-match score directly on every Netflix title. You can see at a glance that One Piece Season 2 has an 8.4 IMDb, or that the show you are eyeing next has a 62% on Rotten Tomatoes and probably is not worth your time. It also works on <a href="/blogs/how-to-see-imdb-ratings-on-netflix.html">Netflix</a>, Prime Video, and Disney+.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=one-piece-season-2-review-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> solves this by overlaying IMDb scores, Rotten Tomatoes percentages, and a personal taste-match score directly on every Netflix title. You can see at a glance that One Piece Season 2 has an 8.4 IMDb, or that the show you are eyeing next has a 62% on Rotten Tomatoes and probably is not worth your time. It also works on <a href="/blogs/how-to-see-imdb-ratings-on-netflix.html">Netflix</a>, Prime Video, and Disney+.</p>
 
         <p>The taste-match feature is particularly useful for anime and manga adaptations, where critical ratings do not always align with whether a particular viewer will connect with the material. CineMan learns your preferences over time and gives you a percentage match that is far more useful than a generic star rating.</p>
 
@@ -282,7 +282,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every Netflix Title</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=one-piece-season-2-review-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -317,7 +317,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

@@ -69,7 +69,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=disclosure-day-2026-spielberg-ufo-movie&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -92,7 +92,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Disclosure Day opens in theaters June 12, 2026. Directed by Steven Spielberg. Stars Emily Blunt, Josh O'Connor, and Colin Firth. It is a drama set on the day the US government officially confirms the existence of non-human intelligence &mdash; less alien invasion thriller, more humanist reckoning with what that moment actually means. Spielberg calls it a spiritual sequel to <em>Close Encounters of the Third Kind</em>. It is the most anticipated film of summer 2026. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see its ratings the moment it lands on streaming.</p>
+            <p>Disclosure Day opens in theaters June 12, 2026. Directed by Steven Spielberg. Stars Emily Blunt, Josh O'Connor, and Colin Firth. It is a drama set on the day the US government officially confirms the existence of non-human intelligence &mdash; less alien invasion thriller, more humanist reckoning with what that moment actually means. Spielberg calls it a spiritual sequel to <em>Close Encounters of the Third Kind</em>. It is the most anticipated film of summer 2026. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=disclosure-day-2026-spielberg-ufo-movie&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see its ratings the moment it lands on streaming.</p>
         </div>
 
         <p>There are very few directors for whom a new film is genuinely significant cultural news. Steven Spielberg is one of them. When the trade papers reported last year that Spielberg was making a film about UFO disclosure with Emily Blunt as the lead, the internet's reaction was immediate and visceral: this is the movie that was always going to happen, made by the only director who could make it.</p>
@@ -164,7 +164,7 @@
 
         <p>Spielberg's recent films have demonstrated his continued critical standing: <em>The Fabelmans</em> (2022) earned 91% on Rotten Tomatoes and an 8.0 on IMDb. <em>West Side Story</em> (2021) earned 91% and a 7.3. Given the subject matter, the cast, and the cultural moment, <em>Disclosure Day</em> is widely anticipated to score above 85% on Rotten Tomatoes and well above 7.5 on IMDb. Several awards-season prognosticators are already placing it on Best Picture shortlists before a single review has been published.</p>
 
-        <p>When <em>Disclosure Day</em> hits streaming, the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome extension</a> will show you its live IMDb and Rotten Tomatoes scores directly on your browsing screen &mdash; whether it lands on Netflix, Prime Video, Apple TV+, or anywhere else. No more hunting through separate tabs to find out if it's living up to the hype.</p>
+        <p>When <em>Disclosure Day</em> hits streaming, the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=disclosure-day-2026-spielberg-ufo-movie&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome extension</a> will show you its live IMDb and Rotten Tomatoes scores directly on your browsing screen &mdash; whether it lands on Netflix, Prime Video, Apple TV+, or anywhere else. No more hunting through separate tabs to find out if it's living up to the hype.</p>
 
         <h2>Where Will Disclosure Day Stream?</h2>
 
@@ -213,7 +213,7 @@
         <div class="cta-box">
             <h2>Know the Moment Disclosure Day Hits Streaming</h2>
             <p>CineMan AI shows live IMDb and Rotten Tomatoes scores on every title across Netflix, Prime Video, Apple TV+, Disney+, and more &mdash; right on your browsing screen. When Disclosure Day lands on streaming, you'll see its scores instantly.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=disclosure-day-2026-spielberg-ufo-movie&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -248,7 +248,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

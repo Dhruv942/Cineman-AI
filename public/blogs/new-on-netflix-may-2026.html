@@ -105,7 +105,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=new-on-netflix-may-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -128,7 +128,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>May 2026 on Netflix is headlined by <strong>The Boroughs</strong> (supernatural thriller from the Stranger Things creators), <strong>A Good Girl's Guide to Murder Season 2</strong> (Emma Myers returns as Pip), <strong>Lord of the Flies</strong> (Netflix's original adaptation), <strong>Remarkably Bright Creatures</strong> (Sally Field, Lewis Pullman), and <strong>The Four Seasons</strong> (Tina Fey comedy). Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and RT ratings on each title as they land on Netflix.</p>
+            <p>May 2026 on Netflix is headlined by <strong>The Boroughs</strong> (supernatural thriller from the Stranger Things creators), <strong>A Good Girl's Guide to Murder Season 2</strong> (Emma Myers returns as Pip), <strong>Lord of the Flies</strong> (Netflix's original adaptation), <strong>Remarkably Bright Creatures</strong> (Sally Field, Lewis Pullman), and <strong>The Four Seasons</strong> (Tina Fey comedy). Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=new-on-netflix-may-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and RT ratings on each title as they land on Netflix.</p>
         </div>
 
         <p>May 2026 is one of Netflix's strongest months of the year so far. The platform is launching several high-profile originals across drama, thriller, animation, and comedy &mdash; plus a live roast event and a major MMA documentary. Here is a complete breakdown of everything arriving on Netflix in May, ranked and annotated for your browsing convenience.</p>
@@ -190,7 +190,7 @@
 
         <h2>How to Spot Quality Titles as They Land</h2>
 
-        <p>New May 2026 arrivals will start populating your Netflix browse screen throughout the month. The challenge is that Netflix surfaces these titles with its own algorithmic bias &mdash; it promotes whatever it needs to drive subscriptions, not necessarily what you will actually enjoy. Installing <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> gives you IMDb and Rotten Tomatoes scores directly on the browse screen, so you can make quick quality judgments as new titles appear throughout May without clicking into each one individually.</p>
+        <p>New May 2026 arrivals will start populating your Netflix browse screen throughout the month. The challenge is that Netflix surfaces these titles with its own algorithmic bias &mdash; it promotes whatever it needs to drive subscriptions, not necessarily what you will actually enjoy. Installing <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=new-on-netflix-may-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> gives you IMDb and Rotten Tomatoes scores directly on the browse screen, so you can make quick quality judgments as new titles appear throughout May without clicking into each one individually.</p>
 
         <!-- FAQ Section -->
         <section class="faq-section">
@@ -221,7 +221,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every May 2026 Netflix Title</h2>
             <p>IMDb scores and Rotten Tomatoes ratings on your Netflix browse screen &mdash; automatically. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=new-on-netflix-may-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -256,7 +256,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

@@ -63,7 +63,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-boys-season-5-final-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -83,7 +83,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The Boys Season 5 is the final season, now airing on Prime Video. Two-episode premiere on April 8, 2026; weekly Wednesdays through May 20. Rotten Tomatoes 98 percent, IMDb 8.7+. Eric Kripke delivers a savage, emotional, and often genuinely funny final run that feels earned. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see Prime Video ratings without leaving the page.</p>
+            <p>The Boys Season 5 is the final season, now airing on Prime Video. Two-episode premiere on April 8, 2026; weekly Wednesdays through May 20. Rotten Tomatoes 98 percent, IMDb 8.7+. Eric Kripke delivers a savage, emotional, and often genuinely funny final run that feels earned. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-boys-season-5-final-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see Prime Video ratings without leaving the page.</p>
         </div>
 
         <p>After nearly seven years of Homelander smiling through his teeth, Butcher calling everybody the C-word, and a rotating cast of Supes getting dispatched in increasingly baroque ways, The Boys is finally closing the book. Season 5 premiered on Prime Video with a two-episode drop on April 8, 2026, and new episodes have been arriving every Wednesday since. The eight-episode season wraps with its finale on May 20. Here is where things stand as of the midway point, plus the current critical consensus and what the final run has to accomplish to stick the landing.</p>
@@ -141,7 +141,7 @@
 
         <h2>Where to Watch &mdash; And How to Track Ratings as You Go</h2>
 
-        <p>All episodes stream on Prime Video. If you are also subscribed to Netflix, Max, Disney+, and Apple TV+ (the standard streaming-fatigue package), you are probably juggling half a dozen prestige shows right now. Ratings help you triage. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension adds IMDb and Rotten Tomatoes ratings directly onto Prime Video and Netflix tiles as you browse, so you can see at a glance which shows are still trending up and which are losing steam.</p>
+        <p>All episodes stream on Prime Video. If you are also subscribed to Netflix, Max, Disney+, and Apple TV+ (the standard streaming-fatigue package), you are probably juggling half a dozen prestige shows right now. Ratings help you triage. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-boys-season-5-final-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension adds IMDb and Rotten Tomatoes ratings directly onto Prime Video and Netflix tiles as you browse, so you can see at a glance which shows are still trending up and which are losing steam.</p>
 
         <h2>Best Order to Watch Before the Finale</h2>
 
@@ -182,7 +182,7 @@
         <div class="cta-box">
             <h2>See Prime Video Ratings Without Leaving the Page</h2>
             <p>CineMan AI overlays IMDb, Rotten Tomatoes, and a personal taste-match score on every Prime Video and Netflix tile. Free, no account needed.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-boys-season-5-final-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -215,7 +215,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

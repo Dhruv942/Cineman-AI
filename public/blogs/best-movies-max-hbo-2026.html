@@ -64,7 +64,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-max-hbo-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -84,7 +84,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Max has the deepest movie catalog of any streamer thanks to the Warner Bros. library plus the Turner Classic Movies archive. Top picks for May 2026: <strong>The Dark Knight</strong>, <strong>Casablanca</strong>, <strong>Dune: Part Two</strong>, <strong>The Lord of the Rings trilogy</strong>, and <strong>Goodfellas</strong>. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> for IMDb and RT scores on every Max title.</p>
+            <p>Max has the deepest movie catalog of any streamer thanks to the Warner Bros. library plus the Turner Classic Movies archive. Top picks for May 2026: <strong>The Dark Knight</strong>, <strong>Casablanca</strong>, <strong>Dune: Part Two</strong>, <strong>The Lord of the Rings trilogy</strong>, and <strong>Goodfellas</strong>. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-max-hbo-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> for IMDb and RT scores on every Max title.</p>
         </div>
 
         <p>If you ever wonder why people pay for Max even though they barely use it, the answer is the catalog. Max combines the entire Warner Bros. theatrical library (a century of films, including Casablanca, The Wizard of Oz, and Goodfellas), the Turner Classic Movies archive, exclusive HBO content, and recent WB blockbusters that hit the platform within 45 to 60 days of theatrical release. Pound for pound, no streamer has a deeper bench. Here are the 15 best movies on Max in May 2026.</p>
@@ -145,7 +145,7 @@
 
         <h2>How to See IMDb Ratings on Max</h2>
 
-        <p>Max&rsquo;s in-app interface buries critical information behind multiple clicks. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb scores, Rotten Tomatoes percentages, and a personal taste-match score on every Max title automatically. With a catalog this deep, having ratings visible is the difference between finding a hidden gem in five minutes and scrolling for thirty.</p>
+        <p>Max&rsquo;s in-app interface buries critical information behind multiple clicks. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-max-hbo-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb scores, Rotten Tomatoes percentages, and a personal taste-match score on every Max title automatically. With a catalog this deep, having ratings visible is the difference between finding a hidden gem in five minutes and scrolling for thirty.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -174,7 +174,7 @@
         <div class="cta-box">
             <h2>See IMDb Scores on Every Max Title</h2>
             <p>Real ratings and a personal taste match overlaid on the app. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-max-hbo-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -207,7 +207,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

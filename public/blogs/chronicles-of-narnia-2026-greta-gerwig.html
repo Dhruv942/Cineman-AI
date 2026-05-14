@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=chronicles-of-narnia-2026-greta-gerwig&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Greta Gerwig is writing and directing a new Chronicles of Narnia adaptation for Netflix, expected November 2026 with a limited IMAX release. After turning Barbie into a $1.4B phenomenon, Gerwig is bringing her signature blend of heart and intelligence to C.S. Lewis&rsquo;s beloved fantasy world. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to track its ratings the moment it hits Netflix.</p>
+            <p>Greta Gerwig is writing and directing a new Chronicles of Narnia adaptation for Netflix, expected November 2026 with a limited IMAX release. After turning Barbie into a $1.4B phenomenon, Gerwig is bringing her signature blend of heart and intelligence to C.S. Lewis&rsquo;s beloved fantasy world. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=chronicles-of-narnia-2026-greta-gerwig&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to track its ratings the moment it hits Netflix.</p>
         </div>
 
         <p>When Netflix announced that Greta Gerwig would helm their long-gestating Chronicles of Narnia adaptation, the film world took notice. This is not just another franchise reboot &mdash; it is one of the most critically acclaimed directors of her generation tackling one of the most beloved fantasy properties in literary history, backed by Netflix&rsquo;s largest-ever production budget. If Gerwig can do for Narnia what she did for Barbie &mdash; transforming expectations, balancing spectacle with substance, and reaching an audience far beyond the expected demographic &mdash; this could be the defining fantasy film of the decade.</p>
@@ -306,7 +306,7 @@
         </table>
         </div>
 
-        <p>Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on all of these titles directly while browsing your streaming platforms. The extension overlays IMDb and RT scores on every title card, plus a personal taste-match score so you know which fantasy films align with your preferences. For more streaming recommendations, check our guides to the <a href="/blogs/best-movies-on-netflix-right-now.html">best movies on Netflix right now</a> and the <a href="/blogs/best-feel-good-movies-streaming.html">best feel-good movies streaming</a>.</p>
+        <p>Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=chronicles-of-narnia-2026-greta-gerwig&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on all of these titles directly while browsing your streaming platforms. The extension overlays IMDb and RT scores on every title card, plus a personal taste-match score so you know which fantasy films align with your preferences. For more streaming recommendations, check our guides to the <a href="/blogs/best-movies-on-netflix-right-now.html">best movies on Netflix right now</a> and the <a href="/blogs/best-feel-good-movies-streaming.html">best feel-good movies streaming</a>.</p>
 
         <h2>What Gerwig&rsquo;s Track Record Tells Us</h2>
 
@@ -350,7 +350,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every Fantasy Film Instantly</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=chronicles-of-narnia-2026-greta-gerwig&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -385,7 +385,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

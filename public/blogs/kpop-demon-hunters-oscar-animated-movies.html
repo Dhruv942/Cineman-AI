@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=kpop-demon-hunters-oscar-animated-movies&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>KPop Demon Hunters won the 2026 Oscar for Best Animated Feature with a 7.5 IMDb and 93% RT score. Below you will find the 15 highest-rated animated movies streaming right now, with ratings from IMDb and Rotten Tomatoes. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every streaming title instantly.</p>
+            <p>KPop Demon Hunters won the 2026 Oscar for Best Animated Feature with a 7.5 IMDb and 93% RT score. Below you will find the 15 highest-rated animated movies streaming right now, with ratings from IMDb and Rotten Tomatoes. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=kpop-demon-hunters-oscar-animated-movies&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every streaming title instantly.</p>
         </div>
 
         <p>The 2026 Oscars delivered one of the most unexpected and celebrated wins in the Best Animated Feature category. KPop Demon Hunters, a genre-blending animated film that fuses Korean pop music culture with supernatural action, took home the Academy Award, beating out several high-profile competitors. The win was met with widespread praise from animation fans and critics who saw it as a signal that the Academy is finally recognizing animation that pushes beyond the traditional family-friendly formula.</p>
@@ -234,7 +234,7 @@
 
         <p>Animated movies are scattered across multiple streaming platforms &mdash; Disney+ has the Pixar and Disney catalog, Netflix has Spider-Verse and various licensed titles, Max has Studio Ghibli, and Peacock has DreamWorks. Trying to figure out which platform has the animated film you want, and whether it is any good, can be a frustrating experience.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> simplifies this by overlaying IMDb and Rotten Tomatoes ratings directly on every title across Netflix, Prime Video, and Disney+. You can browse any platform and immediately see which animated films have the highest scores. The personal taste-match feature is particularly useful for animation, where individual preferences vary widely &mdash; a 7.5 on IMDb might be a perfect match for your taste or a miss, and CineMan helps you distinguish between the two before you invest your time.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=kpop-demon-hunters-oscar-animated-movies&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> simplifies this by overlaying IMDb and Rotten Tomatoes ratings directly on every title across Netflix, Prime Video, and Disney+. You can browse any platform and immediately see which animated films have the highest scores. The personal taste-match feature is particularly useful for animation, where individual preferences vary widely &mdash; a 7.5 on IMDb might be a perfect match for your taste or a miss, and CineMan helps you distinguish between the two before you invest your time.</p>
 
         <p>The extension is free, takes 10 seconds to install, and works silently in the background while you browse. No more searching three different rating sites before choosing what to watch.</p>
 
@@ -280,7 +280,7 @@
         <div class="cta-box">
             <h2>Find the Best Animated Movies Instantly</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=kpop-demon-hunters-oscar-animated-movies&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -315,7 +315,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

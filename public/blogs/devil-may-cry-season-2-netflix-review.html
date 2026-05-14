@@ -66,7 +66,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=devil-may-cry-season-2-netflix-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -86,7 +86,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p><strong>Devil May Cry Season 2</strong> drops on Netflix <strong>May 12, 2026</strong>. Eight episodes, full season at once, Adi Shankar showrunning, Vergil finally entering the picture. Season 1 hit a 7.6 IMDb and a 92% Rotten Tomatoes; Season 2 has the budget and the lore beats to push higher. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see live ratings on Netflix as the season drops.</p>
+            <p><strong>Devil May Cry Season 2</strong> drops on Netflix <strong>May 12, 2026</strong>. Eight episodes, full season at once, Adi Shankar showrunning, Vergil finally entering the picture. Season 1 hit a 7.6 IMDb and a 92% Rotten Tomatoes; Season 2 has the budget and the lore beats to push higher. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=devil-may-cry-season-2-netflix-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see live ratings on Netflix as the season drops.</p>
         </div>
 
         <p>Adi Shankar's bootleg-aesthetic anime adaptation of Capcom's Devil May Cry was a sleeper hit when Season 1 dropped in 2025 &mdash; the kind of show that survives on word of mouth in a year crowded with bigger anime releases. Strong fight choreography, an actually-good soundtrack, and a lead voice performance by Johnny Yong Bosch that captured the cocky-but-haunted Dante from the games. Season 2 lands May 12, 2026, and the marketing has been pointing in one direction: <strong>Vergil</strong>.</p>
@@ -126,7 +126,7 @@
 
         <h2>Track the Ratings</h2>
 
-        <p>The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes ratings on every Netflix title. The moment Season 2 of DMC lands, you will see exactly how it is rating without leaving the Netflix app.</p>
+        <p>The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=devil-may-cry-season-2-netflix-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes ratings on every Netflix title. The moment Season 2 of DMC lands, you will see exactly how it is rating without leaving the Netflix app.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -160,7 +160,7 @@
         <div class="cta-box">
             <h2>See Anime Ratings Without Leaving Netflix</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every Netflix anime. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=devil-may-cry-season-2-netflix-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -193,7 +193,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

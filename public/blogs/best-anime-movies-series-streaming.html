@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-anime-movies-series-streaming&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Our 18 picks cover the best anime movies (Spirited Away, Your Name, Akira, Perfect Blue, and more) and series (Attack on Titan, Fullmetal Alchemist: Brotherhood, Death Note, Vinland Saga, and more) with IMDb and RT ratings and where to stream each one. We also included a newcomer gateway sequence if you are new to anime. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every anime title as you browse Netflix and other platforms.</p>
+            <p>Our 18 picks cover the best anime movies (Spirited Away, Your Name, Akira, Perfect Blue, and more) and series (Attack on Titan, Fullmetal Alchemist: Brotherhood, Death Note, Vinland Saga, and more) with IMDb and RT ratings and where to stream each one. We also included a newcomer gateway sequence if you are new to anime. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-anime-movies-series-streaming&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every anime title as you browse Netflix and other platforms.</p>
         </div>
 
         <p>Anime is no longer a niche interest. It is one of the fastest-growing content categories on every major streaming platform, and some of the highest-rated content on IMDb and Rotten Tomatoes comes from Japanese animation. But navigating the anime landscape can be intimidating. The volume of content is enormous, the genre classifications are unfamiliar to newcomers, and quality varies wildly from masterpiece to forgettable.</p>
@@ -371,7 +371,7 @@
 
         <h2>CineMan for Anime Fans</h2>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> is especially useful for anime fans browsing Netflix and other platforms. Netflix's anime library has expanded dramatically, but the platform's algorithm often does a poor job distinguishing between critically acclaimed anime and low-quality seasonal shows. CineMan overlays IMDb and Rotten Tomatoes ratings on every anime title, so you can immediately spot the gems.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-anime-movies-series-streaming&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> is especially useful for anime fans browsing Netflix and other platforms. Netflix's anime library has expanded dramatically, but the platform's algorithm often does a poor job distinguishing between critically acclaimed anime and low-quality seasonal shows. CineMan overlays IMDb and Rotten Tomatoes ratings on every anime title, so you can immediately spot the gems.</p>
 
         <p>The taste-match score is particularly valuable for anime because the genre is so diverse. Someone who loves psychological thrillers like Death Note and Perfect Blue has very different taste from someone who loves action spectacles like Jujutsu Kaisen and Attack on Titan. CineMan's taste engine recognizes these differences and adjusts its recommendations accordingly. You can also explore <a href="/blogs/netflix-hidden-categories-secret-codes.html">Netflix's hidden category codes</a> to find anime subcategories that the normal interface does not surface. For finding titles similar to your favorites, check our guide on <a href="/blogs/how-to-find-similar-movies-cineman.html">how to find similar movies with CineMan</a>.</p>
 
@@ -409,7 +409,7 @@
         <div class="cta-box">
             <h2>Find Your Next Anime Obsession</h2>
             <p>IMDb ratings, RT scores, and a personal taste match on every anime title. Skip the filler, find the masterpieces. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-anime-movies-series-streaming&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -444,7 +444,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

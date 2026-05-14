@@ -66,7 +66,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-four-seasons-season-2-netflix-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -86,7 +86,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p><strong>The Four Seasons Season 2</strong> drops on Netflix <strong>May 28, 2026</strong> &mdash; eight episodes, full season at once. Tina Fey, Steve Carell, Will Forte, and Colman Domingo all return. Season 1 hit a 7.7 IMDb and a 79% RT, drove huge word of mouth, and ended on the kind of cliffhanger that makes a second season inevitable. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see live ratings the moment it premieres.</p>
+            <p><strong>The Four Seasons Season 2</strong> drops on Netflix <strong>May 28, 2026</strong> &mdash; eight episodes, full season at once. Tina Fey, Steve Carell, Will Forte, and Colman Domingo all return. Season 1 hit a 7.7 IMDb and a 79% RT, drove huge word of mouth, and ended on the kind of cliffhanger that makes a second season inevitable. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-four-seasons-season-2-netflix-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see live ratings the moment it premieres.</p>
         </div>
 
         <p>Last spring, Netflix quietly dropped one of its best comedies in years &mdash; an eight-episode adaptation of Alan Alda's 1981 film about three middle-aged couples whose quarterly group vacations slowly turn into therapy sessions. The Four Seasons was supposed to be a midlife dramedy that no one would talk about. Instead, it ended Season 1 with the highest viewer-retention of any Netflix comedy that year, and a finale that pulled the rug out from under one of the central marriages. Season 2 lands May 28.</p>
@@ -130,7 +130,7 @@
 
         <h2>Track Reviews on Netflix</h2>
 
-        <p>The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes scores on every Netflix title automatically. The moment Four Seasons Season 2 premieres on May 28, you will see how it is rating without leaving the Netflix tab.</p>
+        <p>The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-four-seasons-season-2-netflix-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes scores on every Netflix title automatically. The moment Four Seasons Season 2 premieres on May 28, you will see how it is rating without leaving the Netflix tab.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -164,7 +164,7 @@
         <div class="cta-box">
             <h2>See Comedy Ratings Without Leaving Netflix</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every Netflix title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-four-seasons-season-2-netflix-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -197,7 +197,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

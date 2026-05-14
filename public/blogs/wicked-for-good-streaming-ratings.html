@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=wicked-for-good-streaming-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Wicked: For Good holds a 7.4 IMDb rating and 89% on Rotten Tomatoes. It is now streaming on Peacock and available for digital purchase. The sequel delivers a more emotionally intense experience than Part 1 but divides critics on pacing. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to find more musicals and movies with ratings on every streaming title.</p>
+            <p>Wicked: For Good holds a 7.4 IMDb rating and 89% on Rotten Tomatoes. It is now streaming on Peacock and available for digital purchase. The sequel delivers a more emotionally intense experience than Part 1 but divides critics on pacing. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=wicked-for-good-streaming-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to find more musicals and movies with ratings on every streaming title.</p>
         </div>
 
         <p>The Wicked movie phenomenon continues. After Part 1 dominated the 2024 holiday box office with over $680 million worldwide, its conclusion &mdash; Wicked: For Good &mdash; arrived in theaters and has now made the leap to streaming. The two-part adaptation of the beloved Broadway musical starring Cynthia Erivo as Elphaba and Ariana Grande as Glinda has been one of the most anticipated film events in years, and Part 2 carries the weight of resolving a story that audiences have been emotionally invested in since the stage show debuted over two decades ago.</p>
@@ -223,7 +223,7 @@
 
         <p>Movie musicals are a genre where ratings can be particularly misleading. The Greatest Showman has a 56% on Rotten Tomatoes but a 95% audience score &mdash; if you only looked at the critics, you would skip one of the most beloved musicals of the decade. Conversely, some critically praised musicals leave general audiences cold because the style does not match their taste.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> helps you navigate this by showing both IMDb and Rotten Tomatoes scores on every streaming title, plus a personal taste-match score that reflects your individual preferences. If you loved Wicked and The Greatest Showman, CineMan will recognize your affinity for big, emotional musicals and surface similar titles with high match percentages. If you lean more toward Sondheim-style complexity, it will adjust accordingly.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=wicked-for-good-streaming-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> helps you navigate this by showing both IMDb and Rotten Tomatoes scores on every streaming title, plus a personal taste-match score that reflects your individual preferences. If you loved Wicked and The Greatest Showman, CineMan will recognize your affinity for big, emotional musicals and surface similar titles with high match percentages. If you lean more toward Sondheim-style complexity, it will adjust accordingly.</p>
 
         <p>The extension works on Netflix, Prime Video, and Disney+. It is free, installs in seconds, and saves you from the endless tab-switching that comes with trying to research movies before watching them.</p>
 
@@ -265,7 +265,7 @@
         <div class="cta-box">
             <h2>Find Musicals and Movies You Will Love</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=wicked-for-good-streaming-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -300,7 +300,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

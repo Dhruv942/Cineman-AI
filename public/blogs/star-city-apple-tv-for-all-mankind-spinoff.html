@@ -83,7 +83,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=star-city-apple-tv-for-all-mankind-spinoff&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -103,7 +103,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p><strong>Star City</strong> is Apple TV+&rsquo;s long-awaited spinoff of <em>For All Mankind</em>, set in the same alternate-history universe but told from the <strong>Soviet side</strong> of the never-ending space race. Same creative DNA (Ronald D. Moore, Ben Nedivi, Matt Wolpert), different perspective. It is one of Apple TV+&rsquo;s biggest 2026 launches. Watch ratings on every Apple TV+ title with <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>.</p>
+            <p><strong>Star City</strong> is Apple TV+&rsquo;s long-awaited spinoff of <em>For All Mankind</em>, set in the same alternate-history universe but told from the <strong>Soviet side</strong> of the never-ending space race. Same creative DNA (Ronald D. Moore, Ben Nedivi, Matt Wolpert), different perspective. It is one of Apple TV+&rsquo;s biggest 2026 launches. Watch ratings on every Apple TV+ title with <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=star-city-apple-tv-for-all-mankind-spinoff&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a>.</p>
         </div>
 
         <p>If you have not watched <em>For All Mankind</em>, you have been missing one of the most ambitious sci-fi shows of the last decade. The premise: what if the Soviets had landed on the moon first, and the space race never ended? Across four seasons, the show tracked how that one divergence reshaped technology, politics, and human progress through the late 20th century into the 21st. It is also a notoriously slept-on show &mdash; a victim of being on Apple TV+, where prestige series often live in cultural quiet.</p>
@@ -158,7 +158,7 @@
 
         <p>Apple TV+&rsquo;s 2026 has three major bets: <em>Severance</em> Season 3, <em>Foundation</em> Season 3, and Star City. The first two are returning hits. Star City is the new entry. If the show lands, Apple finally has the prestige sci-fi trifecta it has been building toward since the platform launched. If it does not, the For All Mankind universe loses a lot of its forward momentum.</p>
 
-        <p>Either way, Apple TV+ is one of the most rating-dense platforms streaming today &mdash; small library, high average quality. To see those scores as you browse, install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension. It overlays IMDb and Rotten Tomatoes ratings on every Apple TV+ thumbnail and adds a personal taste-match score so you stop missing the gems.</p>
+        <p>Either way, Apple TV+ is one of the most rating-dense platforms streaming today &mdash; small library, high average quality. To see those scores as you browse, install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=star-city-apple-tv-for-all-mankind-spinoff&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension. It overlays IMDb and Rotten Tomatoes ratings on every Apple TV+ thumbnail and adds a personal taste-match score so you stop missing the gems.</p>
 
         <h2>Bottom Line</h2>
 
@@ -191,7 +191,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every Apple TV+ Title</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=star-city-apple-tv-for-all-mankind-spinoff&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -224,7 +224,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

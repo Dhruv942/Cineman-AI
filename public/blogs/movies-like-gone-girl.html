@@ -91,7 +91,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-gone-girl&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -114,7 +114,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The best movies like Gone Girl share its cocktail of unreliable narrators, dark domestic tension, and characters you're never quite sure whether to root for. Top picks: <em>A Simple Favor</em>, <em>Sharp Objects</em>, <em>The Talented Mr. Ripley</em>, <em>Promising Young Woman</em>, and <em>Rear Window</em>. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see where each is streaming and check IMDb scores without leaving your platform.</p>
+            <p>The best movies like Gone Girl share its cocktail of unreliable narrators, dark domestic tension, and characters you're never quite sure whether to root for. Top picks: <em>A Simple Favor</em>, <em>Sharp Objects</em>, <em>The Talented Mr. Ripley</em>, <em>Promising Young Woman</em>, and <em>Rear Window</em>. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-gone-girl&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see where each is streaming and check IMDb scores without leaving your platform.</p>
         </div>
 
         <p><em>Gone Girl</em> (2014) is one of those rare films that leaves people physically uncomfortable &mdash; in the best possible way. David Fincher's adaptation of Gillian Flynn's novel hit a nerve because it refuses easy moral categories. Amy Dunne is a villain, a victim, and a fascinating monster all at once. Nick Dunne is sympathetic and reprehensible in equal measure. Nobody is reliable. Nobody is safe.</p>
@@ -316,7 +316,7 @@
 
         <p>Bong Joon-ho's Palme d'Or and Best Picture winner shares Gone Girl's DNA only loosely &mdash; it's more class thriller than domestic psychological thriller &mdash; but the experience of watching it is identical: you feel completely secure in your understanding of what kind of story you're watching, and then the floor drops out from under you.</p>
 
-        <p>The shift in tone and genre that happens roughly two-thirds of the way through <em>Parasite</em> is one of the great cinematic moments of the decade. If you haven't seen it, it belongs at the top of any watchlist. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> and check where it's currently streaming &mdash; it moves between platforms periodically.</p>
+        <p>The shift in tone and genre that happens roughly two-thirds of the way through <em>Parasite</em> is one of the great cinematic moments of the decade. If you haven't seen it, it belongs at the top of any watchlist. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-gone-girl&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> and check where it's currently streaming &mdash; it moves between platforms periodically.</p>
 
         <h3>10&ndash;15: Worth Knowing About</h3>
 
@@ -367,7 +367,7 @@
         <div class="cta-box">
             <h2>Find These Films on Your Streaming Platforms Instantly</h2>
             <p>CineMan AI overlays IMDb and Rotten Tomatoes ratings on every title in Netflix, Prime Video, Disney+, and more. See at a glance whether a psychological thriller is worth your time &mdash; without leaving your platform.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-gone-girl&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -408,7 +408,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

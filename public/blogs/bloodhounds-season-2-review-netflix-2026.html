@@ -69,7 +69,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=bloodhounds-season-2-review-netflix-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -92,7 +92,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Bloodhounds Season 2 debuted at #1 on Netflix's global non-English chart with 7.4 million views in its first week. It delivers everything Season 1 did &mdash; stunning hand-to-hand combat, a genuinely menacing villain, and real emotional stakes between its two leads &mdash; and raises the scale considerably. IMDb sitting around 8.2. If you liked Season 1, Season 2 is essential. New to the show, start at the beginning. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see both seasons' scores side by side on your Netflix screen.</p>
+            <p>Bloodhounds Season 2 debuted at #1 on Netflix's global non-English chart with 7.4 million views in its first week. It delivers everything Season 1 did &mdash; stunning hand-to-hand combat, a genuinely menacing villain, and real emotional stakes between its two leads &mdash; and raises the scale considerably. IMDb sitting around 8.2. If you liked Season 1, Season 2 is essential. New to the show, start at the beginning. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=bloodhounds-season-2-review-netflix-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see both seasons' scores side by side on your Netflix screen.</p>
         </div>
 
         <p>Korean dramas have been the most consistent source of high-quality genre television on Netflix for the better part of five years. From <em>Squid Game</em> to <em>All of Us Are Dead</em> to <em>My Mister</em>, the pipeline of exceptional Korean content to the platform has proven to be something structural rather than a trend. <em>Bloodhounds</em> was one of the most compelling entries in that pipeline when it arrived in 2023: a crime action drama adapted from a webtoon, centered on two young boxers dragged into a brutal world of predatory loan sharking, that distinguished itself with some of the most impressive hand-to-hand combat choreography in recent television history.</p>
@@ -157,7 +157,7 @@
 
         <p>Bloodhounds Season 2 currently sits at approximately 8.2 on IMDb, consistent with Season 1's reception and well above the average for Netflix action dramas. The show's ratings on Rotten Tomatoes skew heavily toward audience approval &mdash; the kind of show that critics like without quite championing, while audiences respond with genuine enthusiasm.</p>
 
-        <p>If you want to see where Bloodhounds' scores land relative to everything else on your Netflix screen, the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome extension</a> overlays IMDb and Rotten Tomatoes ratings on every title as you browse &mdash; no clicking through to individual pages required.</p>
+        <p>If you want to see where Bloodhounds' scores land relative to everything else on your Netflix screen, the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=bloodhounds-season-2-review-netflix-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome extension</a> overlays IMDb and Rotten Tomatoes ratings on every title as you browse &mdash; no clicking through to individual pages required.</p>
 
         <h2>Should You Watch Bloodhounds Season 2?</h2>
 
@@ -206,7 +206,7 @@
         <div class="cta-box">
             <h2>See Every Korean Drama's Ratings While You Browse Netflix</h2>
             <p>CineMan AI shows IMDb and Rotten Tomatoes scores on every title on Netflix, Prime Video, Disney+, and more &mdash; directly on the browsing screen. No more guessing whether something is worth starting. Free Chrome extension.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=bloodhounds-season-2-review-netflix-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -241,7 +241,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

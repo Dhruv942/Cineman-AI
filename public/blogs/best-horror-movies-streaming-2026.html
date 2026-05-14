@@ -91,7 +91,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-horror-movies-streaming-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -114,7 +114,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The best horror movies streaming in 2026 include <em>Hereditary</em>, <em>The Shining</em>, <em>Get Out</em>, <em>Midsommar</em>, <em>The Witch</em>, and <em>A Quiet Place</em>. We grouped 16 films by subgenre and ranked by composite IMDb and Rotten Tomatoes scores. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings overlaid on every title as you browse — so you never accidentally start a 4.8 horror film again.</p>
+            <p>The best horror movies streaming in 2026 include <em>Hereditary</em>, <em>The Shining</em>, <em>Get Out</em>, <em>Midsommar</em>, <em>The Witch</em>, and <em>A Quiet Place</em>. We grouped 16 films by subgenre and ranked by composite IMDb and Rotten Tomatoes scores. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-horror-movies-streaming-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings overlaid on every title as you browse — so you never accidentally start a 4.8 horror film again.</p>
         </div>
 
         <p>Horror is the most quality-uneven genre in streaming. The gap between a genuinely great horror film and a watchable-but-forgettable one is enormous, and they look identical on a Netflix thumbnail. You get a dark title card, a sinister tagline, and absolutely no indication of whether what you're about to watch is <em>Hereditary</em> or some forgettable possession movie that went straight to streaming.</p>
@@ -352,7 +352,7 @@
 
         <h2>Finding Horror Worth Watching on Your Streaming Platforms</h2>
 
-        <p>Horror is uniquely difficult to browse because platforms don't distinguish between a 99% Rotten Tomatoes modern classic and a 28% original film with a similar thumbnail and description. The <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> extension solves this directly: it overlays IMDb and Rotten Tomatoes scores on every title card across Netflix, Prime Video, HBO Max, and Disney+. When you're in a horror browsing mood, you can scan an entire row and instantly identify which titles are critically endorsed and which are noise.</p>
+        <p>Horror is uniquely difficult to browse because platforms don't distinguish between a 99% Rotten Tomatoes modern classic and a 28% original film with a similar thumbnail and description. The <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-horror-movies-streaming-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> extension solves this directly: it overlays IMDb and Rotten Tomatoes scores on every title card across Netflix, Prime Video, HBO Max, and Disney+. When you're in a horror browsing mood, you can scan an entire row and instantly identify which titles are critically endorsed and which are noise.</p>
 
         <p>It's particularly useful for horror because the genre has such high variance. A 90%+ RT horror film is almost always worth two hours. A 40% RT horror film is a coin flip at best.</p>
 
@@ -385,7 +385,7 @@
         <div class="cta-box">
             <h2>Find the Good Horror Instantly</h2>
             <p>Stop guessing which horror thumbnail is worth clicking. CineMan AI overlays IMDb and RT scores on every title in Netflix, Prime Video, HBO Max, and more. Spot the 99% and skip the 28% in seconds.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-horror-movies-streaming-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -426,7 +426,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

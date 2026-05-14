@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=knives-out-3-wake-up-dead-man&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Daniel Craig returns as Benoit Blanc in Wake Up Dead Man, the third Knives Out mystery from writer-director Rian Johnson. The ensemble includes Josh O&rsquo;Connor, Cailee Spaeny, Andrew Scott, Glenn Close, and more. Expected fall 2026 on Netflix. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to find the best mystery and whodunit films streaming right now.</p>
+            <p>Daniel Craig returns as Benoit Blanc in Wake Up Dead Man, the third Knives Out mystery from writer-director Rian Johnson. The ensemble includes Josh O&rsquo;Connor, Cailee Spaeny, Andrew Scott, Glenn Close, and more. Expected fall 2026 on Netflix. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=knives-out-3-wake-up-dead-man&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to find the best mystery and whodunit films streaming right now.</p>
         </div>
 
         <p>Rian Johnson has built something rare in modern Hollywood: an original franchise that audiences actually love. Knives Out arrived in 2019 as a sharp, funny, and genuinely surprising whodunit that earned $311 million worldwide on a $40 million budget and a 97% score on Rotten Tomatoes. Glass Onion followed in 2022 on Netflix, proving that the formula worked with a completely new cast and setting. Now Wake Up Dead Man &mdash; the third Benoit Blanc mystery &mdash; is poised to continue one of the most critically consistent franchises in recent memory.</p>
@@ -317,7 +317,7 @@
         </table>
         </div>
 
-        <p>Mystery fans will want to use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every one of these titles directly while browsing streaming platforms. The extension overlays IMDb and RT scores on every title card, plus a personal taste-match score that tells you which mysteries align with your specific preferences. For films with that same mind-bending quality, see our <a href="/blogs/movies-like-inception.html">movies like Inception</a> guide. And for more edge-of-your-seat viewing, check the <a href="/blogs/best-thriller-movies-netflix-2026.html">best thrillers on Netflix</a>.</p>
+        <p>Mystery fans will want to use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=knives-out-3-wake-up-dead-man&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every one of these titles directly while browsing streaming platforms. The extension overlays IMDb and RT scores on every title card, plus a personal taste-match score that tells you which mysteries align with your specific preferences. For films with that same mind-bending quality, see our <a href="/blogs/movies-like-inception.html">movies like Inception</a> guide. And for more edge-of-your-seat viewing, check the <a href="/blogs/best-thriller-movies-netflix-2026.html">best thrillers on Netflix</a>.</p>
 
         <h2>What to Expect from Rian Johnson</h2>
 
@@ -359,7 +359,7 @@
         <div class="cta-box">
             <h2>Solve the Mystery of What to Watch Next</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=knives-out-3-wake-up-dead-man&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -394,7 +394,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

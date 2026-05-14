@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-check-rotten-tomatoes-on-netflix&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> (free Chrome extension) and Rotten Tomatoes scores appear automatically on every Netflix title. No tab-switching required. You also get IMDb ratings and a personal taste-match score.</p>
+            <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-check-rotten-tomatoes-on-netflix&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> (free Chrome extension) and Rotten Tomatoes scores appear automatically on every Netflix title. No tab-switching required. You also get IMDb ratings and a personal taste-match score.</p>
         </div>
 
         <p>You can check Rotten Tomatoes scores on Netflix without leaving the page by using a free Chrome extension like CineMan AI, which overlays the Tomatometer score directly on every title as you browse. Netflix does not show Rotten Tomatoes scores natively, but with a one-click extension install, you will never need to open a second tab to check whether a movie is actually worth your time.</p>
@@ -175,7 +175,7 @@
 
         <ol>
             <li><strong>Open Chrome</strong> (or Edge, Brave, or any Chromium-based browser).</li>
-            <li><strong>Visit the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI extension page</a></strong> on the Chrome Web Store.</li>
+            <li><strong>Visit the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-check-rotten-tomatoes-on-netflix&utm_medium=cta" target="_blank" rel="noopener">CineMan AI extension page</a></strong> on the Chrome Web Store.</li>
             <li><strong>Click "Add to Chrome"</strong> and confirm the installation when prompted.</li>
             <li><strong>Navigate to Netflix</strong> in your browser.</li>
             <li><strong>Browse normally</strong> &mdash; Rotten Tomatoes scores (along with IMDb ratings) will now appear on every title card automatically.</li>
@@ -253,7 +253,7 @@
         <div class="cta-box">
             <h2>Never Watch a Bad Movie Again</h2>
             <p>See Rotten Tomatoes scores, IMDb ratings, and your personal taste match on every Netflix title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-check-rotten-tomatoes-on-netflix&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -284,7 +284,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

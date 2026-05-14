@@ -62,7 +62,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=new-on-netflix-this-week-april-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -82,7 +82,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>This week on Netflix, BEEF Season 2 is the main event (April 16). Also new: David Attenborough's &quot;180, A Gorilla Story,&quot; Thrash, Running Point Season 2, Roommates, and a handful of licensed titles. Here is what is actually worth your time, with IMDb and Rotten Tomatoes ratings. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see these ratings live on your Netflix homepage.</p>
+            <p>This week on Netflix, BEEF Season 2 is the main event (April 16). Also new: David Attenborough's &quot;180, A Gorilla Story,&quot; Thrash, Running Point Season 2, Roommates, and a handful of licensed titles. Here is what is actually worth your time, with IMDb and Rotten Tomatoes ratings. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=new-on-netflix-this-week-april-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see these ratings live on your Netflix homepage.</p>
         </div>
 
         <p>Netflix's April release calendar is front-loaded with one genuinely great prestige drama, a couple of solid documentaries, and a bunch of filler. If you only have time to watch one thing this week, it is BEEF Season 2. If you want the full picture, here is everything that is new, in order of how good it is &mdash; not just what Netflix is pushing on your homepage.</p>
@@ -147,7 +147,7 @@
 
         <h2>How to Decide What to Watch</h2>
 
-        <p>A weekly release calendar like this is a start, but if you are deciding in the moment on your couch with the Netflix homepage open, you need real-time ratings on the actual tiles. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome extension</a> overlays IMDb, Rotten Tomatoes, and a personal taste match score on every Netflix title, so you can triage the homepage in under 60 seconds instead of 40 minutes of trailer-hopping. That is true whether you use Netflix, Prime Video, or Disney+.</p>
+        <p>A weekly release calendar like this is a start, but if you are deciding in the moment on your couch with the Netflix homepage open, you need real-time ratings on the actual tiles. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=new-on-netflix-this-week-april-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome extension</a> overlays IMDb, Rotten Tomatoes, and a personal taste match score on every Netflix title, so you can triage the homepage in under 60 seconds instead of 40 minutes of trailer-hopping. That is true whether you use Netflix, Prime Video, or Disney+.</p>
 
         <h2>Leaving Netflix Soon</h2>
 
@@ -176,7 +176,7 @@
         <div class="cta-box">
             <h2>Stop Scrolling, Start Watching</h2>
             <p>IMDb, Rotten Tomatoes, and a personal taste match on every Netflix title. Decide in seconds.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=new-on-netflix-this-week-april-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -209,7 +209,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

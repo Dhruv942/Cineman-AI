@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=streaming-services-2026-complete-guide&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The 2026 streaming landscape is dominated by three giants: Netflix, Disney (Disney+/Hulu/ESPN+), and Warner-Paramount (Max + Paramount+). Mid-tier options like Apple TV+ and Peacock fill niches, while free services like Tubi and Pluto TV offer massive libraries at no cost. Most viewers need two to three paid services plus a free tier. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and RT ratings across all platforms and make smarter subscription decisions.</p>
+            <p>The 2026 streaming landscape is dominated by three giants: Netflix, Disney (Disney+/Hulu/ESPN+), and Warner-Paramount (Max + Paramount+). Mid-tier options like Apple TV+ and Peacock fill niches, while free services like Tubi and Pluto TV offer massive libraries at no cost. Most viewers need two to three paid services plus a free tier. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=streaming-services-2026-complete-guide&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and RT ratings across all platforms and make smarter subscription decisions.</p>
         </div>
 
         <p>The streaming landscape in 2026 looks dramatically different from even two years ago. The Paramount-Warner Bros Discovery merger has consolidated the market around three dominant players. Several smaller services have either been absorbed, pivoted to niche audiences, or shut down entirely. Prices have risen across the board, password sharing crackdowns have forced freeloaders into paying customers, and the total cost of subscribing to everything has crossed the threshold where many households are paying as much for streaming as they once paid for cable.</p>
@@ -298,7 +298,7 @@
 
         <h2>Using CineMan Across All Platforms</h2>
 
-        <p>The more services you use, the harder it becomes to find quality content across all of them. Each platform has its own recommendation algorithm, its own interface, and its own incentives for what to promote. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> solves this by providing a consistent quality layer across every platform.</p>
+        <p>The more services you use, the harder it becomes to find quality content across all of them. Each platform has its own recommendation algorithm, its own interface, and its own incentives for what to promote. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=streaming-services-2026-complete-guide&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> solves this by providing a consistent quality layer across every platform.</p>
 
         <p>CineMan overlays IMDb and Rotten Tomatoes ratings directly on titles as you browse Netflix, Prime Video, Disney+, and other services. The personal taste-match score works across platforms, giving you a unified recommendation system that is not tied to any single service's business incentives. When you are deciding between watching something on Netflix and something on Disney+, CineMan gives you comparable quality data to make an informed choice.</p>
 
@@ -338,7 +338,7 @@
         <div class="cta-box">
             <h2>Find the Best Content Across Every Streaming Service</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on Netflix, Disney+, Prime Video, and more. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=streaming-services-2026-complete-guide&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -373,7 +373,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

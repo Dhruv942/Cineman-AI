@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-prime-video&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> (free Chrome extension) and real IMDb ratings plus Rotten Tomatoes scores appear on every Prime Video title automatically. No more relying on Amazon's misleading customer star ratings.</p>
+            <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-prime-video&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> (free Chrome extension) and real IMDb ratings plus Rotten Tomatoes scores appear on every Prime Video title automatically. No more relying on Amazon's misleading customer star ratings.</p>
         </div>
 
         <p>You can see real IMDb ratings on Amazon Prime Video by installing a free Chrome extension like CineMan AI, which overlays IMDb scores and Rotten Tomatoes percentages directly on every title as you browse primevideo.com. Despite Amazon owning IMDb, Prime Video does not actually show IMDb ratings &mdash; it shows its own customer review stars instead, which can be wildly misleading. Here is everything you need to know about getting proper ratings on Prime Video.</p>
@@ -173,7 +173,7 @@
 
         <ol>
             <li><strong>Open your browser</strong> &mdash; Chrome, Edge, Brave, or any Chromium-based browser works.</li>
-            <li><strong>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a></strong> from the Chrome Web Store. Click "Add to Chrome" and confirm.</li>
+            <li><strong>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-prime-video&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a></strong> from the Chrome Web Store. Click "Add to Chrome" and confirm.</li>
             <li><strong>Go to primevideo.com</strong> and browse as you normally would.</li>
             <li><strong>See ratings everywhere</strong> &mdash; IMDb scores and Rotten Tomatoes percentages now appear directly on every title card.</li>
         </ol>
@@ -284,7 +284,7 @@
         <div class="cta-box">
             <h2>Get Real Ratings on Prime Video</h2>
             <p>See IMDb and Rotten Tomatoes scores on every Prime Video title. Plus Netflix and Disney+. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-prime-video&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -315,7 +315,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

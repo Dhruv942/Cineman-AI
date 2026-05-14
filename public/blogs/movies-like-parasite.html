@@ -97,7 +97,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-parasite&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -120,7 +120,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>For the class tension: Shoplifters and Burning. For the genre-twisting: Get Out and Us. For more Bong Joon-ho: Memories of Murder and Snowpiercer. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings and taste-match scores on every streaming title.</p>
+            <p>For the class tension: Shoplifters and Burning. For the genre-twisting: Get Out and Us. For more Bong Joon-ho: Memories of Murder and Snowpiercer. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-parasite&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings and taste-match scores on every streaming title.</p>
         </div>
 
         <p>Parasite does not belong to a single genre, and that is precisely what makes it so difficult to find something similar. It starts as a darkly funny con story, shifts into a tense home-invasion thriller, and ends as a devastating commentary on wealth inequality &mdash; all while maintaining a level of craft that most filmmakers never approach. Bong Joon-ho built something that feels like three different films fused together so seamlessly that you do not notice the seams until your second viewing.</p>
@@ -200,7 +200,7 @@
 
         <p>If Parasite resonated with you, the common thread across these recommendations is films that refuse to stay in one lane. They blend genres, shift tones, and treat class dynamics as a source of both tension and dark humor. But knowing which specific combination you prefer &mdash; more comedy or more horror, subtler satire or bolder provocation, Korean or international &mdash; requires a more personalized approach than any static list can offer.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> builds a taste profile from your viewing history and ratings, then generates a personal match score for every title on your streaming platforms. If you loved Parasite, Burning, and Get Out, CineMan will identify the specific patterns in your taste and surface films you have never heard of that share those patterns. Check out our deep dive on <a href="/blogs/best-korean-movies-to-watch.html">the best Korean movies to watch</a> for more recommendations, and our guide to <a href="/blogs/hidden-gems-netflix-highly-rated-underrated.html">hidden gems on Netflix</a> for high-rated films the algorithm buries.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-parasite&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> builds a taste profile from your viewing history and ratings, then generates a personal match score for every title on your streaming platforms. If you loved Parasite, Burning, and Get Out, CineMan will identify the specific patterns in your taste and surface films you have never heard of that share those patterns. Check out our deep dive on <a href="/blogs/best-korean-movies-to-watch.html">the best Korean movies to watch</a> for more recommendations, and our guide to <a href="/blogs/hidden-gems-netflix-highly-rated-underrated.html">hidden gems on Netflix</a> for high-rated films the algorithm buries.</p>
 
         <!-- FAQ Section -->
         <section class="faq-section">
@@ -226,7 +226,7 @@
         <div class="cta-box">
             <h2>Discover Films That Match Your Taste</h2>
             <p>See IMDb and Rotten Tomatoes ratings on every streaming title. Get personal taste-match scores powered by AI. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-parasite&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -261,7 +261,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

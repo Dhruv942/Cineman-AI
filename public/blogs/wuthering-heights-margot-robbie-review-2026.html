@@ -83,7 +83,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=wuthering-heights-margot-robbie-review-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -103,7 +103,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Emerald Fennell&rsquo;s <strong>Wuthering Heights</strong> reimagining stars Margot Robbie as Catherine and Jacob Elordi as Heathcliff. Critics are split (57% on Rotten Tomatoes), audiences leaned warmer (76%), and the IMDb rating sits at <strong>6.2</strong>. After grossing $242M worldwide, it landed on <strong>HBO Max on May 1, 2026</strong> and shot to #1 in 32 countries. Want HBO Max ratings overlaid as you scroll? Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>.</p>
+            <p>Emerald Fennell&rsquo;s <strong>Wuthering Heights</strong> reimagining stars Margot Robbie as Catherine and Jacob Elordi as Heathcliff. Critics are split (57% on Rotten Tomatoes), audiences leaned warmer (76%), and the IMDb rating sits at <strong>6.2</strong>. After grossing $242M worldwide, it landed on <strong>HBO Max on May 1, 2026</strong> and shot to #1 in 32 countries. Want HBO Max ratings overlaid as you scroll? Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=wuthering-heights-margot-robbie-review-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a>.</p>
         </div>
 
         <p>It is rare for a 19th-century literary adaptation to dominate streaming charts in 2026, but <em>Wuthering Heights</em> is not a typical adaptation. Emerald Fennell &mdash; the writer-director behind <em>Promising Young Woman</em> and <em>Saltburn</em> &mdash; brought her trademark visual maximalism, tonal whiplash, and willingness to provoke to Emily Bront&euml;&rsquo;s gothic romance. The result is the most argued-about prestige film of the year, and it has now become an HBO Max phenomenon.</p>
@@ -213,7 +213,7 @@
 
         <p>Wuthering Heights is currently HBO Max&rsquo;s most-watched film globally. If you have HBO Max, it is one click away on the homepage. If you do not, this film is not on a free trial right now &mdash; HBO Max ended its free-trial program in 2024.</p>
 
-        <p>One small frustration with HBO Max: like most streamers, it does not display IMDb or Rotten Tomatoes scores natively. To see them as you browse other titles you might want to queue up after, install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome extension</a>. It overlays IMDb and Rotten Tomatoes ratings on every HBO Max thumbnail (also Netflix, Prime Video, and Disney+/Hotstar) so you do not have to flip tabs to vet what you click.</p>
+        <p>One small frustration with HBO Max: like most streamers, it does not display IMDb or Rotten Tomatoes scores natively. To see them as you browse other titles you might want to queue up after, install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=wuthering-heights-margot-robbie-review-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome extension</a>. It overlays IMDb and Rotten Tomatoes ratings on every HBO Max thumbnail (also Netflix, Prime Video, and Disney+/Hotstar) so you do not have to flip tabs to vet what you click.</p>
 
         <h2>The Bottom Line</h2>
 
@@ -246,7 +246,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every Streaming Title</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every Netflix, HBO Max, Prime, and Disney+ title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=wuthering-heights-margot-robbie-review-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -279,7 +279,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

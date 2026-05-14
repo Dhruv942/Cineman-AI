@@ -105,7 +105,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=hidden-gems-netflix-highly-rated-underrated&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -128,7 +128,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Netflix's algorithm buries great movies that lack star power or mainstream genre appeal. These 15 hidden gems all have IMDb 7.5+ and strong Rotten Tomatoes scores but rarely show up in recommendations. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Netflix title and surface high-quality films the algorithm misses.</p>
+            <p>Netflix's algorithm buries great movies that lack star power or mainstream genre appeal. These 15 hidden gems all have IMDb 7.5+ and strong Rotten Tomatoes scores but rarely show up in recommendations. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=hidden-gems-netflix-highly-rated-underrated&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Netflix title and surface high-quality films the algorithm misses.</p>
         </div>
 
         <p>The hidden gems on Netflix are movies with excellent IMDb and Rotten Tomatoes ratings that the algorithm rarely recommends. Netflix has thousands of titles in its library, but the recommendation engine overwhelmingly surfaces the same popular films, originals, and trending content. Meanwhile, critically acclaimed independent films, foreign-language masterpieces, and quiet character studies sit buried in the catalog where almost no one finds them. This list highlights 15 of those buried treasures &mdash; every one rated IMDb 7.5 or higher with strong critical scores &mdash; and explains why Netflix hides them and how you can find more like them.</p>
@@ -228,7 +228,7 @@
 
         <ul>
             <li><strong>Use Netflix's hidden genre codes.</strong> Netflix has hundreds of secret sub-categories you can access by entering specific codes in the URL. Our <a href="/blogs/netflix-hidden-categories-secret-codes.html">guide to Netflix hidden categories and secret codes</a> covers this in detail.</li>
-            <li><strong>Sort by ratings, not by trending.</strong> Netflix does not let you sort by IMDb or Rotten Tomatoes scores natively. But with <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> installed, you can see ratings on every title instantly, making it easy to spot high-rated films the algorithm has buried.</li>
+            <li><strong>Sort by ratings, not by trending.</strong> Netflix does not let you sort by IMDb or Rotten Tomatoes scores natively. But with <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=hidden-gems-netflix-highly-rated-underrated&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> installed, you can see ratings on every title instantly, making it easy to spot high-rated films the algorithm has buried.</li>
             <li><strong>Look beyond English-language content.</strong> Some of the best films on Netflix are in Korean, Spanish, French, Arabic, and other languages. They rarely appear in recommendations for English-speaking users unless you actively seek them out.</li>
             <li><strong>Use personal taste matching.</strong> CineMan AI adds a taste-match score to every title, which can surface hidden gems that align with your specific preferences. A film with a 95% taste match and a 7.8 IMDb that you have never heard of is likely to be a better viewing experience than a 6.5-rated trending title.</li>
         </ul>
@@ -268,7 +268,7 @@
         <div class="cta-box">
             <h2>Stop Letting the Algorithm Choose for You</h2>
             <p>See IMDb and Rotten Tomatoes ratings on every Netflix title. Surface the hidden gems the algorithm buries. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=hidden-gems-netflix-highly-rated-underrated&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -303,7 +303,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

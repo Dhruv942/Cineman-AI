@@ -83,7 +83,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=remarkably-bright-creatures-netflix-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -103,7 +103,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Netflix dropped <strong>Remarkably Bright Creatures</strong> on May 8, 2026 &mdash; an adaptation of Shelby Van Pelt&rsquo;s bestselling novel about a grieving aquarium janitor and a wise Pacific octopus. <strong>Sally Field</strong> gets her best leading vehicle in a decade, with <strong>Lewis Pullman</strong> in support. Critics: 74% Rotten Tomatoes, 57 Metacritic. Worth watching for the performances, even if the screenplay flattens the book&rsquo;s quirks. Find more high-rated Netflix titles fast with <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>.</p>
+            <p>Netflix dropped <strong>Remarkably Bright Creatures</strong> on May 8, 2026 &mdash; an adaptation of Shelby Van Pelt&rsquo;s bestselling novel about a grieving aquarium janitor and a wise Pacific octopus. <strong>Sally Field</strong> gets her best leading vehicle in a decade, with <strong>Lewis Pullman</strong> in support. Critics: 74% Rotten Tomatoes, 57 Metacritic. Worth watching for the performances, even if the screenplay flattens the book&rsquo;s quirks. Find more high-rated Netflix titles fast with <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=remarkably-bright-creatures-netflix-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a>.</p>
         </div>
 
         <p>Some books seem unfilmable not because they are too complex but because so much of what makes them special lives in their voice. Shelby Van Pelt&rsquo;s 2022 debut novel <em>Remarkably Bright Creatures</em> sold roughly two million copies on the strength of one such voice &mdash; a giant Pacific octopus named Marcellus, narrating his life in an aquarium tank with sly omniscience. Netflix&rsquo;s adaptation, which premiered on May 8, 2026, was always going to live or die on whether it could honor that voice without making it twee. The verdict: it gets close enough.</p>
@@ -151,7 +151,7 @@
 
         <p>Netflix has been quietly building a strong slate of older-skewing prestige weepies in the last two years &mdash; <em>The Tutor</em>, <em>Hannah</em>, the surprise hit <em>The Lost Daughters</em> &mdash; and <em>Remarkably Bright Creatures</em> fits that lineage cleanly. These films do not chase the algorithmic sweet spot of true-crime or YA romance, but they consistently land top-10 placements with a viewer demographic Netflix knows it has been underserving.</p>
 
-        <p>If that is your sweet spot, this is one of the better entries. And if you want to find more in this register, IMDb scores are a much faster filter than Netflix&rsquo;s own categories. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension shows you IMDb and Rotten Tomatoes scores on every Netflix thumbnail and adds a personal taste-match score so you can spot the gems faster.</p>
+        <p>If that is your sweet spot, this is one of the better entries. And if you want to find more in this register, IMDb scores are a much faster filter than Netflix&rsquo;s own categories. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=remarkably-bright-creatures-netflix-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension shows you IMDb and Rotten Tomatoes scores on every Netflix thumbnail and adds a personal taste-match score so you can spot the gems faster.</p>
 
         <h2>Final Verdict</h2>
 
@@ -184,7 +184,7 @@
         <div class="cta-box">
             <h2>Spot the Hidden Gems on Netflix</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=remarkably-bright-creatures-netflix-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -217,7 +217,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

@@ -99,7 +99,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=masters-of-the-universe-2026-movie-guide&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -122,7 +122,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p><em>Masters of the Universe</em> releases June 5, 2026. Directed by Travis Knight (<em>Bumblebee</em>, <em>Kubo and the Two Strings</em>), starring Nicholas Galitzine as He-Man, Alison Brie, and Camila Mendes. It's He-Man's first live-action big-screen appearance in nearly 40 years and one of the most anticipated fantasy blockbusters of the summer. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to track anticipated releases and see ratings the moment they land.</p>
+            <p><em>Masters of the Universe</em> releases June 5, 2026. Directed by Travis Knight (<em>Bumblebee</em>, <em>Kubo and the Two Strings</em>), starring Nicholas Galitzine as He-Man, Alison Brie, and Camila Mendes. It's He-Man's first live-action big-screen appearance in nearly 40 years and one of the most anticipated fantasy blockbusters of the summer. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=masters-of-the-universe-2026-movie-guide&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to track anticipated releases and see ratings the moment they land.</p>
         </div>
 
         <p>He-Man hasn't been on a movie screen since 1987. That's nearly four decades since Dolph Lundgren last raised a power sword over Castle Grayskull. The 2026 <em>Masters of the Universe</em> reboot from Amazon MGM Studios is one of the most significant fantasy IP revivals in years &mdash; a franchise with genuine nostalgic mass-market appeal getting a big-budget, serious creative treatment for the first time.</p>
@@ -265,7 +265,7 @@
 
         <p>As an Amazon MGM Studios production, <em>Masters of the Universe</em> is expected to land on Prime Video after its theatrical window closes &mdash; typically 45 to 60 days after wide release for major Amazon productions. That would put the streaming arrival somewhere in late July or August 2026, though no official date has been announced.</p>
 
-        <p>For viewers who want to track when it becomes available to stream, the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> extension surfaces newly arrived titles with their ratings directly as you browse Prime Video, so you'll see it the moment it lands &mdash; with its IMDb score and Rotten Tomatoes rating visible at a glance.</p>
+        <p>For viewers who want to track when it becomes available to stream, the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=masters-of-the-universe-2026-movie-guide&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> extension surfaces newly arrived titles with their ratings directly as you browse Prime Video, so you'll see it the moment it lands &mdash; with its IMDb score and Rotten Tomatoes rating visible at a glance.</p>
 
         <h2>Should You Be Excited?</h2>
 
@@ -315,7 +315,7 @@
         <div class="cta-box">
             <h2>Track Masters of the Universe &mdash; and Every Anticipated Release &mdash; on Streaming</h2>
             <p>CineMan AI overlays IMDb and Rotten Tomatoes ratings on every title in Prime Video, Netflix, Disney+, and more. When Masters of the Universe lands on streaming, you'll see its scores the moment you browse past it.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=masters-of-the-universe-2026-movie-guide&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -356,7 +356,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

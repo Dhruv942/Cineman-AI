@@ -69,7 +69,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=marty-supreme-2026-review-timothee-chalamet&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -92,7 +92,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Marty Supreme (2026) is a brilliant, infuriating sports drama about a table tennis champion who is as impossible to love as he is to look away from. Timoth&eacute;e Chalamet delivers one of the performances of his career. Directed by Harmony Korine in the most commercially accessible film of his career &mdash; which still means it is weirder than most things in theaters. Released April 24, 2026. One of the year's best films and a genuine Oscar contender. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to track when it hits streaming platforms.</p>
+            <p>Marty Supreme (2026) is a brilliant, infuriating sports drama about a table tennis champion who is as impossible to love as he is to look away from. Timoth&eacute;e Chalamet delivers one of the performances of his career. Directed by Harmony Korine in the most commercially accessible film of his career &mdash; which still means it is weirder than most things in theaters. Released April 24, 2026. One of the year's best films and a genuine Oscar contender. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=marty-supreme-2026-review-timothee-chalamet&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to track when it hits streaming platforms.</p>
         </div>
 
         <p>Table tennis. The sport you played in your college dorm, the sport featured at every company offsite, the sport that generates roughly zero mainstream cinematic attention. And yet <em>Marty Supreme</em> &mdash; Harmony Korine's unexpected pivot toward narrative coherence, featuring Timoth&eacute;e Chalamet playing the most insufferable genius in recent film memory &mdash; has somehow become one of the most discussed films of 2026, an Oscar Best Picture nominee, and the subject of genuine debate about whether Chalamet should have taken home the Best Actor trophy.</p>
@@ -157,7 +157,7 @@
 
         <p><em>Marty Supreme</em> opened in theaters on April 24, 2026. Given its Oscar profile and awards-season trajectory, a streaming debut within 90 days of theatrical release is likely. The film's distribution makes Prime Video or Apple TV+ the most probable streaming home, though nothing has been confirmed at time of writing.</p>
 
-        <p>To get an alert the moment it lands on a streaming service and see its live ratings on your browsing screen, the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome extension</a> overlays IMDb and Rotten Tomatoes scores on every title across Netflix, Prime Video, Disney+, and more &mdash; so you'll never have to click through to find out if something is actually worth your time.</p>
+        <p>To get an alert the moment it lands on a streaming service and see its live ratings on your browsing screen, the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=marty-supreme-2026-review-timothee-chalamet&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome extension</a> overlays IMDb and Rotten Tomatoes scores on every title across Netflix, Prime Video, Disney+, and more &mdash; so you'll never have to click through to find out if something is actually worth your time.</p>
 
         <h2>Verdict</h2>
 
@@ -204,7 +204,7 @@
         <div class="cta-box">
             <h2>Track Every Film's Real Ratings While You Browse</h2>
             <p>CineMan AI shows IMDb and Rotten Tomatoes scores on every title across Netflix, Prime Video, Disney+, and more &mdash; directly on the browsing screen. When Marty Supreme hits streaming, you'll see its scores instantly. Free Chrome extension.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=marty-supreme-2026-review-timothee-chalamet&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -239,7 +239,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

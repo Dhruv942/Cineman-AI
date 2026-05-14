@@ -105,7 +105,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-euphoria&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -128,7 +128,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Best shows like Euphoria: <strong>Normal People</strong> (Netflix, IMDb 8.3), <strong>The End of the F***ing World</strong> (Netflix, IMDb 8.0), <strong>Skins UK</strong> (IMDb 7.8), <strong>Sex Education</strong> (Netflix, IMDb 8.2), <strong>We Are Who We Are</strong> (HBO, IMDb 7.5). Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see which ones match your personal taste before you commit.</p>
+            <p>Best shows like Euphoria: <strong>Normal People</strong> (Netflix, IMDb 8.3), <strong>The End of the F***ing World</strong> (Netflix, IMDb 8.0), <strong>Skins UK</strong> (IMDb 7.8), <strong>Sex Education</strong> (Netflix, IMDb 8.2), <strong>We Are Who We Are</strong> (HBO, IMDb 7.5). Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-euphoria&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see which ones match your personal taste before you commit.</p>
         </div>
 
         <p>Euphoria occupies a specific creative space that is genuinely hard to replicate: visually maximalist, emotionally uncompromising, anchored by a young ensemble that is asked to perform trauma and desire with adult-level nuance. If you have finished Season 3 and are looking for that same register of television, here are fifteen shows that come closest &mdash; organized by what specifically made Euphoria work for you.</p>
@@ -209,7 +209,7 @@
 
         <p>This list covers fifteen shows, but which ones are right for you depends entirely on what specifically resonated in Euphoria. If you want the same platform (Max/HBO), look at We Are Who We Are, I May Destroy You, and Genera+ion. If you want accessible Netflix options, Normal People, Sex Education, The End of the F***ing World, and Young Royals are all there. If you want the closest structural match to Euphoria's aesthetic and subject matter, Skins UK is the essential watch.</p>
 
-        <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see taste-match scores alongside the IMDb and RT ratings for any of these when you find them on your streaming platform &mdash; it cuts the guesswork out of whether a specific show will land for you.</p>
+        <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-euphoria&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see taste-match scores alongside the IMDb and RT ratings for any of these when you find them on your streaming platform &mdash; it cuts the guesswork out of whether a specific show will land for you.</p>
 
         <!-- FAQ Section -->
         <section class="faq-section">
@@ -240,7 +240,7 @@
         <div class="cta-box">
             <h2>Find Your Next Favourite Show</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every title across Netflix, Prime, Disney+, and Hulu. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-euphoria&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -275,7 +275,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

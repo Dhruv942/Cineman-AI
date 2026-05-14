@@ -97,7 +97,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-the-shawshank-redemption&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -120,7 +120,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The Green Mile, The Pursuit of Happyness, and A Beautiful Mind share Shawshank's core &mdash; hope under impossible pressure. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and Rotten Tomatoes ratings on every streaming title and find films that match your personal taste.</p>
+            <p>The Green Mile, The Pursuit of Happyness, and A Beautiful Mind share Shawshank's core &mdash; hope under impossible pressure. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-the-shawshank-redemption&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and Rotten Tomatoes ratings on every streaming title and find films that match your personal taste.</p>
         </div>
 
         <p>The Shawshank Redemption sits at the top of the IMDb Top 250 for a reason that has nothing to do with technical filmmaking or narrative innovation. It is number one because it makes people feel something they desperately want to feel: that hope is not naive. That patience and quiet determination can overcome institutional cruelty. That the best version of yourself is the one who refuses to let the worst circumstances define you.</p>
@@ -183,7 +183,7 @@
 
         <p>The lesson is that quality surfaces eventually, even when the system does not promote it. That is true for films and it is true for your streaming experience. The best films on Netflix, Disney+, and other platforms are often the ones you have never heard of, buried under trending content and algorithm-driven recommendations that prioritize engagement over substance.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> was built to solve this. By overlaying IMDb and Rotten Tomatoes ratings on every title and adding a personal taste-match score, it surfaces the Shawshank-caliber films that the algorithm has buried. Check out our list of the <a href="/blogs/best-movies-on-netflix-right-now.html">best movies on Netflix right now</a> for highly rated picks across all genres, and our guide to <a href="/blogs/best-feel-good-movies-streaming.html">the best feel-good movies streaming</a> for more films that restore your faith in humanity.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-the-shawshank-redemption&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> was built to solve this. By overlaying IMDb and Rotten Tomatoes ratings on every title and adding a personal taste-match score, it surfaces the Shawshank-caliber films that the algorithm has buried. Check out our list of the <a href="/blogs/best-movies-on-netflix-right-now.html">best movies on Netflix right now</a> for highly rated picks across all genres, and our guide to <a href="/blogs/best-feel-good-movies-streaming.html">the best feel-good movies streaming</a> for more films that restore your faith in humanity.</p>
 
         <!-- FAQ Section -->
         <section class="faq-section">
@@ -209,7 +209,7 @@
         <div class="cta-box">
             <h2>Find Films Worth Your Time</h2>
             <p>See IMDb and Rotten Tomatoes ratings on every streaming title. Get personal taste-match scores powered by AI. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-the-shawshank-redemption&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -244,7 +244,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

@@ -83,7 +83,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-inception-imdb-rating-8-8-explained&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -103,7 +103,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Christopher Nolan&rsquo;s <em>Inception</em> (2010) holds an <strong>8.8 IMDb rating</strong> from over 2.5 million votes, placing it inside the IMDb Top 20 of all time. It also scored <strong>87% Rotten Tomatoes critics</strong>, a <strong>91% audience score</strong>, and grossed $836M worldwide on an original screenplay. We unpack why this rare combination still holds up sixteen years later. Want IMDb scores like this on every Netflix or Prime title? Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>.</p>
+            <p>Christopher Nolan&rsquo;s <em>Inception</em> (2010) holds an <strong>8.8 IMDb rating</strong> from over 2.5 million votes, placing it inside the IMDb Top 20 of all time. It also scored <strong>87% Rotten Tomatoes critics</strong>, a <strong>91% audience score</strong>, and grossed $836M worldwide on an original screenplay. We unpack why this rare combination still holds up sixteen years later. Want IMDb scores like this on every Netflix or Prime title? Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-inception-imdb-rating-8-8-explained&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a>.</p>
         </div>
 
         <p>Most movies that crack IMDb&rsquo;s 8.8 ceiling are decades-old classics &mdash; <em>The Godfather</em>, <em>The Shawshank Redemption</em>, <em>Pulp Fiction</em>. <em>Inception</em> belongs to a much smaller club: 21st-century original blockbusters that audiences voted into the top 20 of all-time. It is not a sequel. It is not based on existing IP. It is not a comic book. It is a $160M heist movie about shared dreaming, written and directed by one filmmaker, that earned $836M and the second-highest user rating of any 2010s film.</p>
@@ -228,7 +228,7 @@
 
         <h2>Where to Watch Inception in 2026</h2>
 
-        <p>Streaming rights for <em>Inception</em> rotate regularly. As of May 2026 it streams on Netflix in select regions and is available to rent or buy on Apple TV, Prime Video, and Google Play in others. The fastest way to find it is to install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension &mdash; it shows IMDb and Rotten Tomatoes scores on every streaming title and helps you spot films that match your taste, like Inception, faster.</p>
+        <p>Streaming rights for <em>Inception</em> rotate regularly. As of May 2026 it streams on Netflix in select regions and is available to rent or buy on Apple TV, Prime Video, and Google Play in others. The fastest way to find it is to install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-inception-imdb-rating-8-8-explained&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension &mdash; it shows IMDb and Rotten Tomatoes scores on every streaming title and helps you spot films that match your taste, like Inception, faster.</p>
 
         <h2>Bottom Line</h2>
 
@@ -261,7 +261,7 @@
         <div class="cta-box">
             <h2>See IMDb Ratings on Every Netflix Title</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every streaming card. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-inception-imdb-rating-8-8-explained&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -294,7 +294,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

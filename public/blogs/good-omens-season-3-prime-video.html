@@ -105,7 +105,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=good-omens-season-3-prime-video&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -170,7 +170,7 @@
 
         <p>Prime Video's May 2026 slate is unusually strong. Citadel Season 2 arrives May 6, and Spider-Noir on May 27. Good Omens Season 3 on May 13 is sandwiched between them. Of the three, Good Omens has the deepest existing fanbase and the highest emotional investment from returning viewers. Citadel Season 2 is likely to reach a broader audience. Spider-Noir is the wildcard. If you can only prioritize one Prime Video show in May, and you have seen Seasons 1 and 2 of Good Omens, Season 3 is the easy answer.</p>
 
-        <p>You can see IMDb ratings and critic scores for all three as they arrive using the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI extension</a>, which overlays ratings directly on Prime Video's browse screen.</p>
+        <p>You can see IMDb ratings and critic scores for all three as they arrive using the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=good-omens-season-3-prime-video&utm_medium=cta" target="_blank" rel="noopener">CineMan AI extension</a>, which overlays ratings directly on Prime Video's browse screen.</p>
 
         <h2>Where to Watch Good Omens Season 3</h2>
 
@@ -205,7 +205,7 @@
         <div class="cta-box">
             <h2>See Ratings on Prime Video as Good Omens S3 Lands</h2>
             <p>IMDb and Rotten Tomatoes scores on every Prime Video title &mdash; automatically. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=good-omens-season-3-prime-video&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -240,7 +240,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

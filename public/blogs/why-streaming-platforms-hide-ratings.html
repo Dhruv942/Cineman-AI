@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-streaming-platforms-hide-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Netflix, Disney+, and Prime Video all deliberately avoid showing IMDb or Rotten Tomatoes ratings because transparent quality scores reduce engagement time &mdash; viewers skip low-rated content, which hurts retention metrics. Each platform has its own strategy: Netflix replaced stars with % match, Disney+ shows nothing, and Prime Video uses inflated internal ratings. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see real IMDb and RT ratings on every title across all platforms.</p>
+            <p>Netflix, Disney+, and Prime Video all deliberately avoid showing IMDb or Rotten Tomatoes ratings because transparent quality scores reduce engagement time &mdash; viewers skip low-rated content, which hurts retention metrics. Each platform has its own strategy: Netflix replaced stars with % match, Disney+ shows nothing, and Prime Video uses inflated internal ratings. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-streaming-platforms-hide-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see real IMDb and RT ratings on every title across all platforms.</p>
         </div>
 
         <p>Here is something you have probably noticed but never fully questioned: not a single major streaming platform shows you IMDb ratings. Not Netflix. Not Disney+. Not even Prime Video, which is owned by the same company that owns IMDb. That is not an oversight. It is not a licensing issue. It is a deliberate business decision, and once you understand the logic behind it, the way you browse streaming platforms will never feel the same.</p>
@@ -199,7 +199,7 @@
 
         <p>The good news is that this information asymmetry is easy to fix. The ratings exist. IMDb publishes them. Rotten Tomatoes publishes them. The platforms just choose not to show them to you. All you need is something that bridges that gap.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> is a free Chrome extension that overlays IMDb ratings, Rotten Tomatoes scores, and a personal taste-match percentage on every title as you browse Netflix, Disney+, and Prime Video. The ratings appear directly on each title card &mdash; no tab switching, no manual searching, no disruption to your browsing flow.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-streaming-platforms-hide-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> is a free Chrome extension that overlays IMDb ratings, Rotten Tomatoes scores, and a personal taste-match percentage on every title as you browse Netflix, Disney+, and Prime Video. The ratings appear directly on each title card &mdash; no tab switching, no manual searching, no disruption to your browsing flow.</p>
 
         <p>The effect is immediate and dramatic. Content that the platform was hoping you would "give a chance" reveals itself as a 5.2 IMDb / 23% RT title that you can skip instantly. Meanwhile, a hidden gem buried three rows down shows an 8.1 IMDb and 94% RT, catching your eye in a way the platform's own interface never would have surfaced. You can read more about <a href="/blogs/how-to-see-imdb-ratings-on-netflix.html">how to see IMDb ratings on Netflix</a> in our step-by-step guide.</p>
 
@@ -247,7 +247,7 @@
         <div class="cta-box">
             <h2>See the Ratings Streaming Platforms Hide From You</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-streaming-platforms-hide-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -282,7 +282,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

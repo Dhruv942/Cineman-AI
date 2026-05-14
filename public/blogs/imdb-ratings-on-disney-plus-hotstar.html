@@ -111,7 +111,7 @@
       <div class="blog-nav-links">
         <a href="/">Home</a>
         <a href="/blogs/">Blog</a>
-        <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome</a>
+        <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-disney-plus-hotstar&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome</a>
       </div>
     </div>
   </nav>
@@ -134,7 +134,7 @@
     <!-- TL;DR -->
     <div class="tldr-box">
       <h3>TL;DR</h3>
-      <p>Disney+ and Hotstar don't show IMDb or Rotten Tomatoes ratings anywhere in their interface. Install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan Chrome extension</a>, and you'll see IMDb and RT scores overlaid directly on every title as you browse Disney+ or JioHotstar in your browser.</p>
+      <p>Disney+ and Hotstar don't show IMDb or Rotten Tomatoes ratings anywhere in their interface. Install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-disney-plus-hotstar&utm_medium=cta" target="_blank" rel="noopener">CineMan Chrome extension</a>, and you'll see IMDb and RT scores overlaid directly on every title as you browse Disney+ or JioHotstar in your browser.</p>
     </div>
 
     <p>You can see IMDb ratings on Disney+ and Hotstar by installing CineMan, a free Chrome extension that overlays IMDb scores and Rotten Tomatoes percentages directly on movie and show thumbnails. It works on both disneyplus.com and hotstar.com (JioHotstar) with zero setup required. Just install, open Disney+ in Chrome, and every title will show its ratings right on the thumbnail.</p>
@@ -167,7 +167,7 @@
     <p>CineMan solves this in about thirty seconds. Here's how:</p>
 
     <ol>
-      <li><strong>Install CineMan</strong> from the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">Chrome Web Store</a> (it's free)</li>
+      <li><strong>Install CineMan</strong> from the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-disney-plus-hotstar&utm_medium=cta" target="_blank" rel="noopener">Chrome Web Store</a> (it's free)</li>
       <li><strong>Open Disney+</strong> in your Chrome browser</li>
       <li><strong>Browse as usual</strong> &mdash; IMDb and Rotten Tomatoes scores now appear on every thumbnail</li>
     </ol>
@@ -242,7 +242,7 @@
 
     <ol>
       <li>Open Chrome on your desktop or laptop</li>
-      <li>Visit the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan page on the Chrome Web Store</a></li>
+      <li>Visit the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-disney-plus-hotstar&utm_medium=cta" target="_blank" rel="noopener">CineMan page on the Chrome Web Store</a></li>
       <li>Click "Add to Chrome"</li>
       <li>Go to disneyplus.com or hotstar.com</li>
       <li>Ratings appear automatically on every title</li>
@@ -286,7 +286,7 @@
     <div class="cta-box">
       <h2>See Ratings on Disney+ Instantly</h2>
       <p>Stop guessing. Get IMDb and Rotten Tomatoes scores on every Disney+ and Hotstar title with one free extension.</p>
-      <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; It's Free</a>
+      <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-disney-plus-hotstar&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; It's Free</a>
     </div>
 
     <!-- Related Posts -->
@@ -317,7 +317,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

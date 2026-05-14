@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=peaky-blinders-movie-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The Peaky Blinders movie holds a 7.7 IMDb rating and 91% on Rotten Tomatoes. It is streaming exclusively on Netflix and serves as the definitive conclusion to Tommy Shelby's story. If you want ratings on every Netflix title at a glance, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> for free.</p>
+            <p>The Peaky Blinders movie holds a 7.7 IMDb rating and 91% on Rotten Tomatoes. It is streaming exclusively on Netflix and serves as the definitive conclusion to Tommy Shelby's story. If you want ratings on every Netflix title at a glance, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=peaky-blinders-movie-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> for free.</p>
         </div>
 
         <p>The Peaky Blinders franchise has finally made the leap from television to film, and by the order of the ratings aggregators, it has done so successfully. Peaky Blinders: The Immortal Man arrived on Netflix in March 2026, bringing Cillian Murphy back as Tommy Shelby for what creator Steven Knight has described as the definitive end of the character's story. The film carries a 7.7 on IMDb and a 91% critics score on Rotten Tomatoes &mdash; numbers that suggest the transition from small screen to big screen has been handled with care.</p>
@@ -210,7 +210,7 @@
 
         <p>Netflix does not show you IMDb or Rotten Tomatoes ratings. You see a thumbnail, maybe a brief synopsis, and Netflix's own opaque match percentage. That is not enough information to make a good decision, especially when you are browsing a catalog of thousands of titles.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> fixes this by overlaying IMDb scores and Rotten Tomatoes percentages directly on every Netflix title. You can see at a glance that The Immortal Man has a 7.7 IMDb, or quickly compare it against other crime dramas in Netflix's library. The extension also adds a personal taste-match score based on your viewing history, so you know whether a title fits your preferences before you commit.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=peaky-blinders-movie-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> fixes this by overlaying IMDb scores and Rotten Tomatoes percentages directly on every Netflix title. You can see at a glance that The Immortal Man has a 7.7 IMDb, or quickly compare it against other crime dramas in Netflix's library. The extension also adds a personal taste-match score based on your viewing history, so you know whether a title fits your preferences before you commit.</p>
 
         <p>CineMan works on Netflix, Prime Video, and Disney+. It is free, takes 10 seconds to install, and saves you from the endless scroll of indecision that Netflix's bare-bones interface encourages.</p>
 
@@ -252,7 +252,7 @@
         <div class="cta-box">
             <h2>Never Watch a Bad Movie Again</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every Netflix title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=peaky-blinders-movie-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -287,7 +287,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

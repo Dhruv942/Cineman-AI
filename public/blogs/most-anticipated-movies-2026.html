@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=most-anticipated-movies-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>2026 is shaping up to be one of the biggest movie years in recent memory. Highlights include Avengers: Doomsday (May), The Odyssey from Christopher Nolan (July), 28 Years Later (June), Mission: Impossible &mdash; The Final Reckoning (May), The Fantastic Four (July), and Chronicles of Narnia from Greta Gerwig (November). Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to track ratings on every 2026 release as they hit streaming.</p>
+            <p>2026 is shaping up to be one of the biggest movie years in recent memory. Highlights include Avengers: Doomsday (May), The Odyssey from Christopher Nolan (July), 28 Years Later (June), Mission: Impossible &mdash; The Final Reckoning (May), The Fantastic Four (July), and Chronicles of Narnia from Greta Gerwig (November). Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=most-anticipated-movies-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to track ratings on every 2026 release as they hit streaming.</p>
         </div>
 
         <p>After a few years where the theatrical calendar felt thin and unpredictable, 2026 is stacking up to be the most loaded movie year since 2019. From Christopher Nolan&rsquo;s $250 million mythological epic to the MCU&rsquo;s biggest crossover since Endgame, from Danny Boyle&rsquo;s return to the zombie genre to Greta Gerwig reimagining Narnia for Netflix, nearly every month has a major release worth tracking. This is the year that legacy franchises, auteur directors, and brand-new IP all collide.</p>
@@ -263,7 +263,7 @@
 
         <h2>How to Track Every 2026 Release</h2>
 
-        <p>With this many major releases spread across the entire year, keeping track of what is worth your time becomes a real challenge. Release dates shift, early reviews trickle in, and films that look promising in trailers sometimes disappoint on arrival. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> cuts through that noise.</p>
+        <p>With this many major releases spread across the entire year, keeping track of what is worth your time becomes a real challenge. Release dates shift, early reviews trickle in, and films that look promising in trailers sometimes disappoint on arrival. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=most-anticipated-movies-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> cuts through that noise.</p>
 
         <p>As each 2026 film arrives on digital rental platforms and streaming services, CineMan overlays its IMDb score, Rotten Tomatoes rating, and a personal taste-match percentage directly on the title card. You do not need to search individually or cross-reference review sites. The quality signal is right there on the poster, whether you are browsing Netflix, Prime Video, Disney+, or any other supported platform.</p>
 
@@ -303,7 +303,7 @@
         <div class="cta-box">
             <h2>Track Every 2026 Release with Instant Ratings</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=most-anticipated-movies-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -338,7 +338,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

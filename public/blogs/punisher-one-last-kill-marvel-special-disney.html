@@ -83,7 +83,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=punisher-one-last-kill-marvel-special-disney&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -103,7 +103,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Marvel is bringing <strong>Jon Bernthal&rsquo;s Frank Castle</strong> back in a TV-MA <strong>Special Presentation</strong> called <em>The Punisher: One Last Kill</em>, dropping on Disney+ in 2026. Roughly 50&ndash;60 minutes, full R-rated tone, set after his appearance in <em>Daredevil: Born Again</em>. The biggest signal yet that Marvel&rsquo;s Disney+ slate is getting more violent and more grown-up. To see ratings on every Disney+ title, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>.</p>
+            <p>Marvel is bringing <strong>Jon Bernthal&rsquo;s Frank Castle</strong> back in a TV-MA <strong>Special Presentation</strong> called <em>The Punisher: One Last Kill</em>, dropping on Disney+ in 2026. Roughly 50&ndash;60 minutes, full R-rated tone, set after his appearance in <em>Daredevil: Born Again</em>. The biggest signal yet that Marvel&rsquo;s Disney+ slate is getting more violent and more grown-up. To see ratings on every Disney+ title, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=punisher-one-last-kill-marvel-special-disney&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a>.</p>
         </div>
 
         <p>For most of the last decade the conventional wisdom was that the Punisher could not exist on Disney+ &mdash; that Disney corporate would never tolerate the level of violence Frank Castle requires to feel like Frank Castle. That conventional wisdom was wrong. <em>Daredevil: Born Again</em> already pushed the tone harder than anything else on the platform. Now Marvel is taking the next step: a dedicated, R-rated Punisher Special Presentation called <strong>One Last Kill</strong>.</p>
@@ -172,7 +172,7 @@
 
         <p>One Last Kill is a small project with outsized strategic weight. It is Marvel&rsquo;s clearest signal yet that the Disney+ MCU has a permanent grown-up wing. If you have been waiting for Bernthal&rsquo;s Punisher to come back without a premium-cable detour, this is it.</p>
 
-        <p>Disney+&rsquo;s catalog is one of the most carefully curated in streaming. To see IMDb and Rotten Tomatoes scores on every Disney+ title (and Hotstar, and Netflix, and Prime), install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome extension</a>. Ratings appear automatically as you browse, plus a personal taste-match score so you stop wasting Friday nights on misfires.</p>
+        <p>Disney+&rsquo;s catalog is one of the most carefully curated in streaming. To see IMDb and Rotten Tomatoes scores on every Disney+ title (and Hotstar, and Netflix, and Prime), install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=punisher-one-last-kill-marvel-special-disney&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome extension</a>. Ratings appear automatically as you browse, plus a personal taste-match score so you stop wasting Friday nights on misfires.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -201,7 +201,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every Disney+ &amp; Hotstar Title</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=punisher-one-last-kill-marvel-special-disney&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -234,7 +234,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

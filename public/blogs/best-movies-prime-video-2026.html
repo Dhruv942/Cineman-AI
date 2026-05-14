@@ -62,7 +62,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-prime-video-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -82,7 +82,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The 20 best movies on Prime Video in April 2026, ranked by composite IMDb + Rotten Tomatoes scores. Top 3: The Tomorrow War, Saltburn, and The Big Sick. Wide range &mdash; action, drama, rom-com, thriller &mdash; all 7.5+ IMDb. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see these ratings and a personal taste match directly on Prime Video tiles.</p>
+            <p>The 20 best movies on Prime Video in April 2026, ranked by composite IMDb + Rotten Tomatoes scores. Top 3: The Tomorrow War, Saltburn, and The Big Sick. Wide range &mdash; action, drama, rom-com, thriller &mdash; all 7.5+ IMDb. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-prime-video-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see these ratings and a personal taste match directly on Prime Video tiles.</p>
         </div>
 
         <p>Prime Video's catalog is quietly one of the deepest in streaming, but it is also one of the worst-designed. The homepage will push whatever Amazon MGM released last week, even when the licensed film right below it is a stone-cold classic. This list fixes that problem. Here are the 20 best movies currently streaming on Prime Video, ranked by a composite of IMDb user ratings and Rotten Tomatoes critic scores.</p>
@@ -171,7 +171,7 @@
 
         <h2>See These Ratings Without Leaving Prime Video</h2>
 
-        <p>A list like this is useful, but real decisions happen on the Prime Video homepage. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb, Rotten Tomatoes, and a personal taste match score directly on every Prime Video tile. You never have to open IMDb in a new tab again. It works on Netflix, Disney+, Max, and Apple TV+ too.</p>
+        <p>A list like this is useful, but real decisions happen on the Prime Video homepage. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-prime-video-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb, Rotten Tomatoes, and a personal taste match score directly on every Prime Video tile. You never have to open IMDb in a new tab again. It works on Netflix, Disney+, Max, and Apple TV+ too.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -196,7 +196,7 @@
         <div class="cta-box">
             <h2>Every Prime Video Rating, One Extension</h2>
             <p>IMDb, Rotten Tomatoes, and a personal taste match on every Prime Video tile. Free.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-movies-prime-video-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -229,7 +229,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

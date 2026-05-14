@@ -62,7 +62,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=stranger-things-tales-from-85-release-date&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -82,7 +82,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Netflix's animated Stranger Things spin-off, Tales From '85, premieres globally on April 23, 2026, with a theatrical preview of Episodes 1 and 2 on April 18. It is set between Season 2 and Season 3 and is officially canon. Expect eight episodes, a distinctly '80s Saturday-morning cartoon aesthetic, and new Upside Down creatures. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see its ratings on Netflix from day one.</p>
+            <p>Netflix's animated Stranger Things spin-off, Tales From '85, premieres globally on April 23, 2026, with a theatrical preview of Episodes 1 and 2 on April 18. It is set between Season 2 and Season 3 and is officially canon. Expect eight episodes, a distinctly '80s Saturday-morning cartoon aesthetic, and new Upside Down creatures. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=stranger-things-tales-from-85-release-date&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see its ratings on Netflix from day one.</p>
         </div>
 
         <p>After nearly a decade of live-action Stranger Things, Netflix is expanding the franchise for the first time into animation. Stranger Things: Tales From '85 is an eight-episode animated series that slots neatly into the main show's timeline and arrives on Netflix on April 23, 2026. Here is everything that matters: exact release schedule, what the show actually is, who is in it, how it connects to the live-action series, and how to decide whether to put it on your must-watch list.</p>
@@ -124,7 +124,7 @@
 
         <p>Netflix's animated originals have been wildly inconsistent. Arcane and Castlevania are bona fide masterpieces. Other efforts (we will be kind and not name them) have been rougher. Until review embargoes lift, we recommend treating Tales From '85 as promising but unproven. The Duffer Brothers' involvement is a strong signal; Flying Bark's animation reel is solid; but Netflix animation lives and dies on writing quality, not pedigree.</p>
 
-        <p>Once the show drops on April 23, critics' Rotten Tomatoes scores and IMDb user ratings will populate within 48 hours. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension will display those ratings directly on the Netflix tile the moment it goes live, so you can check the early reception before committing to the binge.</p>
+        <p>Once the show drops on April 23, critics' Rotten Tomatoes scores and IMDb user ratings will populate within 48 hours. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=stranger-things-tales-from-85-release-date&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension will display those ratings directly on the Netflix tile the moment it goes live, so you can check the early reception before committing to the binge.</p>
 
         <h2>What to Watch or Rewatch Before April 23</h2>
 
@@ -162,7 +162,7 @@
         <div class="cta-box">
             <h2>See Ratings on Netflix in Real Time</h2>
             <p>Get IMDb and Rotten Tomatoes scores overlaid on every Netflix tile, including Tales From '85 from day one.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=stranger-things-tales-from-85-release-date&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -195,7 +195,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

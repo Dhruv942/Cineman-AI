@@ -62,7 +62,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-find-what-to-watch-tonight&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -82,7 +82,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The average viewer spends 17-23 minutes browsing before picking something. Here is a 5-minute method instead: (1) pick a mood, (2) filter by IMDb 7.5+, (3) cross-check with Rotten Tomatoes, (4) commit to the first one that hits both thresholds. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see all three ratings directly on Netflix, Prime Video, and Disney+ tiles.</p>
+            <p>The average viewer spends 17-23 minutes browsing before picking something. Here is a 5-minute method instead: (1) pick a mood, (2) filter by IMDb 7.5+, (3) cross-check with Rotten Tomatoes, (4) commit to the first one that hits both thresholds. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-find-what-to-watch-tonight&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see all three ratings directly on Netflix, Prime Video, and Disney+ tiles.</p>
         </div>
 
         <p>You sit down on the couch. You open Netflix. Thirty-five minutes later, you have watched a lot of trailers, opened IMDb twice, Googled &quot;is &lsquo;The Diplomat&rsquo; actually good,&quot; and you are now seriously considering just going to bed. If any of this sounds familiar, you are not alone. A Nielsen survey found the average streaming viewer browses for 17-23 minutes before starting anything. For power users juggling three or four services, that number climbs higher.</p>
@@ -111,7 +111,7 @@
             <li>If both are above those thresholds, odds of a genuinely good watch are high.</li>
         </ul>
 
-        <p>Raw IMDb or Rotten Tomatoes numbers are only useful if you can actually see them on the tiles you are browsing. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays both numbers directly on Netflix, Prime Video, Disney+, Max, and Apple TV+ thumbnails. You never leave the streaming page.</p>
+        <p>Raw IMDb or Rotten Tomatoes numbers are only useful if you can actually see them on the tiles you are browsing. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-find-what-to-watch-tonight&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays both numbers directly on Netflix, Prime Video, Disney+, Max, and Apple TV+ thumbnails. You never leave the streaming page.</p>
 
         <h2>Step 3: Add a Taste Match (30 seconds)</h2>
 
@@ -147,7 +147,7 @@
 
         <h2>A Note on Streaming Fatigue</h2>
 
-        <p>If you are paying for Netflix, Prime Video, Disney+, Max, and Apple TV+, the decision problem compounds dramatically. Each service has its own homepage, its own algorithm, its own hidden gems. The only reasonable way to triage across services is a cross-platform rating overlay &mdash; which is what <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> is built for.</p>
+        <p>If you are paying for Netflix, Prime Video, Disney+, Max, and Apple TV+, the decision problem compounds dramatically. Each service has its own homepage, its own algorithm, its own hidden gems. The only reasonable way to triage across services is a cross-platform rating overlay &mdash; which is what <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-find-what-to-watch-tonight&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> is built for.</p>
 
         <h2>The Full 5-Minute Method</h2>
 
@@ -184,7 +184,7 @@
         <div class="cta-box">
             <h2>Stop Scrolling. Start Watching.</h2>
             <p>See IMDb, Rotten Tomatoes, and a personal taste match score on every streaming tile. Free Chrome extension, installs in 30 seconds.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-find-what-to-watch-tonight&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -217,7 +217,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

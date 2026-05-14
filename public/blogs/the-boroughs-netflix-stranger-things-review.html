@@ -73,7 +73,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-boroughs-netflix-stranger-things-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -93,7 +93,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The Boroughs premieres on Netflix May 21, 2026 &mdash; an eight-episode supernatural thriller from the Stranger Things production team set in a deceptively peaceful Pennsylvania retirement community where the residents start vanishing. Tone: Stranger Things meets Hereditary, with seniors instead of kids. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see live IMDb and RT scores the moment reviews land.</p>
+            <p>The Boroughs premieres on Netflix May 21, 2026 &mdash; an eight-episode supernatural thriller from the Stranger Things production team set in a deceptively peaceful Pennsylvania retirement community where the residents start vanishing. Tone: Stranger Things meets Hereditary, with seniors instead of kids. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-boroughs-netflix-stranger-things-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see live IMDb and RT scores the moment reviews land.</p>
         </div>
 
         <p>If you have been waiting for the next Stranger Things-shaped hole in your watchlist, May 21 is circled on the calendar. <strong>The Boroughs</strong> is Netflix's new supernatural thriller from the production team behind their flagship genre franchise, and on paper it has all the ingredients of a slow-burn hit: an isolated, picturesque setting, an ensemble cast, a creeping mystery that pulls in unlikely heroes, and the unmistakable aesthetic fingerprint of producers who understand exactly how to build a world worth bingeing.</p>
@@ -146,7 +146,7 @@
 
         <h2>How to Track The Boroughs' Ratings</h2>
 
-        <p>IMDb and Rotten Tomatoes scores for new Netflix shows usually update within 24 to 48 hours of premiere. The fastest way to see those numbers without leaving Netflix is the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension, which overlays IMDb scores, Rotten Tomatoes percentages, and a personal taste-match score on every Netflix tile as you browse. The moment The Boroughs lands, you will see exactly how it is reviewing without ever opening another tab.</p>
+        <p>IMDb and Rotten Tomatoes scores for new Netflix shows usually update within 24 to 48 hours of premiere. The fastest way to see those numbers without leaving Netflix is the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-boroughs-netflix-stranger-things-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension, which overlays IMDb scores, Rotten Tomatoes percentages, and a personal taste-match score on every Netflix tile as you browse. The moment The Boroughs lands, you will see exactly how it is reviewing without ever opening another tab.</p>
 
         <h2>What to Watch While You Wait</h2>
 
@@ -190,7 +190,7 @@
         <div class="cta-box">
             <h2>See Ratings Before You Press Play</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every Netflix title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-boroughs-netflix-stranger-things-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -223,7 +223,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

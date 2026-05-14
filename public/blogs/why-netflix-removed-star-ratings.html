@@ -112,7 +112,7 @@
       <div class="blog-nav-links">
         <a href="/">Home</a>
         <a href="/blogs/">Blog</a>
-        <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome</a>
+        <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-netflix-removed-star-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome</a>
       </div>
     </div>
   </nav>
@@ -135,7 +135,7 @@
     <!-- TL;DR -->
     <div class="tldr-box">
       <h3>TL;DR</h3>
-      <p>Netflix removed its 5-star rating system in April 2017 because users rated prestigious content highly but actually watched guilty-pleasure content. The replacement thumbs up/down system drove 200% more engagement, and the percent match score predicts whether you will watch something, not whether it is actually good. To get real quality ratings back on Netflix, use the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension for IMDb and Rotten Tomatoes overlays.</p>
+      <p>Netflix removed its 5-star rating system in April 2017 because users rated prestigious content highly but actually watched guilty-pleasure content. The replacement thumbs up/down system drove 200% more engagement, and the percent match score predicts whether you will watch something, not whether it is actually good. To get real quality ratings back on Netflix, use the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-netflix-removed-star-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension for IMDb and Rotten Tomatoes overlays.</p>
     </div>
 
     <p>Netflix removed its 5-star rating system in April 2017, replacing it with a simple thumbs up or thumbs down and a mysterious percent match number. The official reason was that members found stars confusing. The real reason was more interesting, and the consequences have shaped how hundreds of millions of people discover movies and TV shows ever since.</p>
@@ -223,7 +223,7 @@
 
     <h3>The Better Approach: CineMan AI</h3>
 
-    <p>A more efficient solution is to bring the ratings directly into the Netflix interface. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> is a free Chrome extension that overlays IMDb ratings, Rotten Tomatoes scores, and a personal taste match percentage directly on Netflix, Prime Video, and Disney+ Hotstar thumbnails.</p>
+    <p>A more efficient solution is to bring the ratings directly into the Netflix interface. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-netflix-removed-star-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> is a free Chrome extension that overlays IMDb ratings, Rotten Tomatoes scores, and a personal taste match percentage directly on Netflix, Prime Video, and Disney+ Hotstar thumbnails.</p>
 
     <p>Instead of tab-switching and manual lookups, you see quality signals right where you browse. A low-rated movie immediately stands out. A hidden gem with a 7.8 on IMDb and a 92% Rotten Tomatoes score catches your eye. And the personal taste match score goes beyond generic ratings to predict whether a well-reviewed film actually fits your specific preferences.</p>
 
@@ -282,7 +282,7 @@
     <div class="cta-box">
       <h2>Get Real Ratings Back on Netflix</h2>
       <p>See IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every title. Free Chrome extension, works on Netflix, Prime Video, and Disney+.</p>
-      <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan AI to Chrome &mdash; It's Free</a>
+      <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-netflix-removed-star-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan AI to Chrome &mdash; It's Free</a>
     </div>
 
     <!-- Related Posts -->
@@ -318,7 +318,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

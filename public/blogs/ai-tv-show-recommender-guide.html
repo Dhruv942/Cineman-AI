@@ -99,7 +99,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=ai-tv-show-recommender-guide&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -122,7 +122,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Streaming platforms' built-in recommendations are designed to serve their business interests, not yours. The best AI TV show recommenders in 2026 combine a personal taste profile with objective quality signals from IMDb and Rotten Tomatoes. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> does this directly inside Netflix, Prime Video, and Disney+ &mdash; no tab-switching required.</p>
+            <p>Streaming platforms' built-in recommendations are designed to serve their business interests, not yours. The best AI TV show recommenders in 2026 combine a personal taste profile with objective quality signals from IMDb and Rotten Tomatoes. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=ai-tv-show-recommender-guide&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> does this directly inside Netflix, Prime Video, and Disney+ &mdash; no tab-switching required.</p>
         </div>
 
         <p>You finish a show you loved &mdash; say, <em>Severance</em> or <em>The Bear</em> &mdash; and you stare at Netflix's homepage trying to figure out what to watch next. The platform pushes something you've already seen, something you have no interest in, or a straight-to-streaming film that got a 4.9 on IMDb. You spend 25 minutes scrolling. You give up and rewatch something familiar.</p>
@@ -189,7 +189,7 @@
 
         <p>Before any personalization, filter for quality. On any streaming platform, titles with an IMDb rating above 7.5 and a Rotten Tomatoes score above 75% are reliably "good" by most standards. You might occasionally miss a divisive gem, but you'll almost never waste 40 minutes on something that collapses into incoherence.</p>
 
-        <p>The problem is that most platforms make this nearly impossible to do natively. Netflix removed its star ratings years ago. Prime Video shows ratings, but buried. Disney+ doesn't surface them at all. This is exactly the gap that <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> fills: it overlays IMDb and Rotten Tomatoes scores directly on every title card as you browse, so quality is visible at a glance without leaving the platform.</p>
+        <p>The problem is that most platforms make this nearly impossible to do natively. Netflix removed its star ratings years ago. Prime Video shows ratings, but buried. Disney+ doesn't surface them at all. This is exactly the gap that <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=ai-tv-show-recommender-guide&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> fills: it overlays IMDb and Rotten Tomatoes scores directly on every title card as you browse, so quality is visible at a glance without leaving the platform.</p>
 
         <h3>Step 2: Build a Taste Profile from Your Strongest Preferences</h3>
 
@@ -320,7 +320,7 @@
         <div class="cta-box">
             <h2>Stop Wasting 20 Minutes Browsing</h2>
             <p>CineMan AI overlays IMDb ratings, Rotten Tomatoes scores, and your personal taste-match percentage on every title in Netflix, Prime Video, Disney+, and more. Find your next show in seconds.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=ai-tv-show-recommender-guide&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -361,7 +361,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

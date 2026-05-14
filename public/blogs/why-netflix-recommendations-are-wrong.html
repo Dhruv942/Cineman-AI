@@ -111,7 +111,7 @@
       <div class="blog-nav-links">
         <a href="/">Home</a>
         <a href="/blogs/">Blog</a>
-        <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome</a>
+        <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-netflix-recommendations-are-wrong&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome</a>
       </div>
     </div>
   </nav>
@@ -134,7 +134,7 @@
     <!-- TL;DR -->
     <div class="tldr-box">
       <h3>TL;DR</h3>
-      <p>Netflix's algorithm optimises for engagement (will you click and watch?), not quality or personal fit (will you love this?). It also promotes Netflix originals disproportionately. The fix: clean your viewing history, use IMDb/RT ratings to gauge quality, and install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan</a> for personalised taste match scores that actually predict whether you'll enjoy something.</p>
+      <p>Netflix's algorithm optimises for engagement (will you click and watch?), not quality or personal fit (will you love this?). It also promotes Netflix originals disproportionately. The fix: clean your viewing history, use IMDb/RT ratings to gauge quality, and install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-netflix-recommendations-are-wrong&utm_medium=cta" target="_blank" rel="noopener">CineMan</a> for personalised taste match scores that actually predict whether you'll enjoy something.</p>
     </div>
 
     <p>Netflix recommendations feel wrong because they are optimised for a different goal than the one you have. You want to find a movie you'll love. Netflix wants to find a movie you'll click on and watch for at least a few minutes. Those sound similar, but they produce very different results. The average person spends over seven minutes scrolling before choosing something to watch, and that number tells you everything about how well the current system is working.</p>
@@ -245,7 +245,7 @@
 
     <h3>Step 1: Install CineMan for Ratings and Taste Scores</h3>
 
-    <p>Add <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan from the Chrome Web Store</a>. Immediately, you'll see IMDb and Rotten Tomatoes scores on every Netflix title. Rate some movies you've seen to activate the taste match feature. The more you rate, the smarter it gets.</p>
+    <p>Add <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-netflix-recommendations-are-wrong&utm_medium=cta" target="_blank" rel="noopener">CineMan from the Chrome Web Store</a>. Immediately, you'll see IMDb and Rotten Tomatoes scores on every Netflix title. Rate some movies you've seen to activate the taste match feature. The more you rate, the smarter it gets.</p>
 
     <h3>Step 2: Clean Up Your Viewing History</h3>
 
@@ -309,7 +309,7 @@
     <div class="cta-box">
       <h2>Take Back Your Recommendations</h2>
       <p>Stop settling for what Netflix wants you to watch. Get personalised taste match scores, IMDb ratings, and real discovery tools with one free extension.</p>
-      <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; It's Free</a>
+      <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=why-netflix-recommendations-are-wrong&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; It's Free</a>
     </div>
 
     <!-- Related Posts -->
@@ -344,7 +344,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

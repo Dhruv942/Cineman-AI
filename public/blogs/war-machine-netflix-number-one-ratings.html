@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=war-machine-netflix-number-one-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>War Machine is the number one movie on Netflix right now, but its ratings tell a different story: 5.8 on IMDb and 50% on Rotten Tomatoes. Being trending on Netflix does not mean a movie is good. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Netflix title before you commit your evening.</p>
+            <p>War Machine is the number one movie on Netflix right now, but its ratings tell a different story: 5.8 on IMDb and 50% on Rotten Tomatoes. Being trending on Netflix does not mean a movie is good. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=war-machine-netflix-number-one-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Netflix title before you commit your evening.</p>
         </div>
 
         <p>If you have opened Netflix this week, you have probably seen War Machine sitting at the top of the charts. The 2017 Brad Pitt military satire has surged to the number one spot on the platform, which naturally raises the question: is it actually good, or is this another case of Netflix's algorithm promoting a mediocre movie to millions of unsuspecting viewers?</p>
@@ -226,7 +226,7 @@
 
         <p>War Machine sitting at number one on Netflix with a 5.8 IMDb is a perfect illustration of why streaming platforms need visible ratings. Netflix removed its star ratings in 2017 and replaced them with a thumbs up/thumbs down system and opaque match percentages. The result is that viewers have no easy way to distinguish between a critically acclaimed film and a mediocre one before clicking play.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> solves this problem. The free Chrome extension overlays IMDb and Rotten Tomatoes ratings on every single Netflix title &mdash; in real time, as you browse. If War Machine had a 5.8 visible on its thumbnail, you would know immediately that this is a polarizing film, not a crowd-pleaser, and you could make an informed decision about whether that is something you are in the mood for.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=war-machine-netflix-number-one-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> solves this problem. The free Chrome extension overlays IMDb and Rotten Tomatoes ratings on every single Netflix title &mdash; in real time, as you browse. If War Machine had a 5.8 visible on its thumbnail, you would know immediately that this is a polarizing film, not a crowd-pleaser, and you could make an informed decision about whether that is something you are in the mood for.</p>
 
         <p>CineMan also adds a personal taste-match score based on your viewing history. If you tend to enjoy political satires and military dramas, your match score for War Machine might be higher than the general ratings suggest. If you prefer straightforward action, the match score would be lower. Either way, you have real information to work with instead of relying on Netflix's opaque algorithm. Learn more about <a href="/blogs/how-to-see-imdb-ratings-on-netflix.html">how to see IMDb ratings on Netflix</a>.</p>
 
@@ -268,7 +268,7 @@
         <div class="cta-box">
             <h2>Stop Trusting Netflix's Top 10</h2>
             <p>See the real ratings on every Netflix title. IMDb scores, Rotten Tomatoes ratings, and a personal taste match. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=war-machine-netflix-number-one-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -303,7 +303,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

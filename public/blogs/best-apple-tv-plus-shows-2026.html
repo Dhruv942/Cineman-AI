@@ -83,7 +83,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-apple-tv-plus-shows-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -103,7 +103,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Apple TV+ punches far above its size. The 15 highest-rated shows on the platform &mdash; led by <strong>Severance</strong>, <strong>Slow Horses</strong>, <strong>Ted Lasso</strong>, and <strong>For All Mankind</strong> &mdash; average an IMDb score higher than any other major streamer&rsquo;s top tier. To see those ratings as you browse, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>.</p>
+            <p>Apple TV+ punches far above its size. The 15 highest-rated shows on the platform &mdash; led by <strong>Severance</strong>, <strong>Slow Horses</strong>, <strong>Ted Lasso</strong>, and <strong>For All Mankind</strong> &mdash; average an IMDb score higher than any other major streamer&rsquo;s top tier. To see those ratings as you browse, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-apple-tv-plus-shows-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a>.</p>
         </div>
 
         <p>Apple TV+ has spent the last six years quietly building one of the highest-quality television catalogs in streaming. The library is small &mdash; perhaps a tenth the size of Netflix&rsquo;s &mdash; but the average rating is unusually high because Apple has prioritized prestige originals over volume. The result: if you scroll the Apple TV+ home screen and pick something at random, you have a much higher chance of landing on a 7.5+ IMDb show than you would on Netflix.</p>
@@ -206,7 +206,7 @@
 
         <h2>How to See Ratings on Apple TV+</h2>
 
-        <p>Apple TV+ does not display IMDb or Rotten Tomatoes scores natively in its web app. Install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome extension</a> to overlay them on every Apple TV+ thumbnail (and Netflix, HBO Max, Prime, Disney+, Hotstar). Plus a personal taste-match score that learns your patterns and helps you spot the gems faster.</p>
+        <p>Apple TV+ does not display IMDb or Rotten Tomatoes scores natively in its web app. Install the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-apple-tv-plus-shows-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome extension</a> to overlay them on every Apple TV+ thumbnail (and Netflix, HBO Max, Prime, Disney+, Hotstar). Plus a personal taste-match score that learns your patterns and helps you spot the gems faster.</p>
 
         <h2>Bottom Line</h2>
 
@@ -239,7 +239,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every Apple TV+ Title</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every show. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-apple-tv-plus-shows-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -272,7 +272,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

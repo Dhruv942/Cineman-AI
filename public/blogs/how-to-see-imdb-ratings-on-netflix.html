@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-see-imdb-ratings-on-netflix&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The fastest way to see IMDb ratings on Netflix is to install a free Chrome extension like <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> that overlays IMDb and Rotten Tomatoes ratings directly on every title as you browse. No tab-switching, no Googling &mdash; just ratings right where you need them.</p>
+            <p>The fastest way to see IMDb ratings on Netflix is to install a free Chrome extension like <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-see-imdb-ratings-on-netflix&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> that overlays IMDb and Rotten Tomatoes ratings directly on every title as you browse. No tab-switching, no Googling &mdash; just ratings right where you need them.</p>
         </div>
 
         <p>The fastest way to see IMDb ratings on Netflix is to install a free Chrome extension like CineMan that overlays ratings directly on every title as you browse. Instead of switching tabs to look up every movie, you get IMDb scores, Rotten Tomatoes percentages, and even personalized taste-match scores right on the Netflix interface. This guide covers every method available in 2026, compares the best extensions, and explains how to get ratings on Prime Video and Disney+ too.</p>
@@ -157,7 +157,7 @@
 
         <h3>CineMan AI</h3>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> goes well beyond just showing ratings. Yes, you get IMDb scores and Rotten Tomatoes percentages on every title. But CineMan also adds a personal <strong>taste-match score</strong> powered by AI that tells you how much you specifically are likely to enjoy a movie or show, based on your actual preferences rather than Netflix's opaque algorithm.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-see-imdb-ratings-on-netflix&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> goes well beyond just showing ratings. Yes, you get IMDb scores and Rotten Tomatoes percentages on every title. But CineMan also adds a personal <strong>taste-match score</strong> powered by AI that tells you how much you specifically are likely to enjoy a movie or show, based on your actual preferences rather than Netflix's opaque algorithm.</p>
 
         <p>Other standout features include inline trailers so you can preview content without leaving Netflix, "because you watched X" recommendations that surface genuinely similar titles, a discovery mode for when you want to break out of your usual genres, and a similar-title search. It works on Netflix, Prime Video, and Disney+/Hotstar.</p>
 
@@ -300,7 +300,7 @@
 
         <ol>
             <li>Open Chrome (or any Chromium-based browser like Edge or Brave).</li>
-            <li>Go to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome Web Store page</a>.</li>
+            <li>Go to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-see-imdb-ratings-on-netflix&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome Web Store page</a>.</li>
             <li>Click "Add to Chrome" and confirm the installation.</li>
             <li>Navigate to Netflix, Prime Video, or Disney+.</li>
             <li>IMDb and Rotten Tomatoes ratings will now appear on every title automatically.</li>
@@ -342,7 +342,7 @@
         <div class="cta-box">
             <h2>Stop Guessing. Start Watching.</h2>
             <p>See IMDb and Rotten Tomatoes ratings on Netflix, Prime Video, and Disney+ instantly. Completely free, forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-see-imdb-ratings-on-netflix&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -373,7 +373,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

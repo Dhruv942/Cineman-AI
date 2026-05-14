@@ -66,7 +66,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=lord-of-the-flies-netflix-miniseries-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -86,7 +86,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Netflix's new <strong>Lord of the Flies</strong> miniseries lands May 4 &mdash; four episodes, modern setting, adapted by Jack Thorne (Adolescence, His Dark Materials). It is the most ambitious screen treatment of Golding's novel to date and slots into the same prestige slow-burn space as Adolescence. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to track IMDb and Rotten Tomatoes scores as reviews drop.</p>
+            <p>Netflix's new <strong>Lord of the Flies</strong> miniseries lands May 4 &mdash; four episodes, modern setting, adapted by Jack Thorne (Adolescence, His Dark Materials). It is the most ambitious screen treatment of Golding's novel to date and slots into the same prestige slow-burn space as Adolescence. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=lord-of-the-flies-netflix-miniseries-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to track IMDb and Rotten Tomatoes scores as reviews drop.</p>
         </div>
 
         <p>William Golding's 1954 novel about a group of British schoolboys stranded on a desert island has been adapted twice for the screen &mdash; Peter Brook's stark 1963 black-and-white film and Harry Hook's 1990 American-set version &mdash; but neither had time to dig into what happens inside the boys' heads. Netflix's new four-episode miniseries, premiering <strong>May 4, 2026</strong>, finally does, with Emmy-winning writer Jack Thorne adapting and Marc Munden (Utopia, The Third Day) directing.</p>
@@ -125,7 +125,7 @@
 
         <h2>Track the Reviews</h2>
 
-        <p>IMDb and Rotten Tomatoes scores for Netflix limited series tend to land within 24 hours of release. The fastest way to see them is the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension &mdash; IMDb scores, RT percentages, and a personal taste-match score appear on every Netflix tile automatically.</p>
+        <p>IMDb and Rotten Tomatoes scores for Netflix limited series tend to land within 24 hours of release. The fastest way to see them is the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=lord-of-the-flies-netflix-miniseries-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension &mdash; IMDb scores, RT percentages, and a personal taste-match score appear on every Netflix tile automatically.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -159,7 +159,7 @@
         <div class="cta-box">
             <h2>See Ratings Before You Press Play</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every Netflix title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=lord-of-the-flies-netflix-miniseries-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -192,7 +192,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

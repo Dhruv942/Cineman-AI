@@ -70,7 +70,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-housemaid-2026-review-netflix&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -93,7 +93,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The Housemaid (2026) is a sleek, handsomely shot psychological thriller now streaming on Netflix. Sydney Sweeney is genuinely compelling in the lead; Amanda Seyfried nearly steals the film. The first two acts build dread beautifully, and the finale delivers. It is not Gone Girl, but it doesn't need to be. IMDb currently sits around 6.8, audience scores are higher. Worth a Friday night. Check live ratings directly on Netflix with the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome extension</a>.</p>
+            <p>The Housemaid (2026) is a sleek, handsomely shot psychological thriller now streaming on Netflix. Sydney Sweeney is genuinely compelling in the lead; Amanda Seyfried nearly steals the film. The first two acts build dread beautifully, and the finale delivers. It is not Gone Girl, but it doesn't need to be. IMDb currently sits around 6.8, audience scores are higher. Worth a Friday night. Check live ratings directly on Netflix with the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-housemaid-2026-review-netflix&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome extension</a>.</p>
         </div>
 
         <p>When a best-selling domestic thriller with a built-in fan base of millions gets adapted for Netflix with two of the most-watched actresses working today, you either get a prestige event or a beautiful disappointment. <em>The Housemaid</em>, which dropped on April 1, 2026, lands somewhere more interesting than either: it is a tightly wound genre film that knows exactly what it wants to be and executes it with real craft. It will not change your life, but it might keep you up past midnight.</p>
@@ -173,7 +173,7 @@
 
         <p>The current IMDb score of around 6.8 is a little low and almost certainly reflects the same phenomenon that affects a lot of Netflix genre films: a mixture of advance opinion from book-adaptation purists who wanted the novel verbatim, and a critical consensus that reached for the <em>Gone Girl</em> comparison and then penalized the film for not being <em>Gone Girl</em>. The audience score on Rotten Tomatoes, sitting in the mid-70s, is more reflective of what the film actually delivers: a well-made, well-acted psychological thriller that does what it promises.</p>
 
-        <p>For context, <em>The Hand That Rocks the Cradle</em> has a 6.6 on IMDb and is widely considered a genre classic. These scores are useful data points, not verdicts. If you want to see The Housemaid's current ratings overlaid directly on your Netflix homepage as you browse, the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI extension</a> shows you IMDb and Rotten Tomatoes scores on every tile without clicking through to the title page.</p>
+        <p>For context, <em>The Hand That Rocks the Cradle</em> has a 6.6 on IMDb and is widely considered a genre classic. These scores are useful data points, not verdicts. If you want to see The Housemaid's current ratings overlaid directly on your Netflix homepage as you browse, the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-housemaid-2026-review-netflix&utm_medium=cta" target="_blank" rel="noopener">CineMan AI extension</a> shows you IMDb and Rotten Tomatoes scores on every tile without clicking through to the title page.</p>
 
         <h2>Who Should Watch The Housemaid?</h2>
 
@@ -222,7 +222,7 @@
         <div class="cta-box">
             <h2>Never Miss a Great Thriller on Netflix</h2>
             <p>CineMan AI overlays IMDb scores, Rotten Tomatoes ratings, and personalized recommendations on every Netflix, Prime Video, and Disney+ title &mdash; right on the browsing screen. Free to install, no account needed.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-housemaid-2026-review-netflix&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -257,7 +257,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

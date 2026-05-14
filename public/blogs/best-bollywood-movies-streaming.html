@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-bollywood-movies-streaming&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The best Indian movies on streaming right now span Hindi, Tamil, Telugu, and Malayalam cinema. Our 22 picks include 12th Fail (IMDb 8.8), Tumbbad (8.2), RRR (7.8), Vikram (7.4), and Jallikattu (7.0) across Netflix, Prime Video, and JioHotstar. We organized them by language and by platform. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and RT ratings on every Indian title as you browse, with support for JioHotstar and language-specific taste preferences.</p>
+            <p>The best Indian movies on streaming right now span Hindi, Tamil, Telugu, and Malayalam cinema. Our 22 picks include 12th Fail (IMDb 8.8), Tumbbad (8.2), RRR (7.8), Vikram (7.4), and Jallikattu (7.0) across Netflix, Prime Video, and JioHotstar. We organized them by language and by platform. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-bollywood-movies-streaming&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and RT ratings on every Indian title as you browse, with support for JioHotstar and language-specific taste preferences.</p>
         </div>
 
         <p>Indian cinema is not just Bollywood. That is the first and most important thing to understand about the current state of Indian filmmaking. While Hindi-language Bollywood remains the most commercially visible segment, some of the most critically acclaimed and innovative Indian films of the past decade have come from Tamil, Telugu, Malayalam, and Kannada cinema. Streaming platforms have made all of this accessible to global audiences in a way that was impossible even five years ago.</p>
@@ -426,7 +426,7 @@
 
         <h2>CineMan for Indian Viewers</h2>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> is built with Indian viewers in mind. The extension supports <a href="/blogs/imdb-ratings-on-disney-plus-hotstar.html">JioHotstar</a> alongside Netflix and Prime Video, covering the three platforms that matter most for Indian content. Here is what makes CineMan especially useful for Indian viewers:</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-bollywood-movies-streaming&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> is built with Indian viewers in mind. The extension supports <a href="/blogs/imdb-ratings-on-disney-plus-hotstar.html">JioHotstar</a> alongside Netflix and Prime Video, covering the three platforms that matter most for Indian content. Here is what makes CineMan especially useful for Indian viewers:</p>
 
         <ul>
             <li><strong>Language preference support</strong> &mdash; Tell CineMan you prefer Hindi, Tamil, Telugu, or Malayalam content, and it factors that into your taste-match scores. You will see personalized recommendations within your preferred language.</li>
@@ -470,7 +470,7 @@
         <div class="cta-box">
             <h2>Find the Best Indian Movies on Any Platform</h2>
             <p>IMDb ratings, RT scores, and a taste match on every title across Netflix, Prime Video, and JioHotstar. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-bollywood-movies-streaming&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -505,7 +505,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

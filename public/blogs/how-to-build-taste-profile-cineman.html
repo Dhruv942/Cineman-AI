@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-build-taste-profile-cineman&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>, complete the short onboarding, then visit netflix.com/viewingactivity to trigger the history scrape. CineMan enriches your watch history with TMDB metadata, extracts taste signals (genres, themes, directors, decades, tones), and builds a profile that produces personal taste-match scores on every streaming title. The whole process takes about two minutes.</p>
+            <p>Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-build-taste-profile-cineman&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a>, complete the short onboarding, then visit netflix.com/viewingactivity to trigger the history scrape. CineMan enriches your watch history with TMDB metadata, extracts taste signals (genres, themes, directors, decades, tones), and builds a profile that produces personal taste-match scores on every streaming title. The whole process takes about two minutes.</p>
         </div>
 
         <p>Every streaming platform claims to give you personalized recommendations. And every streaming platform gets it wrong in the same way: they recommend what is popular, what they are promoting, or what is superficially similar to what you last watched. They do not actually know your taste. They know your recent behavior, which is a very different thing.</p>
@@ -147,7 +147,7 @@
 
         <h2>Step 1: Install CineMan</h2>
 
-        <p>Head to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">Chrome Web Store</a> and click "Add to Chrome." The extension is free, requires minimal permissions, and installs in about ten seconds. You will see the CineMan icon appear in your browser toolbar. That is it for this step.</p>
+        <p>Head to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-build-taste-profile-cineman&utm_medium=cta" target="_blank" rel="noopener">Chrome Web Store</a> and click "Add to Chrome." The extension is free, requires minimal permissions, and installs in about ten seconds. You will see the CineMan icon appear in your browser toolbar. That is it for this step.</p>
 
         <p>CineMan works on any Chromium-based browser: Google Chrome, Brave, Arc, Edge, and Opera. If you are using Firefox or Safari, you will need to switch to a Chromium browser for now.</p>
 
@@ -246,7 +246,7 @@
             <li><strong>Revisit Discovery Mode weekly.</strong> As your profile evolves and new titles become available on streaming platforms, Discovery Mode will surface fresh picks that you would otherwise miss.</li>
         </ul>
 
-        <p>Ready to build your profile? <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">Install CineMan AI</a> and get started in under two minutes. Once your profile is built, you might want to explore CineMan's other key feature: <a href="/blogs/how-to-find-similar-movies-cineman.html">Similar Search</a>, which lets you find films like any title you have loved.</p>
+        <p>Ready to build your profile? <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-build-taste-profile-cineman&utm_medium=cta" target="_blank" rel="noopener">Install CineMan AI</a> and get started in under two minutes. Once your profile is built, you might want to explore CineMan's other key feature: <a href="/blogs/how-to-find-similar-movies-cineman.html">Similar Search</a>, which lets you find films like any title you have loved.</p>
 
         <!-- FAQ Section -->
         <section class="faq-section">
@@ -282,7 +282,7 @@
         <div class="cta-box">
             <h2>Build Your Taste Profile in Two Minutes</h2>
             <p>Personal taste-match scores, IMDb ratings, and Rotten Tomatoes on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=how-to-build-taste-profile-cineman&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -317,7 +317,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

@@ -62,7 +62,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-the-boys&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -82,7 +82,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>The Boys is ending in May 2026. If you want more morally bankrupt Supes, pitch-black satire, or violent anti-hero drama, these 15 shows deliver &mdash; ranked by composite IMDb + Rotten Tomatoes scores. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see live ratings on all of them.</p>
+            <p>The Boys is ending in May 2026. If you want more morally bankrupt Supes, pitch-black satire, or violent anti-hero drama, these 15 shows deliver &mdash; ranked by composite IMDb + Rotten Tomatoes scores. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-the-boys&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see live ratings on all of them.</p>
         </div>
 
         <p>The Boys is the rare long-running show that stayed sharp through five seasons and is ending on a creative high. When the finale drops in May, there will be a hole in your weekly watchlist. The good news: the last decade of television has produced a rich vein of Boys-adjacent shows. Here are the 15 best, ranked by how closely they scratch the specific itch that The Boys scratches.</p>
@@ -142,7 +142,7 @@
 
         <p>These 15 shows are spread across seven different streaming services. If you are like most viewers, you probably have three or four of those. You do not need a ratings guide to remember that The Boys is great; you need one in the moment, on your homepage, when you are deciding whether to start Gen V or give up and rewatch Breaking Bad for the fourth time.</p>
 
-        <p>The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes scores on tiles across Netflix, Prime Video, Disney+, and Max. It also adds a personal taste match score, which is especially helpful with subjective picks like these &mdash; some viewers love Doom Patrol's weirdness, others bounce off it hard. Taste match tells you which side you are on before you commit three hours.</p>
+        <p>The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-the-boys&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes scores on tiles across Netflix, Prime Video, Disney+, and Max. It also adds a personal taste match score, which is especially helpful with subjective picks like these &mdash; some viewers love Doom Patrol's weirdness, others bounce off it hard. Taste match tells you which side you are on before you commit three hours.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -167,7 +167,7 @@
         <div class="cta-box">
             <h2>Pick Your Next Show in 60 Seconds</h2>
             <p>Ratings, critics' scores, and a personal taste match on every streaming tile. Free.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-the-boys&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -200,7 +200,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

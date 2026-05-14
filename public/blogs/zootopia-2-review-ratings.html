@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=zootopia-2-review-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Zootopia 2 holds a 6.7 on IMDb and 76% on Rotten Tomatoes &mdash; a noticeable step down from the original's 8.0 and 98%. It is a fun, visually impressive animated sequel but lacks the original's thematic depth. Now streaming on Disney+. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Disney+ title instantly.</p>
+            <p>Zootopia 2 holds a 6.7 on IMDb and 76% on Rotten Tomatoes &mdash; a noticeable step down from the original's 8.0 and 98%. It is a fun, visually impressive animated sequel but lacks the original's thematic depth. Now streaming on Disney+. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=zootopia-2-review-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Disney+ title instantly.</p>
         </div>
 
         <p>The original Zootopia was one of Disney Animation's finest achievements of the 2010s. It earned nearly universal critical acclaim, won the Academy Award for Best Animated Feature, and grossed over a billion dollars worldwide. Eight years later, Zootopia 2 has arrived, carrying the weight of those enormous expectations. The sequel reunites Judy Hopps and Nick Wilde for another adventure in the mammal metropolis, but this time the reviews are decidedly more mixed.</p>
@@ -246,7 +246,7 @@
 
         <p>Disney+ suffers from the same problem as Netflix: it does not show you external ratings. You see a title card, a brief synopsis, and maybe a content advisory, but nothing that tells you whether the film is a 98% masterpiece or a 34% disaster. For a platform that hosts everything from Pixar classics to straight-to-streaming sequels, that lack of information is a real problem.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> adds IMDb and Rotten Tomatoes ratings directly to every Disney+ title. You can instantly see that the original Zootopia is an 8.0 while the sequel is a 6.7, or that the random animated movie Disney is promoting on the homepage has a 42% on Rotten Tomatoes. CineMan also adds a personal taste-match score, so you know how likely you are to enjoy something before committing. Learn more in our guide to getting <a href="/blogs/imdb-ratings-on-disney-plus-hotstar.html">IMDb ratings on Disney+</a>.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=zootopia-2-review-ratings&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> adds IMDb and Rotten Tomatoes ratings directly to every Disney+ title. You can instantly see that the original Zootopia is an 8.0 while the sequel is a 6.7, or that the random animated movie Disney is promoting on the homepage has a 42% on Rotten Tomatoes. CineMan also adds a personal taste-match score, so you know how likely you are to enjoy something before committing. Learn more in our guide to getting <a href="/blogs/imdb-ratings-on-disney-plus-hotstar.html">IMDb ratings on Disney+</a>.</p>
 
         <h2>The Verdict</h2>
 
@@ -286,7 +286,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every Disney+ Title</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=zootopia-2-review-ratings&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -321,7 +321,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

@@ -66,7 +66,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=mortal-kombat-2-movie-2026-preview&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -86,7 +86,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p><strong>Mortal Kombat 2</strong> hits theaters <strong>May 15, 2026</strong>. Karl Urban joins as Johnny Cage, the long-promised tournament finally happens, and most of the original cast returns &mdash; including Lewis Tan, Tadanobu Asano (Raiden), and Hiroyuki Sanada (Scorpion). Streaming on Max around mid-summer. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> for IMDb and RT scores when it lands.</p>
+            <p><strong>Mortal Kombat 2</strong> hits theaters <strong>May 15, 2026</strong>. Karl Urban joins as Johnny Cage, the long-promised tournament finally happens, and most of the original cast returns &mdash; including Lewis Tan, Tadanobu Asano (Raiden), and Hiroyuki Sanada (Scorpion). Streaming on Max around mid-summer. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=mortal-kombat-2-movie-2026-preview&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> for IMDb and RT scores when it lands.</p>
         </div>
 
         <p>The 2021 Mortal Kombat reboot ended on the most baffling cliffhanger in modern action cinema: the title fight tournament that the entire mythology revolves around had not actually happened. Five years later, Mortal Kombat 2 finally delivers it &mdash; on May 15, 2026, in theaters worldwide. Director Simon McQuoid returns, the surviving cast returns, and Warner Bros. has structured the marketing around one bold promise: <em>this time, you get the tournament</em>.</p>
@@ -146,7 +146,7 @@
 
         <h2>Track Reviews When It Hits Max</h2>
 
-        <p>The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every Max title. The moment Mortal Kombat 2 hits streaming, you will see exactly how it is reviewing.</p>
+        <p>The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=mortal-kombat-2-movie-2026-preview&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every Max title. The moment Mortal Kombat 2 hits streaming, you will see exactly how it is reviewing.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -180,7 +180,7 @@
         <div class="cta-box">
             <h2>See Ratings Before You Press Play</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=mortal-kombat-2-movie-2026-preview&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -213,7 +213,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

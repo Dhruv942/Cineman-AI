@@ -97,7 +97,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-interstellar&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -120,7 +120,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>If you loved Interstellar, start with Arrival (IMDb 7.9), Contact (7.5), and Blade Runner 2049 (8.0) &mdash; they share the same blend of hard sci-fi concepts and emotional storytelling. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and Rotten Tomatoes ratings on every streaming title and find your next favourite sci-fi film.</p>
+            <p>If you loved Interstellar, start with Arrival (IMDb 7.9), Contact (7.5), and Blade Runner 2049 (8.0) &mdash; they share the same blend of hard sci-fi concepts and emotional storytelling. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-interstellar&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and Rotten Tomatoes ratings on every streaming title and find your next favourite sci-fi film.</p>
         </div>
 
         <p>Interstellar is one of those rare films that works on every level simultaneously. It is a hard sci-fi epic grounded in real physics. It is a father-daughter story that will make you cry. It is a visual spectacle that demands the biggest screen you can find. And it is a philosophical puzzle about time, sacrifice, and what love actually means in a universe governed by relativity. Finding another film that hits all of those notes is genuinely difficult &mdash; but these 15 come closest.</p>
@@ -193,7 +193,7 @@
 
         <p>The challenge with finding films like Interstellar is that no single rating tells you whether a film matches the specific qualities you loved. A high IMDb score might indicate a great film that has nothing in common with Interstellar's sensibility. What you really need is a way to match films to your personal taste profile &mdash; not just to broad quality metrics.</p>
 
-        <p>That is exactly what <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> does. It overlays IMDb and Rotten Tomatoes ratings on every title across streaming platforms, and its <a href="/blogs/how-ai-movie-recommendations-work.html">AI-powered recommendation engine</a> builds a taste profile based on what you have watched and rated. Instead of guessing which sci-fi film might scratch the Interstellar itch, you get a personalized match score that reflects how well each title aligns with your specific preferences.</p>
+        <p>That is exactly what <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-interstellar&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> does. It overlays IMDb and Rotten Tomatoes ratings on every title across streaming platforms, and its <a href="/blogs/how-ai-movie-recommendations-work.html">AI-powered recommendation engine</a> builds a taste profile based on what you have watched and rated. Instead of guessing which sci-fi film might scratch the Interstellar itch, you get a personalized match score that reflects how well each title aligns with your specific preferences.</p>
 
         <p>If you want to understand how ratings work and whether they are reliable for finding similar films, our guide on <a href="/blogs/how-to-see-imdb-ratings-on-netflix.html">how to see IMDb ratings on Netflix</a> covers the mechanics and limitations.</p>
 
@@ -221,7 +221,7 @@
         <div class="cta-box">
             <h2>Find Your Next Sci-Fi Obsession</h2>
             <p>See IMDb and Rotten Tomatoes ratings on every streaming title. Get personal taste-match scores powered by AI. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-interstellar&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -256,7 +256,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

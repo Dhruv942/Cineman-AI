@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-korean-movies-to-watch&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Korean cinema is producing some of the best films and series in the world right now. Our picks include 12 Korean movies and 8 K-dramas across thrillers, dramas, horror, romance, and action &mdash; all with IMDb and RT ratings. Parasite, Oldboy, and Decision to Leave lead the film list. Squid Game, My Mister, and Move to Heaven lead the dramas. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Korean title as you browse Netflix and other platforms.</p>
+            <p>Korean cinema is producing some of the best films and series in the world right now. Our picks include 12 Korean movies and 8 K-dramas across thrillers, dramas, horror, romance, and action &mdash; all with IMDb and RT ratings. Parasite, Oldboy, and Decision to Leave lead the film list. Squid Game, My Mister, and Move to Heaven lead the dramas. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-korean-movies-to-watch&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Korean title as you browse Netflix and other platforms.</p>
         </div>
 
         <p>Korean cinema has been on an extraordinary run. Since Parasite became the first non-English language film to win Best Picture at the Oscars in 2020, global awareness of Korean storytelling has exploded. Squid Game became Netflix's most-watched series of all time. Directors like Bong Joon-ho, Park Chan-wook, and Lee Chang-dong are recognized as some of the best working filmmakers in the world. And K-dramas have built a devoted international fanbase that rivals anything Hollywood produces.</p>
@@ -412,7 +412,7 @@
 
         <h2>Using CineMan for Korean Content</h2>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> is particularly useful for Korean content browsing. The extension overlays IMDb and Rotten Tomatoes ratings on every title, which is crucial for Korean films and dramas that you might not recognize by name or poster. Instead of guessing whether an unfamiliar Korean title is worth your time, you can see at a glance that it has an 8.2 on IMDb and 92% on RT.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-korean-movies-to-watch&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> is particularly useful for Korean content browsing. The extension overlays IMDb and Rotten Tomatoes ratings on every title, which is crucial for Korean films and dramas that you might not recognize by name or poster. Instead of guessing whether an unfamiliar Korean title is worth your time, you can see at a glance that it has an 8.2 on IMDb and 92% on RT.</p>
 
         <p>CineMan also supports language-based filtering in your taste profile. If you tell CineMan you enjoy Korean language content, it will factor that into your taste-match scores, surfacing Korean films and dramas that match your specific preferences within the genre. A fan of Korean thrillers will get different recommendations than a fan of Korean romance, even though both prefer Korean content. For more hidden gems that mainstream audiences miss, check our guide to <a href="/blogs/hidden-gems-netflix-highly-rated-underrated.html">highly rated hidden gems on Netflix</a>.</p>
 
@@ -450,7 +450,7 @@
         <div class="cta-box">
             <h2>Find Your Next Korean Obsession</h2>
             <p>IMDb ratings, RT scores, and a personal taste match on every Korean title. See which ones match your taste before you commit. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=best-korean-movies-to-watch&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -485,7 +485,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

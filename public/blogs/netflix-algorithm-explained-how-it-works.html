@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-algorithm-explained-how-it-works&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Netflix's recommendation algorithm uses three layers &mdash; collaborative filtering, content-based filtering, and contextual signals &mdash; to personalize your homepage through 1,000+ row generators. It even changes thumbnails per user. But it optimizes for engagement (clicks and watch time), not satisfaction (whether you actually enjoy what you watch). That misalignment is why recommendations often feel off. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> adds IMDb ratings and a local taste-match score that optimizes for what you will actually enjoy.</p>
+            <p>Netflix's recommendation algorithm uses three layers &mdash; collaborative filtering, content-based filtering, and contextual signals &mdash; to personalize your homepage through 1,000+ row generators. It even changes thumbnails per user. But it optimizes for engagement (clicks and watch time), not satisfaction (whether you actually enjoy what you watch). That misalignment is why recommendations often feel off. <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-algorithm-explained-how-it-works&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> adds IMDb ratings and a local taste-match score that optimizes for what you will actually enjoy.</p>
         </div>
 
         <p>Netflix says that 80% of what you watch comes from their recommendation system rather than from you actively searching for something. That is an extraordinary amount of influence for an algorithm to have over your entertainment choices. Yet most people have only a vague understanding of how it works, and almost no understanding of why it sometimes steers them toward content they do not enjoy.</p>
@@ -217,7 +217,7 @@
 
         <h2>CineMan's Local Taste Engine: A Different Approach</h2>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> takes a fundamentally different approach to recommendations. Instead of optimizing for engagement, CineMan's taste engine optimizes for satisfaction &mdash; predicting whether you will enjoy a title, not whether you will click on it.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-algorithm-explained-how-it-works&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> takes a fundamentally different approach to recommendations. Instead of optimizing for engagement, CineMan's taste engine optimizes for satisfaction &mdash; predicting whether you will enjoy a title, not whether you will click on it.</p>
 
         <p>The taste engine runs locally in your browser. It builds a profile based on your ratings and viewing preferences, then matches that profile against a comprehensive database of title attributes. Because it runs locally, it has no incentive to promote any particular content. There is no licensing bias, no promotional weight, no engagement optimization. The only goal is accuracy.</p>
 
@@ -235,7 +235,7 @@
             <li><strong>Check your viewing activity</strong> &mdash; Remove titles from your history that do not represent your actual taste (accidental clicks, content someone else watched).</li>
         </ul>
 
-        <p>These steps will improve your baseline recommendations, but they cannot solve the structural problems &mdash; engagement optimization, licensing bias, and the cold start issue. For that, you need an independent quality signal like the one <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> provides.</p>
+        <p>These steps will improve your baseline recommendations, but they cannot solve the structural problems &mdash; engagement optimization, licensing bias, and the cold start issue. For that, you need an independent quality signal like the one <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-algorithm-explained-how-it-works&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> provides.</p>
 
         <!-- FAQ Section -->
         <section class="faq-section">
@@ -271,7 +271,7 @@
         <div class="cta-box">
             <h2>Better Recommendations Than Netflix's Algorithm</h2>
             <p>IMDb ratings, Rotten Tomatoes scores, and a taste match that optimizes for enjoyment, not engagement. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-algorithm-explained-how-it-works&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -306,7 +306,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

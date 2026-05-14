@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=bridgerton-season-4-everything-we-know&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Bridgerton Season 4 focuses on Benedict Bridgerton's Cinderella-inspired love story and is expected to premiere on Netflix in late 2026. Previous seasons hold a 7.3 IMDb and 82% RT overall. While you wait, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to find similar period romances with ratings and taste-match scores on every title.</p>
+            <p>Bridgerton Season 4 focuses on Benedict Bridgerton's Cinderella-inspired love story and is expected to premiere on Netflix in late 2026. Previous seasons hold a 7.3 IMDb and 82% RT overall. While you wait, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=bridgerton-season-4-everything-we-know&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to find similar period romances with ratings and taste-match scores on every title.</p>
         </div>
 
         <p>Bridgerton has become one of Netflix's most reliable franchises. Since its debut in December 2020, the Shonda Rhimes-produced period romance has generated enormous viewership numbers, a dedicated fanbase, and the kind of cultural conversation that most streaming shows can only dream of. Now, with Season 4 confirmed and in production, anticipation is building for the next chapter in the Bridgerton family saga.</p>
@@ -244,7 +244,7 @@
 
         <p>One of the biggest challenges for Bridgerton fans is finding similar shows. Netflix's recommendation algorithm knows you liked Bridgerton, but it often surfaces options that are only vaguely related &mdash; historical settings without the romance, or romances without the period flavor.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> takes a different approach. Instead of relying on Netflix's opaque algorithm, CineMan overlays IMDb and Rotten Tomatoes ratings directly on every title and adds a personal taste-match score based on your actual viewing history. If you have been watching period romances, CineMan will give you high match percentages on titles in that space, making it much easier to find your next obsession while waiting for Benedict Bridgerton's story to arrive.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=bridgerton-season-4-everything-we-know&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> takes a different approach. Instead of relying on Netflix's opaque algorithm, CineMan overlays IMDb and Rotten Tomatoes ratings directly on every title and adds a personal taste-match score based on your actual viewing history. If you have been watching period romances, CineMan will give you high match percentages on titles in that space, making it much easier to find your next obsession while waiting for Benedict Bridgerton's story to arrive.</p>
 
         <p>The extension works across Netflix, Prime Video, and Disney+, takes 10 seconds to install, and is completely free. No more opening three tabs to check if a movie is worth watching.</p>
 
@@ -290,7 +290,7 @@
         <div class="cta-box">
             <h2>Find Period Romances You Will Love</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=bridgerton-season-4-everything-we-know&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -325,7 +325,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

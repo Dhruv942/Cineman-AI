@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-imdb-extension&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p><strong>Best overall:</strong> <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> &mdash; IMDb + Rotten Tomatoes ratings on every title, AI recommendations, taste-match score, and multi-platform support. Free. <strong>Runner-up:</strong> Trim &mdash; solid IMDb overlay, but narrower feature set. Every other option we tested is either abandoned, paywalled, or significantly worse.</p>
+            <p><strong>Best overall:</strong> <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-imdb-extension&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> &mdash; IMDb + Rotten Tomatoes ratings on every title, AI recommendations, taste-match score, and multi-platform support. Free. <strong>Runner-up:</strong> Trim &mdash; solid IMDb overlay, but narrower feature set. Every other option we tested is either abandoned, paywalled, or significantly worse.</p>
         </div>
 
         <p>Netflix removed its own star ratings back in 2017, replacing them with a near-useless "percentage match" score based entirely on its own opaque algorithm. Since then, millions of users have turned to Chrome extensions to bring real, independent IMDb and Rotten Tomatoes ratings back to their Netflix browsing experience.</p>
@@ -231,7 +231,7 @@
 
         <h2>CineMan AI: The Best Netflix IMDb Extension in 2026</h2>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> is the most feature-complete Netflix IMDb extension available. It goes well beyond a simple rating overlay &mdash; it adds genuine AI-powered recommendation intelligence to the browsing experience.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-imdb-extension&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> is the most feature-complete Netflix IMDb extension available. It goes well beyond a simple rating overlay &mdash; it adds genuine AI-powered recommendation intelligence to the browsing experience.</p>
 
         <h3>What CineMan AI Does</h3>
 
@@ -389,7 +389,7 @@
 
         <ol>
             <li>Open Chrome on your desktop or laptop (extensions require desktop Chrome)</li>
-            <li>Go to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome Web Store page</a></li>
+            <li>Go to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-imdb-extension&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome Web Store page</a></li>
             <li>Click "Add to Chrome"</li>
             <li>Confirm the permission request</li>
             <li>Open Netflix &mdash; ratings appear automatically on every title</li>
@@ -461,7 +461,7 @@
         <div class="cta-box">
             <h2>Add IMDb + RT Ratings to Netflix Right Now</h2>
             <p>Free forever. Installs in 60 seconds. IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every title.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=netflix-imdb-extension&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -496,7 +496,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

@@ -113,7 +113,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-odyssey-christopher-nolan-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -136,7 +136,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Christopher Nolan is directing The Odyssey, a $250M IMAX 70mm adaptation of Homer&rsquo;s epic poem, arriving July 17, 2026. The cast includes Matt Damon, Tom Holland, Anne Hathaway, Zendaya, Lupita Nyong&rsquo;o, Robert Pattinson, and Charlize Theron. It is Nolan&rsquo;s biggest production to date. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to track its ratings the moment it hits streaming.</p>
+            <p>Christopher Nolan is directing The Odyssey, a $250M IMAX 70mm adaptation of Homer&rsquo;s epic poem, arriving July 17, 2026. The cast includes Matt Damon, Tom Holland, Anne Hathaway, Zendaya, Lupita Nyong&rsquo;o, Robert Pattinson, and Charlize Theron. It is Nolan&rsquo;s biggest production to date. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-odyssey-christopher-nolan-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to track its ratings the moment it hits streaming.</p>
         </div>
 
         <p>Christopher Nolan does not make small films. From the reality-bending layers of Inception to the harrowing silence of Dunkirk to the three-hour atomic intensity of Oppenheimer, every Nolan project feels like an event. But The Odyssey might be the biggest event of them all. With a reported budget of $250 million, a cast that reads like a Hollywood all-star roster, and a commitment to shooting the entire film on IMAX 70mm film, Nolan is adapting one of the oldest and most celebrated stories in Western literature into what could be the defining blockbuster of 2026.</p>
@@ -293,7 +293,7 @@
 
         <h2>Track The Odyssey&rsquo;s Ratings with CineMan</h2>
 
-        <p>When The Odyssey releases in theaters this July, early audience scores and critic reviews will arrive quickly. And when the film eventually lands on streaming platforms, <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> will overlay its IMDb score, Rotten Tomatoes rating, and a personal taste-match percentage directly on the title card. No tab-switching, no Googling &mdash; just glance at the poster and know immediately whether it is worth your time.</p>
+        <p>When The Odyssey releases in theaters this July, early audience scores and critic reviews will arrive quickly. And when the film eventually lands on streaming platforms, <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-odyssey-christopher-nolan-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> will overlay its IMDb score, Rotten Tomatoes rating, and a personal taste-match percentage directly on the title card. No tab-switching, no Googling &mdash; just glance at the poster and know immediately whether it is worth your time.</p>
 
         <p>CineMan works across Netflix, Prime Video, Disney+, and more. It is free, installs in seconds, and turns every browsing session into an informed one. For a film this anticipated, you will want to see how its scores compare to the rest of Nolan&rsquo;s filmography the moment they are available.</p>
 
@@ -331,7 +331,7 @@
         <div class="cta-box">
             <h2>Never Miss a Rating on Nolan&rsquo;s Next Masterpiece</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste match on every streaming title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=the-odyssey-christopher-nolan-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -366,7 +366,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

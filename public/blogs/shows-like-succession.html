@@ -62,7 +62,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-succession&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -82,7 +82,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Succession ended, but the genre it defined did not. These 15 dramas &mdash; ranging from investment-bank thrillers to dynastic soap operas &mdash; give you the same mix of power, wit, and beautifully terrible people. Ranked by a composite of IMDb and Rotten Tomatoes scores. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every tile as you browse.</p>
+            <p>Succession ended, but the genre it defined did not. These 15 dramas &mdash; ranging from investment-bank thrillers to dynastic soap operas &mdash; give you the same mix of power, wit, and beautifully terrible people. Ranked by a composite of IMDb and Rotten Tomatoes scores. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-succession&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every tile as you browse.</p>
         </div>
 
         <p>Succession is probably the most rewatchable prestige drama of the streaming era. The bad news: there will never be another Succession. The good news: there are a surprising number of shows that do one or two of the things it did brilliantly, and a handful that come remarkably close across the board. Ranked below, with a focus on what specific itch each one scratches.</p>
@@ -146,7 +146,7 @@
 
         <h2>The Watchlist Problem</h2>
 
-        <p>These 15 shows are scattered across seven streaming services with different pricing tiers, regional availability, and rotating catalogs. Deciding which one to start next becomes its own job. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes scores on every streaming tile, so you can instantly compare prestige dramas across your subscriptions and pick with confidence.</p>
+        <p>These 15 shows are scattered across seven streaming services with different pricing tiers, regional availability, and rotating catalogs. Deciding which one to start next becomes its own job. The free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-succession&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes scores on every streaming tile, so you can instantly compare prestige dramas across your subscriptions and pick with confidence.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -171,7 +171,7 @@
         <div class="cta-box">
             <h2>Every Streaming Rating, One Chrome Extension</h2>
             <p>See IMDb, Rotten Tomatoes, and a personal taste match on every tile. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=shows-like-succession&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -204,7 +204,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

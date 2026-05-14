@@ -62,7 +62,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=star-wars-maul-shadow-lord-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -82,7 +82,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Star Wars: Maul &mdash; Shadow Lord is airing on Disney+, with two episodes weekly through May 4, 2026. Rotten Tomatoes 91 percent, IMDb 8.4. Sam Witwer returns as Maul; the series follows him post-Clone Wars on a newly introduced planet called Janix. Strong start, potentially the best Star Wars animated series since The Clone Wars. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Disney+ tile.</p>
+            <p>Star Wars: Maul &mdash; Shadow Lord is airing on Disney+, with two episodes weekly through May 4, 2026. Rotten Tomatoes 91 percent, IMDb 8.4. Sam Witwer returns as Maul; the series follows him post-Clone Wars on a newly introduced planet called Janix. Strong start, potentially the best Star Wars animated series since The Clone Wars. Install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=star-wars-maul-shadow-lord-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see ratings on every Disney+ tile.</p>
         </div>
 
         <p>Star Wars: Maul &mdash; Shadow Lord is the most confident animated series Lucasfilm has put out in years. Sam Witwer, reprising the role he has voiced since The Clone Wars, finally gets the standalone Maul story fans have asked for since 2014, set after the Clone Wars but before Rebels, with the ex-Sith trying to build a criminal empire on a planet the Empire has never touched. Here is our week-four assessment, the full release schedule, and where it fits into the broader Star Wars universe.</p>
@@ -155,7 +155,7 @@
 
         <p><strong>Wait for the full drop on May 4 if</strong> you prefer binge-watching, or if you are not deep enough into Star Wars lore for weekly cliffhangers to feel rewarding.</p>
 
-        <p>You can see real-time Rotten Tomatoes and IMDb scores on every Disney+ tile (Maul: Shadow Lord included) by installing the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension. It also overlays a personal taste match score on every title, so you can tell which Star Wars shows align with your specific taste before committing.</p>
+        <p>You can see real-time Rotten Tomatoes and IMDb scores on every Disney+ tile (Maul: Shadow Lord included) by installing the free <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=star-wars-maul-shadow-lord-review&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension. It also overlays a personal taste match score on every title, so you can tell which Star Wars shows align with your specific taste before committing.</p>
 
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
@@ -180,7 +180,7 @@
         <div class="cta-box">
             <h2>See Star Wars Ratings on Every Disney+ Tile</h2>
             <p>IMDb and Rotten Tomatoes scores directly overlaid on every Disney+, Netflix, and Prime Video title. Free.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=star-wars-maul-shadow-lord-review&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -213,7 +213,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

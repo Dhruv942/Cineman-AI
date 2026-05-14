@@ -97,7 +97,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-inception&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -120,7 +120,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Shutter Island, Memento, and The Prestige scratch the same itch. For deeper rabbit holes: Predestination, Dark City, and Primer. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and RT ratings on every streaming title and discover mind-bending films the algorithm misses.</p>
+            <p>Shutter Island, Memento, and The Prestige scratch the same itch. For deeper rabbit holes: Predestination, Dark City, and Primer. Use <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-inception&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> to see IMDb and RT ratings on every streaming title and discover mind-bending films the algorithm misses.</p>
         </div>
 
         <p>Inception earned over $800 million at the box office by proving that audiences will happily follow a labyrinthine plot as long as the emotional stakes are clear. The dream-within-a-dream structure is not just a gimmick &mdash; it mirrors the film's real subject, which is how grief traps us in recursive loops of memory and regret. The spinning top is still being debated fifteen years later because the film earns that ambiguity through rigorous internal logic rather than lazy mystification.</p>
@@ -191,7 +191,7 @@
 
         <p>This is why ratings alone are not enough to find films that match your taste. A film might have a lower IMDb score because casual viewers found it confusing on a single watch, while dedicated fans consider it a masterpiece. What you need is a system that understands not just quality but compatibility &mdash; how well a specific film's sensibility matches yours.</p>
 
-        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> addresses this by combining IMDb and Rotten Tomatoes ratings with a personal taste-match score. Our guide on <a href="/blogs/netflix-decision-fatigue-paradox-of-choice.html">Netflix decision fatigue</a> explains why having too many options without good filtering leads to worse choices, and our piece on <a href="/blogs/beyond-ratings-why-taste-match-beats-imdb.html">why taste match beats IMDb</a> dives into the limitations of aggregate ratings for personal recommendations.</p>
+        <p><a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-inception&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> addresses this by combining IMDb and Rotten Tomatoes ratings with a personal taste-match score. Our guide on <a href="/blogs/netflix-decision-fatigue-paradox-of-choice.html">Netflix decision fatigue</a> explains why having too many options without good filtering leads to worse choices, and our piece on <a href="/blogs/beyond-ratings-why-taste-match-beats-imdb.html">why taste match beats IMDb</a> dives into the limitations of aggregate ratings for personal recommendations.</p>
 
         <!-- FAQ Section -->
         <section class="faq-section">
@@ -217,7 +217,7 @@
         <div class="cta-box">
             <h2>Discover Your Next Mind-Bending Obsession</h2>
             <p>See IMDb and Rotten Tomatoes ratings on every streaming title. Get personal taste-match scores powered by AI. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=movies-like-inception&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -252,7 +252,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

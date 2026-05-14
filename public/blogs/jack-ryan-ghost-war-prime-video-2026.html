@@ -83,7 +83,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=jack-ryan-ghost-war-prime-video-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -103,7 +103,7 @@
 
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>John Krasinski returns as Jack Ryan in <strong>Ghost War</strong>, a feature-length follow-up to the four-season Prime Video series. It premieres <strong>May 20, 2026</strong> on Prime Video. Expect modern geopolitical thriller territory with a tighter, two-hour runtime instead of an eight-episode arc. To see ratings on every Prime Video title as you browse, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a>.</p>
+            <p>John Krasinski returns as Jack Ryan in <strong>Ghost War</strong>, a feature-length follow-up to the four-season Prime Video series. It premieres <strong>May 20, 2026</strong> on Prime Video. Expect modern geopolitical thriller territory with a tighter, two-hour runtime instead of an eight-episode arc. To see ratings on every Prime Video title as you browse, install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=jack-ryan-ghost-war-prime-video-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a>.</p>
         </div>
 
         <p>The Jack Ryan series ended in 2023 after four seasons that did roughly what Prime Video hired it to do: deliver competent, glossy, mid-budget geopolitical thriller for the audience that grew up on Tom Clancy paperbacks. Ratings were solid, never spectacular. The series finale tied things up neatly. So a return three years later raised eyebrows. Why now? And what shape would it take?</p>
@@ -160,7 +160,7 @@
 
         <h2>What to Watch on Prime Video Until May 20</h2>
 
-        <p>Prime Video&rsquo;s May lineup is unusually deep. Citadel Season 2 is dropping, Spider-Noir lands with Nicolas Cage at the end of the month, and Good Omens Season 3 closes out one of the platform&rsquo;s most distinctive shows. While you wait for Ghost War, the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes scores on every Prime Video card &mdash; a fast way to pick from the new releases without flipping tabs.</p>
+        <p>Prime Video&rsquo;s May lineup is unusually deep. Citadel Season 2 is dropping, Spider-Noir lands with Nicolas Cage at the end of the month, and Good Omens Season 3 closes out one of the platform&rsquo;s most distinctive shows. While you wait for Ghost War, the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=jack-ryan-ghost-war-prime-video-2026&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> Chrome extension overlays IMDb and Rotten Tomatoes scores on every Prime Video card &mdash; a fast way to pick from the new releases without flipping tabs.</p>
 
         <h2>Bottom Line</h2>
 
@@ -193,7 +193,7 @@
         <div class="cta-box">
             <h2>See Ratings on Every Prime Video Title</h2>
             <p>IMDb scores, Rotten Tomatoes ratings, and a personal taste-match score on every title. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=jack-ryan-ghost-war-prime-video-2026&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <section class="related-posts">
@@ -226,7 +226,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>

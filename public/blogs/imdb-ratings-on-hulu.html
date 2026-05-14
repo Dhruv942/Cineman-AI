@@ -105,7 +105,7 @@
             <div class="blog-nav-links">
                 <a href="/">Home</a>
                 <a href="/blogs/">Blog</a>
-                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
+                <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-hulu&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add to Chrome &mdash; Free</a>
             </div>
         </div>
     </nav>
@@ -128,7 +128,7 @@
         <!-- TL;DR -->
         <div class="tldr-box">
             <h3>TL;DR</h3>
-            <p>Hulu hides IMDb and Rotten Tomatoes ratings. To see them: install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> (free Chrome extension) &rarr; open Hulu &rarr; both IMDb and RT scores appear automatically on every title. No settings, no manual lookup. Works in 60 seconds.</p>
+            <p>Hulu hides IMDb and Rotten Tomatoes ratings. To see them: install <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-hulu&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> (free Chrome extension) &rarr; open Hulu &rarr; both IMDb and RT scores appear automatically on every title. No settings, no manual lookup. Works in 60 seconds.</p>
         </div>
 
         <p>Hulu is one of the most content-rich streaming platforms available in 2026, with an unusually strong library of current-season network TV, FX originals, and licensed film content. The frustrating part: like Netflix and Disney+, Hulu gives you almost no quality signal on its browse interface. No IMDb scores. No Rotten Tomatoes ratings. Just thumbnails, genre tags, and a brief description.</p>
@@ -150,7 +150,7 @@
         <h3>Step 1: Install CineMan AI</h3>
         <ol>
             <li>Open Chrome on your desktop or laptop</li>
-            <li>Go to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI Chrome Web Store page</a></li>
+            <li>Go to the <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-hulu&utm_medium=cta" target="_blank" rel="noopener">CineMan AI Chrome Web Store page</a></li>
             <li>Click "Add to Chrome"</li>
             <li>Click "Add extension" in the confirmation popup</li>
         </ol>
@@ -165,7 +165,7 @@
 
         <h2>What CineMan AI Shows on Hulu</h2>
 
-        <p>Beyond the basic IMDb and RT overlay, <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" target="_blank" rel="noopener">CineMan AI</a> adds several layers of information that make Hulu browsing significantly more useful:</p>
+        <p>Beyond the basic IMDb and RT overlay, <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-hulu&utm_medium=cta" target="_blank" rel="noopener">CineMan AI</a> adds several layers of information that make Hulu browsing significantly more useful:</p>
 
         <ul>
             <li><strong>IMDb rating</strong> &mdash; the aggregate user score from millions of votes on a 1–10 scale</li>
@@ -233,7 +233,7 @@
         <div class="cta-box">
             <h2>Add IMDb Ratings to Hulu Right Now</h2>
             <p>IMDb and Rotten Tomatoes scores on every Hulu title. Also works on Netflix, Prime Video, Disney+. Free forever.</p>
-            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=item-share-cb" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
+            <a href="https://chromewebstore.google.com/detail/njcngpedlikhdhhakgippnpnhokgdjci?utm_source=blog&utm_campaign=imdb-ratings-on-hulu&utm_medium=cta" class="blog-cta-button" target="_blank" rel="noopener">Add CineMan to Chrome &mdash; Free</a>
         </div>
 
         <!-- Related Posts -->
@@ -268,7 +268,21 @@
   var u=new URLSearchParams(location.search);
   function send(ev,props){try{fetch(W,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({event:ev,properties:props,source:"website",timestamp:new Date().toISOString()}),mode:"no-cors"}).catch(function(){});}catch(e){}}
   send("page_view",{page:location.pathname,referrer:document.referrer,utm_source:u.get("utm_source")||"",utm_medium:u.get("utm_medium")||"",utm_campaign:u.get("utm_campaign")||""});
-  document.addEventListener("click",function(e){var t=e.target.closest("a,button");if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1)send("cta_click",{page:location.pathname,text:t.textContent.trim()});});
+  var lastTs=0,lastText="";
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("a,button");
+    if(t&&(t.textContent||"").indexOf("Add to Chrome")>-1){
+      lastTs=Date.now();
+      lastText=t.textContent.trim();
+      send("cta_click",{page:location.pathname,text:lastText});
+    }
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden&&lastTs&&(Date.now()-lastTs<3000)){
+      send("cta_navigated_away",{page:location.pathname,text:lastText,delay_ms:Date.now()-lastTs});
+      lastTs=0;
+    }
+  });
 })();
 </script>
 </body>
