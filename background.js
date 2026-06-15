@@ -582,7 +582,10 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     cmLogger.log('installed');
     extractAndBuildProfile();
-    // Don't auto-open a tab — user will use the extension popup which goes straight to onboarding
+    // Open the in-extension landing/onboarding tab so first-time users see what
+    // they got. Without this, users who installed from the Web Store see nothing
+    // happen and forget about it.
+    openCineManApp();
   }
 });
 

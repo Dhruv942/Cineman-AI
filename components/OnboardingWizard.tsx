@@ -3,6 +3,25 @@ import type { StableUserPreferences } from '../types';
 import { MOVIE_FREQUENCIES, ACTOR_DIRECTOR_PREFERENCES, MOVIE_LANGUAGES, OTT_PLATFORMS, MOVIE_ERAS, MOVIE_DURATIONS, SERIES_SEASON_COUNTS, ICONS, CINE_SUGGEST_STABLE_PREFERENCES_KEY, CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, TOTAL_ONBOARDING_STEPS, ONBOARDING_STEP_MILESTONES, COUNTRIES } from '../constants';
 import { trackEvent } from '../services/analyticsService';
 
+// Extension popup vs website: App.tsx initializes from chrome.storage.local in
+// extension mode and falls back to localStorage on the web. If we only write to
+// localStorage here, the extension popup's "is onboarding done?" check on next
+// open misses it and re-shows onboarding — the boomerang loop. Write to both.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const chrome: any;
+function persistAcrossStores(values: Record<string, string>) {
+  try {
+    if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
+      chrome.storage.local.set(values);
+    }
+  } catch { /* not in extension context */ }
+  try {
+    for (const [k, v] of Object.entries(values)) {
+      localStorage.setItem(k, v);
+    }
+  } catch { /* localStorage may be blocked */ }
+}
+
 interface OnboardingWizardProps {
   onComplete: (preferences: StableUserPreferences) => void;
   initialData?: StableUserPreferences;
@@ -203,9 +222,14 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete, 
     if (finalPreferences.country === '') {
         finalPreferences.country = COUNTRIES.find(c => c.code === 'any')?.code || 'any';
     }
-    localStorage.setItem(CINE_SUGGEST_STABLE_PREFERENCES_KEY, JSON.stringify(finalPreferences));
+    const persistedValues: Record<string, string> = {
+      [CINE_SUGGEST_STABLE_PREFERENCES_KEY]: JSON.stringify(finalPreferences),
+    };
     if (!isEditMode) {
-      localStorage.setItem(CINE_SUGGEST_ONBOARDING_COMPLETE_KEY, 'true');
+      persistedValues[CINE_SUGGEST_ONBOARDING_COMPLETE_KEY] = 'true';
+    }
+    persistAcrossStores(persistedValues);
+    if (!isEditMode) {
       trackEvent('onboarding_complete', {
         frequency: finalPreferences.movieFrequency,
         actor_director: finalPreferences.actorDirectorPreference,
